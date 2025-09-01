@@ -6,9 +6,9 @@ export default function TransactionsPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>All Transactions</CardTitle>
+                    <CardTitle>Todas las Transacciones</CardTitle>
                     <CardDescription>
-                        A full table of all transactions with filtering and sorting options will be displayed here.
+                        Aquí se mostrará una tabla completa de todas las transacciones con opciones de filtrado y ordenación.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

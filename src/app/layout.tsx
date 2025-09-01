@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'FA Vision - Your Personal Power BI',
-  description: 'Integral financial management for personal, family, and business needs.',
+  title: 'FA Vision - Tu Power BI Personal',
+  description: 'Gestión financiera integral para necesidades personales, familiares y de negocios.',
   icons: {
     icon: '/favicon.ico',
   }

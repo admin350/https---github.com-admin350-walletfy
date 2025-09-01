@@ -6,21 +6,21 @@ export default function SettingsPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Settings</CardTitle>
+                    <CardTitle>Configuración</CardTitle>
                     <CardDescription>
-                        Manage your workspaces, transaction categories, and account settings here.
+                        Gestiona tus espacios de trabajo, categorías de transacciones y configuración de la cuenta aquí.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <h3 className="font-semibold mb-2">Manage Categories</h3>
-                        <p className="text-muted-foreground mb-3">Create, edit, and delete your custom categories for income and expenses.</p>
-                        <Button>Manage Categories</Button>
+                        <h3 className="font-semibold mb-2">Gestionar Categorías</h3>
+                        <p className="text-muted-foreground mb-3">Crea, edita y elimina tus categorías personalizadas para ingresos y gastos.</p>
+                        <Button>Gestionar Categorías</Button>
                     </div>
                      <div>
-                        <h3 className="font-semibold mb-2">Manage Workspaces</h3>
-                        <p className="text-muted-foreground mb-3">Switch between or create new workspaces.</p>
-                        <Button>Manage Workspaces</Button>
+                        <h3 className="font-semibold mb-2">Gestionar Espacios de Trabajo</h3>
+                        <p className="text-muted-foreground mb-3">Cambia entre espacios de trabajo o crea nuevos.</p>
+                        <Button>Gestionar Espacios de Trabajo</Button>
                     </div>
                 </CardContent>
             </Card>

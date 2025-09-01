@@ -6,9 +6,9 @@ export default function DebtsPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Debts & Subscriptions</CardTitle>
+                    <CardTitle>Deudas y Suscripciones</CardTitle>
                      <CardDescription>
-                        A module to register debts with total amount, interest rate, and monthly payment, and to track recurring payments.
+                        Un módulo para registrar deudas con monto total, tasa de interés y pago mensual, y para rastrear pagos recurrentes.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

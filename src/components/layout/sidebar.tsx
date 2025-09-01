@@ -7,10 +7,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/transactions", icon: List, label: "Transactions" },
-  { href: "/dashboard/debts", icon: PiggyBank, label: "Debts & Subscriptions" },
-  { href: "/dashboard/goals", icon: Target, label: "Savings Goals" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
+  { href: "/dashboard/transactions", icon: List, label: "Transacciones" },
+  { href: "/dashboard/debts", icon: PiggyBank, label: "Deudas y Suscripciones" },
+  { href: "/dashboard/goals", icon: Target, label: "Metas de Ahorro" },
 ];
 
 export function Sidebar() {
@@ -31,7 +31,7 @@ export function Sidebar() {
         {navItems.map((item) => (
           <Link href={item.href} key={item.label}>
             <Button
-              variant={pathname.startsWith(item.href) ? "secondary" : "ghost"}
+              variant={pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? "secondary" : "ghost"}
               className="w-full justify-start gap-3 px-3"
             >
               <item.icon className="h-5 w-5" />
@@ -48,7 +48,7 @@ export function Sidebar() {
               className="w-full justify-start gap-3 px-3"
             >
               <Settings className="h-5 w-5" />
-              Settings
+              Configuración
             </Button>
         </Link>
         <UserMenu />
@@ -64,27 +64,27 @@ function WorkspaceSwitcher() {
         <Button variant="outline" className="w-full justify-between">
           <div className="flex items-center gap-2">
             <Building className="h-4 w-4" />
-            <span className="truncate">Personal Finance</span>
+            <span className="truncate">Finanzas Personales</span>
           </div>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+        <DropdownMenuLabel>Espacios de Trabajo</DropdownMenuLabel>
         <DropdownMenuItem>
           <Building className="mr-2 h-4 w-4" />
-          Personal Finance
+          Finanzas Personales
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Building className="mr-2 h-4 w-4" />
-          Family
+          Familia
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Building className="mr-2 h-4 w-4" />
           FA Brokers
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Create Workspace</DropdownMenuItem>
+        <DropdownMenuItem>Crear Espacio de Trabajo</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -96,22 +96,22 @@ function UserMenu() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-auto w-full justify-start gap-3 px-3 py-2 text-left">
               <Avatar className="h-9 w-9">
-                <AvatarImage data-ai-hint="profile picture" src="https://picsum.photos/100" alt="User" />
+                <AvatarImage data-ai-hint="profile picture" src="https://picsum.photos/100" alt="Usuario" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
               <div>
-                 <p className="truncate text-sm font-semibold">User Name</p>
-                 <p className="text-xs text-muted-foreground">user@favision.com</p>
+                 <p className="truncate text-sm font-semibold">Nombre de Usuario</p>
+                 <p className="text-xs text-muted-foreground">usuario@favision.com</p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
+            <DropdownMenuItem>Perfil</DropdownMenuItem>
+            <DropdownMenuItem>Facturación</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
     )
