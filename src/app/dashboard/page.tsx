@@ -1,4 +1,3 @@
-
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -12,8 +11,15 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
+import { useState, useEffect } from "react";
 
 export default function DashboardPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const totalIncome = 5000;
   const totalExpenses = 2750;
   const netBalance = totalIncome - totalExpenses;
@@ -22,10 +28,21 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Ingresos del Mes" value={`$${totalIncome.toLocaleString()}`} icon={TrendingUp} description="Este es el 100% del presupuesto" />
-        <KpiCard title="Egresos del Mes" value={`$${totalExpenses.toLocaleString()}`} icon={TrendingDown} description={`${((totalExpenses/totalIncome)*100).toFixed(1)}% del ingreso`} />
-        <KpiCard title="Balance Neto" value={`$${netBalance.toLocaleString()}`} icon={DollarSign} description="Ingresos - Egresos" />
-        <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
+        {isClient ? (
+          <>
+            <KpiCard title="Ingresos del Mes" value={`$${totalIncome.toLocaleString('es-ES')}`} icon={TrendingUp} description="Este es el 100% del presupuesto" />
+            <KpiCard title="Egresos del Mes" value={`$${totalExpenses.toLocaleString('es-ES')}`} icon={TrendingDown} description={`${((totalExpenses/totalIncome)*100).toFixed(1)}% del ingreso`} />
+            <KpiCard title="Balance Neto" value={`$${netBalance.toLocaleString('es-ES')}`} icon={DollarSign} description="Ingresos - Egresos" />
+            <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
+          </>
+        ) : (
+          <>
+            <KpiCard title="Ingresos del Mes" value="$5000" icon={TrendingUp} description="Este es el 100% del presupuesto" />
+            <KpiCard title="Egresos del Mes" value="$2750" icon={TrendingDown} description="55.0% del ingreso" />
+            <KpiCard title="Balance Neto" value="$2250" icon={DollarSign} description="Ingresos - Egresos" />
+            <KpiCard title="Tasa de Ahorro" value="45.0%" icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
+          </>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
