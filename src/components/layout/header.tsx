@@ -100,12 +100,6 @@ function UserMenu() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/dashboard">Perfil</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard">Facturación</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
               <Link href="/dashboard/settings">Configuración</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
