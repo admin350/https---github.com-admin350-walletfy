@@ -45,7 +45,6 @@ export function Header() {
           <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-4">
-           <WorkspaceSwitcher />
            <UserMenu />
         </div>
       </div>
@@ -60,9 +59,6 @@ function MobileSidebar() {
             <div className="flex items-center gap-2 text-2xl font-bold text-primary mb-8">
                 <Rocket className="h-7 w-7" />
                 <h1 className="font-headline">FA Vision</h1>
-            </div>
-            <div className="mb-4">
-                <WorkspaceSwitcher />
             </div>
             <nav className="grid gap-2 text-lg font-medium">
                 {navItems.map((item) => (
@@ -84,39 +80,6 @@ function MobileSidebar() {
             </div>
         </div>
     )
-}
-
-function WorkspaceSwitcher({ className }: { className?: string }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className={`w-full justify-between ${className}`}>
-          <div className="flex items-center gap-2">
-            <Building className="mr-2 h-4 w-4" />
-            <span className="truncate">Finanzas Personales</span>
-          </div>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Espacios de Trabajo</DropdownMenuLabel>
-        <DropdownMenuItem>
-          <Building className="mr-2 h-4 w-4" />
-          Finanzas Personales
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Building className="mr-2 h-4 w-4" />
-          Familia
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Building className="mr-2 h-4 w-4" />
-          FA Brokers
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>Crear Espacio de Trabajo</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 }
 
 function UserMenu() {

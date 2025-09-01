@@ -41,6 +41,7 @@ const formSchema = z.object({
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
   description: z.string().min(2, { message: "Descripción es muy corta." }),
   category: z.string().min(1, { message: "Categoría es requerida." }),
+  profile: z.string().min(1, { message: "El perfil es requerido."}),
   date: z.date({ required_error: "Fecha es requerida." }),
 });
 
@@ -57,6 +58,7 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
             amount: 0,
             description: "",
             category: "",
+            profile: "",
             date: new Date(),
         },
     });
@@ -131,6 +133,28 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                         <FormControl>
                             <Input placeholder="Ej: Compra semanal" {...field} />
                         </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="profile"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Perfil</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona un perfil" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="personal">Personal</SelectItem>
+                                <SelectItem value="business">Negocio</SelectItem>
+                                <SelectItem value="family">Familia</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <FormMessage />
                         </FormItem>
                     )}
