@@ -4,9 +4,9 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, PiggyBank, Target, Settings, Repeat } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePathname } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogOut } from "lucide-react";
+
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
@@ -45,7 +45,10 @@ export function Header() {
           <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-4">
-           <UserMenu />
+           <Button variant="ghost">
+            <LogOut className="mr-2 h-4 w-4" />
+            Cerrar Sesión
+           </Button>
         </div>
       </div>
     </header>
@@ -80,31 +83,4 @@ function MobileSidebar() {
             </div>
         </div>
     )
-}
-
-function UserMenu() {
-    return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
-                 <AvatarImage data-ai-hint="profile picture" src="https://picsum.photos/100" alt="Usuario" />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-               <p className="truncate text-sm font-semibold">Nombre de Usuario</p>
-               <p className="text-xs text-muted-foreground">usuario@favision.com</p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings">Configuración</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-    );
 }
