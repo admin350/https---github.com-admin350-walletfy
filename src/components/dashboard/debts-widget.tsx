@@ -5,38 +5,38 @@ import { es } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
 import type { UpcomingPayment } from '@/types';
 
-const generateUpcomingPayments = (): UpcomingPayment[] => [
-  { id: '1', name: "Suscripción Netflix", amount: 15.99, dueDate: addDays(new Date(), 3) },
-  { id: '4', name: "Spotify", amount: 9.99, dueDate: addDays(new Date(), 12) },
+const generateDebts = (): UpcomingPayment[] => [
+  { id: '2', name: "Cuota Préstamo Auto", amount: 350, dueDate: addDays(new Date(), 7) },
+  { id: '3', name: "Alquiler", amount: 800, dueDate: addDays(new Date(), 10) },
 ];
 
 
-export function UpcomingPaymentsWidget() {
-  const [payments, setPayments] = useState<UpcomingPayment[]>([]);
+export function DebtsWidget() {
+  const [debts, setDebts] = useState<UpcomingPayment[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setPayments(generateUpcomingPayments());
+    setDebts(generateDebts());
     setIsClient(true);
   }, []);
 
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
-        <CardTitle>Próximas Suscripciones</CardTitle>
-        <CardDescription>Suscripciones que vencen pronto.</CardDescription>
+        <CardTitle>Próximas Deudas</CardTitle>
+        <CardDescription>Cuotas de deudas que vencen pronto.</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-3">
-          {isClient ? payments.map((payment) => (
-            <li key={payment.id} className="flex justify-between items-center">
+          {isClient ? debts.map((debt) => (
+            <li key={debt.id} className="flex justify-between items-center">
               <div>
-                <p className="font-medium">{payment.name}</p>
+                <p className="font-medium">{debt.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  Vence: {format(payment.dueDate, "dd 'de' MMMM", { locale: es })}
+                  Vence: {format(debt.dueDate, "dd 'de' MMMM", { locale: es })}
                 </p>
               </div>
-              <p className="font-semibold text-base">${payment.amount.toLocaleString('es-ES')}</p>
+              <p className="font-semibold text-base">${debt.amount.toLocaleString('es-ES')}</p>
             </li>
           )) : (
             Array.from({ length: 2 }).map((_, i) => (
