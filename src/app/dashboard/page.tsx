@@ -1,3 +1,5 @@
+
+'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt } from "lucide-react";
