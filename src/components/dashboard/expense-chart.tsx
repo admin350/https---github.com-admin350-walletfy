@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { category: "Vivienda", amount: 800000, fill: "hsl(var(--chart-1))" },
-  { category: "Transporte", amount: 400000, fill: "hsl(var(--chart-2))" },
-  { category: "Comida", amount: 600000, fill: "hsl(var(--chart-3))" },
-  { category: "Ocio", amount: 350000, fill: "hsl(var(--chart-4))" },
-  { category: "Otros", amount: 600000, fill: "hsl(var(--chart-5))" },
+  { category: "Vivienda", amount: 800000, fill: "#3b82f6" }, // Blue
+  { category: "Transporte", amount: 400000, fill: "#8b5cf6" }, // Violet
+  { category: "Comida", amount: 600000, fill: "#14b8a6" }, // Teal
+  { category: "Ocio", amount: 350000, fill: "#f97316" }, // Orange
+  { category: "Otros", amount: 600000, fill: "#ec4899" }, // Pink
 ]
 
 const chartConfig = {
