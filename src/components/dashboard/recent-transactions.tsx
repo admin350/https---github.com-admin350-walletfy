@@ -1,7 +1,9 @@
+'use client';
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 
 const mockTransactions = [
   { type: "income", description: "Salario Mensual", amount: 2500, category: "Ingresos" },
@@ -13,6 +15,12 @@ const mockTransactions = [
 
 
 export function RecentTransactions() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
@@ -31,7 +39,7 @@ export function RecentTransactions() {
                 <Badge variant="outline">{t.category}</Badge>
               </div>
               <div className={`font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                {t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()}
+                {isClient ? `${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString('es-ES')}`: `${t.type === 'income' ? '+' : '-'}$${t.amount}`}
               </div>
             </div>
           ))}
