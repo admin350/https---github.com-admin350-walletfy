@@ -1,12 +1,15 @@
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt } from "lucide-react";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
 import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
+import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 
 export default function DashboardPage() {
   const totalIncome = 5000;
@@ -39,12 +42,33 @@ export default function DashboardPage() {
       </div>
 
       <div className="fixed bottom-6 right-6">
-        <AddTransactionDialog>
-          <Button size="lg" className="rounded-full shadow-lg">
-            <PlusCircle className="mr-2 h-6 w-6" />
-            Añadir Transacción
-          </Button>
-        </AddTransactionDialog>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button size="lg" className="rounded-full shadow-lg h-16 w-16">
+                    <PlusCircle className="h-8 w-8" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="mb-2">
+                <AddTransactionDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Receipt className="mr-2 h-4 w-4" />
+                        Añadir Transacción
+                    </DropdownMenuItem>
+                </AddTransactionDialog>
+                 <AddDebtDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Añadir Deuda
+                    </DropdownMenuItem>
+                </AddDebtDialog>
+                <AddSubscriptionDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <PiggyBank className="mr-2 h-4 w-4" />
+                        Añadir Suscripción
+                    </DropdownMenuItem>
+                </AddSubscriptionDialog>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
