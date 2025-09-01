@@ -16,17 +16,15 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname();
-  const pageTitle = navItems.find(item => pathname.startsWith(item.href))?.label || "Configuración";
-  if (pathname === '/dashboard') {
-    return null; // No header on the main dashboard page for a cleaner look
-  }
-
+  const pageTitle = navItems.find(item => pathname === item.href)?.label || 
+                  navItems.find(item => item.href !== "/dashboard" && pathname.startsWith(item.href))?.label || 
+                  "Panel";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="md:hidden">
+          <Button variant="outline" size="icon">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Alternar menú de navegación</span>
           </Button>
@@ -36,7 +34,13 @@ export function Header() {
         </SheetContent>
       </Sheet>
       
-      <h1 className="text-xl font-semibold">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
+      <div className="flex w-full items-center justify-between">
+        <h1 className="text-xl font-semibold">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
+        <div className="flex items-center gap-4">
+           <WorkspaceSwitcher className="hidden sm:flex"/>
+           <UserMenu />
+        </div>
+      </div>
     </header>
   );
 }
@@ -49,7 +53,7 @@ function MobileSidebar() {
                 <Rocket className="h-7 w-7" />
                 <h1 className="font-headline">FA Vision</h1>
             </div>
-            <div className="mb-4">
+            <div className="mb-4 sm:hidden">
                 <WorkspaceSwitcher />
             </div>
             <nav className="grid gap-2 text-lg font-medium">
@@ -57,7 +61,7 @@ function MobileSidebar() {
                     <Link
                         href={item.href}
                         key={item.label}
-                        className={`flex items-center gap-4 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname.startsWith(item.href) ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                        className={`flex items-center gap-4 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? "bg-muted text-primary" : "text-muted-foreground"}`}
                     >
                         <item.icon className="h-5 w-5" />
                         {item.label}
@@ -69,17 +73,16 @@ function MobileSidebar() {
                     <Settings className="h-5 w-5" />
                     Configuración
                 </Link>
-                <UserMenu />
             </div>
         </>
     )
 }
 
-function WorkspaceSwitcher() {
+function WorkspaceSwitcher({ className }: { className?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-between">
+        <Button variant="outline" className={`w-full justify-between ${className}`}>
           <div className="flex items-center gap-2">
             <Building className="mr-2 h-4 w-4" />
             <span className="truncate">Finanzas Personales</span>
@@ -87,7 +90,7 @@ function WorkspaceSwitcher() {
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[calc(100vw-3rem)] sm:w-60">
+      <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Espacios de Trabajo</DropdownMenuLabel>
         <DropdownMenuItem>
           <Building className="mr-2 h-4 w-4" />
@@ -112,20 +115,21 @@ function UserMenu() {
     return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-auto w-full justify-start gap-3 p-2 text-left">
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
                  <AvatarImage data-ai-hint="profile picture" src="https://picsum.photos/100" alt="Usuario" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
-              <div>
-                 <p className="truncate text-sm font-semibold">Nombre de Usuario</p>
-                 <p className="text-xs text-muted-foreground">usuario@favision.com</p>
-              </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+            <DropdownMenuLabel>
+               <p className="truncate text-sm font-semibold">Nombre de Usuario</p>
+               <p className="text-xs text-muted-foreground">usuario@favision.com</p>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem>Perfil</DropdownMenuItem>
+            <DropdownMenuItem>Facturación</DropdownMenuItem>
             <DropdownMenuItem>Configuración</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
