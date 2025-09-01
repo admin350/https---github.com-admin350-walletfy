@@ -4,16 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-
-const mockProfiles = [
-    { name: "Personal", color: "#3b82f6" },
-    { name: "Esposa", color: "#ec4899" },
-    { name: "Hijo/a", color: "#f97316" },
-    { name: "Negocio", color: "#14b8a6" },
-    { name: "Trabajo Fijo", color: "#8b5cf6" },
-];
+import { useContext } from "react";
+import { DataContext } from "@/context/data-context";
 
 export function ProfileManager() {
+    const { profiles } = useContext(DataContext);
+
     return (
         <Card>
             <CardHeader>
@@ -35,7 +31,7 @@ export function ProfileManager() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockProfiles.map((profile) => (
+                        {profiles.map((profile) => (
                             <TableRow key={profile.name}>
                                 <TableCell className="font-medium">{profile.name}</TableCell>
                                 <TableCell>

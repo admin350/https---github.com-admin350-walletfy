@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useContext } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { DataContext } from '@/context/data-context';
 
 
 const formSchema = z.object({
@@ -51,12 +52,13 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-
+    const { addTransaction, categories, profiles } = useContext(DataContext);
+    
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: "expense",
-            amount: 0,
+            amount: undefined,
             description: "",
             category: "",
             profile: "",
@@ -64,18 +66,37 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    const transactionType = form.watch("type");
+
+    const availableCategories = categories.filter(c => {
+        if (transactionType === 'income') return c.type === 'Ingreso';
+        if (transactionType === 'expense') return c.type === 'Gasto';
+        return true;
+    });
+
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        console.log(values);
-        setTimeout(() => {
-            setIsLoading(false);
-            setOpen(false);
-            form.reset();
+        try {
+            await addTransaction({
+                id: crypto.randomUUID(),
+                ...values,
+                date: values.date.toISOString(),
+            });
             toast({
                 title: "Transacción añadida",
                 description: "Tu transacción ha sido registrada exitosamente.",
-            })
-        }, 1500)
+            });
+            form.reset();
+            setOpen(false);
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "No se pudo añadir la transacción.",
+                variant: 'destructive'
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
   return (
@@ -151,9 +172,9 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="personal">Personal</SelectItem>
-                                <SelectItem value="business">Negocio</SelectItem>
-                                <SelectItem value="family">Familia</SelectItem>
+                                {profiles.map(p => (
+                                    <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />
@@ -173,11 +194,9 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="food">Comida</SelectItem>
-                                <SelectItem value="transport">Transporte</SelectItem>
-                                <SelectItem value="housing">Vivienda</SelectItem>
-                                <SelectItem value="entertainment">Ocio</SelectItem>
-                                <SelectItem value="salary">Ingresos</SelectItem>
+                                {availableCategories.map(c => (
+                                     <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />

@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useContext } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DataContext } from '@/context/data-context';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre del gasto es muy corto." }),
@@ -35,28 +36,41 @@ export function AddFixedExpenseDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { addFixedExpense, categories } = useContext(DataContext);
+    
+    const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: 0,
+            amount: undefined,
             category: "",
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        console.log(values);
-        setTimeout(() => {
-            setIsLoading(false);
-            setOpen(false);
-            form.reset();
+        try {
+            await addFixedExpense({
+                id: crypto.randomUUID(),
+                ...values
+            });
             toast({
                 title: "Gasto Fijo Añadido",
                 description: "Tu gasto ha sido registrado exitosamente.",
-            })
-        }, 1500)
+            });
+            form.reset();
+            setOpen(false);
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "No se pudo añadir el gasto fijo.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -110,10 +124,9 @@ export function AddFixedExpenseDialog({ children }: { children: ReactNode }) {
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="health">Salud</SelectItem>
-                                            <SelectItem value="services">Servicios</SelectItem>
-                                            <SelectItem value="education">Educación</SelectItem>
-                                            <SelectItem value="other">Otro</SelectItem>
+                                            {expenseCategories.map(c => (
+                                                <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

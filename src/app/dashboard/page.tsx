@@ -11,37 +11,53 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
+import { DataContext } from "@/context/data-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
+  const { transactions, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const totalIncome = 5000000;
-  const totalExpenses = 2750000;
+  const totalIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((acc, t) => acc + t.amount, 0);
+    
+  const totalExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, t) => acc + t.amount, 0);
+
   const netBalance = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0;
+
+  const KpiSkeleton = () => (
+    <div className="space-y-2">
+      <Skeleton className="h-6 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+    </div>
+  )
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {isClient ? (
+        {isLoading || !isClient ? (
+          <>
+            <KpiCard title="Ingresos del Mes" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
+            <KpiCard title="Egresos del Mes" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
+            <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
+            <KpiCard title="Tasa de Ahorro" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
+          </>
+        ) : (
           <>
             <KpiCard title="Ingresos del Mes" value={`$${totalIncome.toLocaleString('es-CL')}`} icon={TrendingUp} description="Este es el 100% del presupuesto" />
             <KpiCard title="Egresos del Mes" value={`$${totalExpenses.toLocaleString('es-CL')}`} icon={TrendingDown} description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} />
             <KpiCard title="Balance Neto" value={`$${netBalance.toLocaleString('es-CL')}`} icon={DollarSign} description="Ingresos - Egresos" />
             <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
-          </>
-        ) : (
-          <>
-            <KpiCard title="Ingresos del Mes" value="$5.000.000" icon={TrendingUp} description="Este es el 100% del presupuesto" />
-            <KpiCard title="Egresos del Mes" value="$2.750.000" icon={TrendingDown} description="55.0% del ingreso" />
-            <KpiCard title="Balance Neto" value="$2.250.000" icon={DollarSign} description="Ingresos - Egresos" />
-            <KpiCard title="Tasa de Ahorro" value="45.0%" icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
           </>
         )}
       </div>

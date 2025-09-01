@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useContext } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DataContext } from '@/context/data-context';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
@@ -42,29 +43,42 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { addSubscription } = useContext(DataContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: 0,
+            amount: undefined,
             billingCycle: "monthly",
             nextDueDate: new Date(),
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        console.log(values);
-        setTimeout(() => {
-            setIsLoading(false);
-            setOpen(false);
-            form.reset();
+        try {
+            await addSubscription({
+                id: crypto.randomUUID(),
+                name: values.name,
+                amount: values.amount,
+                dueDate: values.nextDueDate,
+            });
             toast({
                 title: "Suscripción añadida",
                 description: "Tu suscripción ha sido registrada exitosamente.",
-            })
-        }, 1500)
+            });
+            setOpen(false);
+            form.reset();
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "No se pudo añadir la suscripción.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (

@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useContext } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { DataContext } from '@/context/data-context';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
@@ -41,30 +43,44 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { addDebt } = useContext(DataContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            totalAmount: 0,
-            interestRate: 0,
-            monthlyPayment: 0,
+            totalAmount: undefined,
+            interestRate: undefined,
+            monthlyPayment: undefined,
             nextDueDate: new Date(),
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        console.log(values);
-        setTimeout(() => {
-            setIsLoading(false);
-            setOpen(false);
-            form.reset();
+        try {
+            await addDebt({
+                id: crypto.randomUUID(),
+                name: values.name,
+                amount: values.monthlyPayment,
+                dueDate: values.nextDueDate,
+            });
+            
             toast({
                 title: "Deuda añadida",
                 description: "Tu deuda ha sido registrada exitosamente.",
+            });
+            form.reset();
+            setOpen(false);
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "No se pudo añadir la deuda.",
+                variant: "destructive"
             })
-        }, 1500)
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (

@@ -5,26 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-
-const mockCategories = [
-    { name: "Alimentación", type: "Gasto" },
-    { name: "Transporte", type: "Gasto" },
-    { name: "Vivienda", type: "Gasto" },
-    { name: "Entretenimiento", type: "Gasto" },
-    { name: "Suscripciones", type: "Gasto" },
-    { name: "Servicios", type: "Gasto" },
-    { name: "Compras", type: "Gasto" },
-    { name: "Inversiones", type: "Gasto" },
-    { name: "Fondo de Emergencia", type: "Gasto" },
-    { name: "Otros", type: "Gasto" },
-    { name: "Pago de Deuda", type: "Gasto" },
-    { name: "Ahorro para Meta", type: "Gasto" },
-    { name: "Sueldo", type: "Ingreso" },
-    { name: "Negocio", type: "Ingreso" },
-    { name: "Otros Ingresos", type: "Ingreso" },
-];
+import { useContext } from "react";
+import { DataContext } from "@/context/data-context";
 
 export function CategoryManager() {
+    const { categories } = useContext(DataContext);
     return (
         <Card>
             <CardHeader>
@@ -46,7 +31,7 @@ export function CategoryManager() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockCategories.map((category) => (
+                        {categories.map((category) => (
                             <TableRow key={category.name}>
                                 <TableCell className="font-medium">{category.name}</TableCell>
                                 <TableCell>

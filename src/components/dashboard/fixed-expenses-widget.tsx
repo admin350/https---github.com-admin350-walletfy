@@ -1,26 +1,14 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useEffect } from 'react';
-
-type FixedExpense = {
-  id: string;
-  name: string;
-  amount: number;
-  category: string;
-};
-
-const generateFixedExpenses = (): FixedExpense[] => [
-  { id: '1', name: "Gimnasio", amount: 50000, category: "Salud" },
-  { id: '2', name: "Plan Celular", amount: 45000, category: "Servicios" },
-  { id: '3', name: "Internet", amount: 60000, category: "Servicios" },
-];
+import { useState, useEffect, useContext } from 'react';
+import { DataContext } from "@/context/data-context";
+import { Skeleton } from "../ui/skeleton";
 
 export function FixedExpensesWidget() {
-  const [expenses, setExpenses] = useState<FixedExpense[]>([]);
+  const { fixedExpenses, isLoading } = useContext(DataContext);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setExpenses(generateFixedExpenses());
     setIsClient(true);
   }, []);
 
@@ -31,8 +19,23 @@ export function FixedExpensesWidget() {
         <CardDescription>Gastos que se repiten cada mes.</CardDescription>
       </CardHeader>
       <CardContent>
+        {isLoading || !isClient ? (
+           <div className="space-y-3">
+             {Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className="flex justify-between items-center h-[44px]">
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                 </div>
+                 <Skeleton className="h-6 w-16" />
+              </li>
+            ))}
+           </div>
+        ) : fixedExpenses.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No tienes gastos fijos registrados.</p>
+        ): (
         <ul className="space-y-3">
-          {isClient ? expenses.map((expense) => (
+          {fixedExpenses.map((expense) => (
             <li key={expense.id} className="flex justify-between items-center">
               <div>
                 <p className="font-medium">{expense.name}</p>
@@ -40,18 +43,9 @@ export function FixedExpensesWidget() {
               </div>
               <p className="font-semibold text-base">${expense.amount.toLocaleString('es-CL')}</p>
             </li>
-          )) : (
-            Array.from({ length: 3 }).map((_, i) => (
-              <li key={i} className="flex justify-between items-center h-[44px]">
-                 <div className="space-y-2">
-                    <div className="h-4 w-32 bg-muted rounded"></div>
-                    <div className="h-4 w-24 bg-muted rounded"></div>
-                 </div>
-                 <div className="h-6 w-16 bg-muted rounded"></div>
-              </li>
-            ))
-          )}
+          ))}
         </ul>
+        )}
       </CardContent>
     </Card>
   );

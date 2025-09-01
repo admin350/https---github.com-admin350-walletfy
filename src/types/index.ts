@@ -1,10 +1,11 @@
 export type Transaction = {
   id: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer';
   amount: number;
   description: string;
   category: string;
-  date: string;
+  profile: string;
+  date: string; // ISO 8601 format
 };
 
 export type SavingsGoal = {
@@ -21,8 +22,19 @@ export type UpcomingPayment = {
   dueDate: Date;
 };
 
-export type ExpenseByCategory = {
+export type FixedExpense = {
+  id: string;
+  name: string;
+  amount: number;
   category: string;
-  total: number;
-  fill: string;
-};
+}
+
+export type Profile = {
+    name: string;
+    color: string;
+}
+
+export type Category = {
+    name: string;
+    type: 'Ingreso' | 'Gasto';
+}
