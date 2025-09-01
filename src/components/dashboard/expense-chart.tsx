@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Pie, PieChart, Cell } from "recharts"
@@ -16,17 +17,22 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { category: "Vivienda", amount: 800000, fill: "#3b82f6" }, // Blue
-  { category: "Transporte", amount: 400000, fill: "#8b5cf6" }, // Violet
-  { category: "Comida", amount: 600000, fill: "#14b8a6" }, // Teal
-  { category: "Ocio", amount: 350000, fill: "#f97316" }, // Orange
-  { category: "Otros", amount: 600000, fill: "#ec4899" }, // Pink
+  { category: "Vivienda", amount: 800000, fill: "var(--chart-1)" },
+  { category: "Transporte", amount: 400000, fill: "var(--chart-2)" },
+  { category: "Comida", amount: 600000, fill: "var(--chart-3)" },
+  { category: "Ocio", amount: 350000, fill: "var(--chart-4)" },
+  { category: "Otros", amount: 600000, fill: "var(--chart-5)" },
 ]
 
 const chartConfig = {
   amount: {
     label: "Monto",
   },
+  Vivienda: { label: 'Vivienda', color: 'hsl(var(--chart-1))' },
+  Transporte: { label: 'Transporte', color: 'hsl(var(--chart-2))' },
+  Comida: { label: 'Comida', color: 'hsl(var(--chart-3))' },
+  Ocio: { label: 'Ocio', color: 'hsl(var(--chart-4))' },
+  Otros: { label: 'Otros', color: 'hsl(var(--chart-5))' },
 }
 
 export function ExpenseChart() {
@@ -55,8 +61,8 @@ export function ExpenseChart() {
               innerRadius="60%"
               strokeWidth={5}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+              {chartData.map((entry) => (
+                <Cell key={`cell-${entry.category}`} fill={entry.fill} />
               ))}
             </Pie>
           </PieChart>
