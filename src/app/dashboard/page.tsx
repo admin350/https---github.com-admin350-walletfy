@@ -1,7 +1,7 @@
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat } from "lucide-react";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 import { useState, useEffect } from "react";
+import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
@@ -86,6 +87,12 @@ export default function DashboardPage() {
                         Añadir Suscripción
                     </DropdownMenuItem>
                 </AddSubscriptionDialog>
+                 <AddFixedExpenseDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Repeat className="mr-2 h-4 w-4" />
+                        Añadir Gasto Fijo
+                    </DropdownMenuItem>
+                </AddFixedExpenseDialog>
             </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -1,8 +1,9 @@
 'use client';
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, PiggyBank, Target, Settings } from "lucide-react";
+import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, PiggyBank, Target, Settings, Repeat } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
   { href: "/dashboard/transactions", icon: List, label: "Transacciones" },
   { href: "/dashboard/debts", icon: PiggyBank, label: "Deudas y Suscripciones" },
+  { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos" },
   { href: "/dashboard/goals", icon: Target, label: "Metas de Ahorro" },
 ];
 
@@ -35,7 +37,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0 bg-card/80">
                 <SheetHeader className="p-4 border-b">
-                  <SheetTitle className="sr-only">Navegación Principal</SheetTitle>
+                  <SheetTitle>Navegación Principal</SheetTitle>
                 </SheetHeader>
               <MobileSidebar />
             </SheetContent>
