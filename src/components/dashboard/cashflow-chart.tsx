@@ -17,12 +17,12 @@ import {
 
 const chartData = [
   { day: "01", income: 0, expenses: 0 },
-  { day: "05", income: 2500, expenses: 500 },
-  { day: "10", income: 2500, expenses: 1100 },
-  { day: "15", income: 5000, expenses: 1800 },
-  { day: "20", income: 5000, expenses: 2200 },
-  { day: "25", income: 5000, expenses: 2500 },
-  { day: "30", income: 5000, expenses: 2750 },
+  { day: "05", income: 2500000, expenses: 500000 },
+  { day: "10", income: 2500000, expenses: 1100000 },
+  { day: "15", income: 5000000, expenses: 1800000 },
+  { day: "20", income: 5000000, expenses: 2200000 },
+  { day: "25", income: 5000000, expenses: 2500000 },
+  { day: "30", income: 5000000, expenses: 2750000 },
 ]
 
 const chartConfig = {
@@ -67,9 +67,9 @@ export function CashflowChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `$${Number(value).toLocaleString('es-CL')}`}
              />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value) => `$${Number(value).toLocaleString('es-CL')}`} />} />
             <defs>
               <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.8} />

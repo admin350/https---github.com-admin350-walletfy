@@ -16,16 +16,16 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { category: "Vivienda", amount: 800, fill: "hsl(var(--chart-1))" },
-  { category: "Transporte", amount: 400, fill: "hsl(var(--chart-2))" },
-  { category: "Comida", amount: 600, fill: "hsl(var(--chart-3))" },
-  { category: "Ocio", amount: 350, fill: "hsl(var(--chart-4))" },
-  { category: "Otros", amount: 600, fill: "hsl(var(--chart-5))" },
+  { category: "Vivienda", amount: 800000, fill: "hsl(var(--chart-1))" },
+  { category: "Transporte", amount: 400000, fill: "hsl(var(--chart-2))" },
+  { category: "Comida", amount: 600000, fill: "hsl(var(--chart-3))" },
+  { category: "Ocio", amount: 350000, fill: "hsl(var(--chart-4))" },
+  { category: "Otros", amount: 600000, fill: "hsl(var(--chart-5))" },
 ]
 
 const chartConfig = {
   amount: {
-    label: "Amount",
+    label: "Monto",
   },
 }
 
@@ -46,7 +46,7 @@ export function ExpenseChart() {
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent hideLabel formatter={(value) => `$${Number(value).toLocaleString('es-CL')}`} />}
             />
             <Pie
               data={chartData}

@@ -10,9 +10,9 @@ type FixedExpense = {
 };
 
 const generateFixedExpenses = (): FixedExpense[] => [
-  { id: '1', name: "Gimnasio", amount: 50, category: "Salud" },
-  { id: '2', name: "Plan Celular", amount: 45, category: "Servicios" },
-  { id: '3', name: "Internet", amount: 60, category: "Servicios" },
+  { id: '1', name: "Gimnasio", amount: 50000, category: "Salud" },
+  { id: '2', name: "Plan Celular", amount: 45000, category: "Servicios" },
+  { id: '3', name: "Internet", amount: 60000, category: "Servicios" },
 ];
 
 export function FixedExpensesWidget() {
@@ -38,7 +38,7 @@ export function FixedExpensesWidget() {
                 <p className="font-medium">{expense.name}</p>
                 <p className="text-sm text-muted-foreground">{expense.category}</p>
               </div>
-              <p className="font-semibold text-base">${expense.amount.toLocaleString('es-ES')}</p>
+              <p className="font-semibold text-base">${expense.amount.toLocaleString('es-CL')}</p>
             </li>
           )) : (
             Array.from({ length: 3 }).map((_, i) => (

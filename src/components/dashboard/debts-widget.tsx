@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react';
 import type { UpcomingPayment } from '@/types';
 
 const generateDebts = (): UpcomingPayment[] => [
-  { id: '2', name: "Cuota Préstamo Auto", amount: 350, dueDate: addDays(new Date(), 7) },
-  { id: '3', name: "Alquiler", amount: 800, dueDate: addDays(new Date(), 10) },
+  { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7) },
+  { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10) },
 ];
 
 
@@ -36,7 +36,7 @@ export function DebtsWidget() {
                   Vence: {format(debt.dueDate, "dd 'de' MMMM", { locale: es })}
                 </p>
               </div>
-              <p className="font-semibold text-base">${debt.amount.toLocaleString('es-ES')}</p>
+              <p className="font-semibold text-base">${debt.amount.toLocaleString('es-CL')}</p>
             </li>
           )) : (
             Array.from({ length: 2 }).map((_, i) => (

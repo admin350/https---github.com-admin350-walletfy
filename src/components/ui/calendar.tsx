@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
 
@@ -61,6 +62,7 @@ function Calendar({
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
       }}
+      locale={es}
       {...props}
     />
   )

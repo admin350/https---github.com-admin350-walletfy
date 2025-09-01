@@ -99,7 +99,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Monto Total</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$10,000.00" {...field} />
+                                        <Input type="number" placeholder="$10.000.000" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -112,7 +112,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Tasa de Interés (%)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="5.5" {...field} />
+                                        <Input type="number" placeholder="1.5" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -125,7 +125,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Pago Mensual</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$350.00" {...field} />
+                                        <Input type="number" placeholder="$350.000" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -148,7 +148,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                                     )}
                                                 >
                                                     {field.value ? (
-                                                        format(field.value, "PPP")
+                                                        format(field.value, "PPP", { locale: es })
                                                     ) : (
                                                         <span>Selecciona una fecha</span>
                                                     )}
@@ -162,6 +162,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 initialFocus
+                                                locale={es}
                                             />
                                         </PopoverContent>
                                     </Popover>

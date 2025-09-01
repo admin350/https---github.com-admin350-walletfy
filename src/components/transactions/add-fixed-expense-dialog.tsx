@@ -91,7 +91,7 @@ export function AddFixedExpenseDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Monto Mensual</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$50.00" {...field} />
+                                        <Input type="number" placeholder="$50.000" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

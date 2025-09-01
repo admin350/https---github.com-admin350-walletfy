@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 
 const mockTransactions = [
-  { type: "income", description: "Salario Mensual", amount: 2500, category: "Ingresos" },
-  { type: "expense", description: "Alquiler", amount: 800, category: "Vivienda" },
-  { type: "expense", description: "Compra Semanal", amount: 150.75, category: "Comida" },
-  { type: "expense", description: "Suscripción Netflix", amount: 15.99, category: "Ocio" },
-  { type: "income", description: "Proyecto Freelance", amount: 750, category: "Ingresos" },
+  { type: "income", description: "Salario Mensual", amount: 2500000, category: "Ingresos" },
+  { type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda" },
+  { type: "expense", description: "Compra Semanal", amount: 150750, category: "Comida" },
+  { type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Ocio" },
+  { type: "income", description: "Proyecto Freelance", amount: 750000, category: "Ingresos" },
 ];
 
 
@@ -39,7 +39,7 @@ export function RecentTransactions() {
                 <Badge variant="outline">{t.category}</Badge>
               </div>
               <div className={`font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                {isClient ? `${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString('es-ES')}`: `${t.type === 'income' ? '+' : '-'}$${t.amount}`}
+                {isClient ? `${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString('es-CL')}`: `${t.type === 'income' ? '+' : '-'}$${t.amount}`}
               </div>
             </div>
           ))}

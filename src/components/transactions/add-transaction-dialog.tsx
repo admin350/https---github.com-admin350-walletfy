@@ -33,6 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -118,7 +119,7 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                         <FormItem>
                         <FormLabel>Monto</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="$0.00" {...field} />
+                            <Input type="number" placeholder="$0" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -200,7 +201,7 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                                 )}
                                 >
                                 {field.value ? (
-                                    format(field.value, "PPP")
+                                    format(field.value, "PPP", { locale: es })
                                 ) : (
                                     <span>Selecciona una fecha</span>
                                 )}
@@ -217,6 +218,7 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                                 date > new Date() || date < new Date("1900-01-01")
                                 }
                                 initialFocus
+                                locale={es}
                             />
                             </PopoverContent>
                         </Popover>

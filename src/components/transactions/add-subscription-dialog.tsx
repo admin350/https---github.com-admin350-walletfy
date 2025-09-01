@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
@@ -98,7 +99,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Monto</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$15.99" {...field} />
+                                        <Input type="number" placeholder="$15.990" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -142,7 +143,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                                     )}
                                                 >
                                                     {field.value ? (
-                                                        format(field.value, "PPP")
+                                                        format(field.value, "PPP", { locale: es })
                                                     ) : (
                                                         <span>Selecciona una fecha</span>
                                                     )}
@@ -156,6 +157,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 initialFocus
+                                                locale={es}
                                             />
                                         </PopoverContent>
                                     </Popover>

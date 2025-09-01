@@ -4,9 +4,9 @@ import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";
 
 const goals = [
-  { name: "Vacaciones a Japón", current: 3500, target: 5000 },
-  { name: "Nuevo Portátil", current: 800, target: 2000 },
-  { name: "Fondo de Emergencia", current: 4500, target: 10000 },
+  { name: "Vacaciones a Japón", current: 3500000, target: 5000000 },
+  { name: "Nuevo Portátil", current: 800000, target: 2000000 },
+  { name: "Fondo de Emergencia", current: 4500000, target: 10000000 },
 ];
 
 export function SavingsGoalsWidget() {
@@ -31,7 +31,7 @@ export function SavingsGoalsWidget() {
                 <div className="flex justify-between mb-1">
                   <p className="text-sm font-medium">{goal.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {isClient ? `$${goal.current.toLocaleString('es-ES')} / $${goal.target.toLocaleString('es-ES')}` : `$${goal.current} / $${goal.target}`}
+                    {isClient ? `$${goal.current.toLocaleString('es-CL')} / $${goal.target.toLocaleString('es-CL')}` : `$${goal.current} / $${goal.target}`}
                   </p>
                 </div>
                 <Progress value={progress} className="h-2" />
