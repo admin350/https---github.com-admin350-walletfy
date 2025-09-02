@@ -9,6 +9,7 @@ import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BudgetAnalysis } from "@/components/budget/budget-analysis";
+import { ExpenseChart } from "@/components/dashboard/expense-chart";
 
 export default function BudgetPage() {
     const { budgets, isLoading } = useContext(DataContext);
@@ -32,6 +33,18 @@ export default function BudgetPage() {
                 </CardHeader>
                 <CardContent>
                    <BudgetWidget budgets={budgets} isLoading={isLoading} />
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                    <CardDescription>
+                        Visualización en tiempo real de cómo se distribuyen tus ingresos según los registros.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ExpenseChart />
                 </CardContent>
             </Card>
 
