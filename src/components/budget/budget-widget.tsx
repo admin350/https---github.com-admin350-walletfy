@@ -81,9 +81,9 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                         <div className="flex justify-between items-start">
                             <div>
                                 <CardTitle>{budget.name}</CardTitle>
-                                <CardDescription>
+                                <div className="text-sm text-muted-foreground mt-1">
                                     Asignado al perfil <Badge variant="outline">{budget.profile}</Badge>
-                                </CardDescription>
+                                </div>
                             </div>
                              <AlertDialog>
                                 <DropdownMenu>
