@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, Landmark, Target, Settings, Repeat, CreditCard } from "lucide-react";
+import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { HoverMenu } from './hover-menu';
 
 
 const navItems = [
@@ -25,7 +26,6 @@ export function Header() {
                   navItems.find(item => item.href !== "/dashboard" && pathname.startsWith(item.href))?.label || 
                   "Panel";
                   
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -36,25 +36,22 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
-            <div 
-              onMouseEnter={isClient ? () => setIsSheetOpen(true) : undefined} 
-              onMouseLeave={isClient ? () => setIsSheetOpen(false) : undefined}
-            >
-              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Alternar menú de navegación</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="flex flex-col p-0 bg-card/80">
-                    <SheetHeader className="p-4 border-b">
-                      <SheetTitle>Navegación Principal</SheetTitle>
-                    </SheetHeader>
-                  <MobileSidebar />
-                </SheetContent>
-              </Sheet>
-            </div>
+            {isClient ? <HoverMenu navItems={navItems} /> : (
+                 <Sheet>
+                    <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Menu className="h-5 w-5" />
+                        <span className="sr-only">Alternar menú de navegación</span>
+                    </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="flex flex-col p-0 bg-card/80">
+                        <SheetHeader className="p-4 border-b">
+                        <SheetTitle>Navegación Principal</SheetTitle>
+                        </SheetHeader>
+                        <MobileSidebar navItems={navItems} />
+                    </SheetContent>
+                </Sheet>
+            )}
           <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-4">
@@ -68,7 +65,7 @@ export function Header() {
   );
 }
 
-function MobileSidebar() {
+export function MobileSidebar({ navItems }: { navItems: any[] }) {
     const pathname = usePathname();
     return (
         <div className="p-4 flex flex-col h-full">
