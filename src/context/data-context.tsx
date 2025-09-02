@@ -77,8 +77,12 @@ interface DataContextType {
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: SavingsGoal) => Promise<void>;
-    addSubscription: (subscription: UpcomingPayment) => Promise<void>;
-    addDebt: (debt: UpcomingPayment) => Promise<void>;
+    addSubscription: (subscription: Omit<UpcomingPayment, 'id'>) => Promise<void>;
+    updateSubscription: (subscription: UpcomingPayment) => Promise<void>;
+    deleteSubscription: (id: string) => Promise<void>;
+    addDebt: (debt: Omit<UpcomingPayment, 'id'>) => Promise<void>;
+    updateDebt: (debt: UpcomingPayment) => Promise<void>;
+    deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: FixedExpense) => Promise<void>;
 }
 
@@ -96,7 +100,11 @@ export const DataContext = createContext<DataContextType>({
     deleteTransaction: async () => {},
     addGoal: async () => {},
     addSubscription: async () => {},
+    updateSubscription: async () => {},
+    deleteSubscription: async () => {},
     addDebt: async () => {},
+    updateDebt: async () => {},
+    deleteDebt: async () => {},
     addFixedExpense: async () => {},
 });
 
@@ -143,12 +151,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => [...prev, goal]);
     }
     
-    const addSubscription = async (subscription: UpcomingPayment) => {
-        setSubscriptions(prev => [...prev, subscription]);
+    const addSubscription = async (subscription: Omit<UpcomingPayment, 'id'>) => {
+        const newSubscription = { ...subscription, id: crypto.randomUUID() };
+        setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
 
-    const addDebt = async (debt: UpcomingPayment) => {
-        setDebts(prev => [...prev, debt]);
+    const updateSubscription = async (updatedSubscription: UpcomingPayment) => {
+        setSubscriptions(prev => prev.map(s => s.id === updatedSubscription.id ? updatedSubscription : s));
+    }
+
+    const deleteSubscription = async (id: string) => {
+        setSubscriptions(prev => prev.filter(s => s.id !== id));
+    }
+
+    const addDebt = async (debt: Omit<UpcomingPayment, 'id'>) => {
+        const newDebt = { ...debt, id: crypto.randomUUID() };
+        setDebts(prev => [...prev, newDebt].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
+    }
+
+    const updateDebt = async (updatedDebt: UpcomingPayment) => {
+        setDebts(prev => prev.map(d => d.id === updatedDebt.id ? updatedDebt : d));
+    }
+
+    const deleteDebt = async (id: string) => {
+        setDebts(prev => prev.filter(d => d.id !== id));
     }
 
     const addFixedExpense = async (expense: FixedExpense) => {
@@ -171,7 +197,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteTransaction,
             addGoal,
             addSubscription,
+            updateSubscription,
+            deleteSubscription,
             addDebt,
+            updateDebt,
+            deleteDebt,
             addFixedExpense
         }}>
             {children}
