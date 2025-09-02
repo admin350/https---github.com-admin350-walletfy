@@ -14,13 +14,13 @@ import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
-  { href: "/dashboard/transactions", icon: List, label: "Transacciones" },
-  { href: "/dashboard/debts", icon: CreditCard, label: "Deudas" },
-  { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones" },
-  { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos" },
-  { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Cartera de Ahorros" },
-  { href: "/dashboard/goals", icon: Target, label: "Metas" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
+  { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
+  { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
+  { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
+  { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
+  { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Cartera de Ahorros", color: "text-emerald-400" },
+  { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
 ];
 
 export function Header() {
@@ -141,7 +141,7 @@ export function MobileSidebar({ navItems }: { navItems: any[] }) {
                         key={item.label}
                         className={`flex items-center gap-4 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? "bg-muted text-primary" : "text-muted-foreground"}`}
                     >
-                        <item.icon className="h-5 w-5" />
+                        <item.icon className={`h-5 w-5 ${item.color}`} />
                         {item.label}
                     </Link>
                 ))}
