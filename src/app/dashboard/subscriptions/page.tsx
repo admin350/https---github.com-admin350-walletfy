@@ -2,16 +2,19 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { ListChecks, PlusCircle, CalendarClock, CircleDollarSign } from "lucide-react";
 import { SubscriptionsDataTable } from "@/components/transactions/subscriptions-data-table";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isPast, isThisMonth, isFuture, startOfMonth, startOfToday } from "date-fns";
+import { isPast, isThisMonth, isFuture, startOfMonth, startOfToday, format } from "date-fns";
+import { KpiCard } from "@/components/dashboard/kpi-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { es } from "date-fns/locale";
 
 export default function SubscriptionsPage() {
-    const { subscriptions } = useContext(DataContext);
+    const { subscriptions, isLoading } = useContext(DataContext);
     const today = startOfToday();
     const startOfCurrentMonth = startOfMonth(today);
 
@@ -26,9 +29,56 @@ export default function SubscriptionsPage() {
 
     // Próximas: Fecha es futura y no es de este mes.
     const upcomingSubscriptions = activeSubscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
+    
+    const totalActiveSubscriptions = activeSubscriptions.length;
+    const totalMonthlyCost = activeSubscriptions.reduce((acc, sub) => acc + sub.amount, 0);
+
+    const nextPayment = activeSubscriptions
+      .filter(s => isFuture(s.dueDate) || isThisMonth(s.dueDate))
+      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
+
+    const KpiSkeleton = () => (
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+    )
 
     return (
         <div className="grid gap-6">
+             <div className="grid gap-4 md:grid-cols-3">
+                {isLoading ? (
+                    <>
+                        <KpiCard title="Suscripciones Activas" value={<KpiSkeleton />} icon={ListChecks} description="Cargando..." />
+                        <KpiCard title="Gasto Mensual Total" value={<KpiSkeleton />} icon={CircleDollarSign} description="Cargando..." />
+                        <KpiCard title="Próximo Pago" value={<KpiSkeleton />} icon={CalendarClock} description="Cargando..." />
+                    </>
+                ) : (
+                    <>
+                        <KpiCard
+                            title="Suscripciones Activas"
+                            value={totalActiveSubscriptions}
+                            icon={ListChecks}
+                            iconClassName="text-purple-400"
+                            description="Total de servicios recurrentes activos."
+                        />
+                        <KpiCard
+                            title="Gasto Mensual Total"
+                            value={`$${totalMonthlyCost.toLocaleString('es-CL')}`}
+                            icon={CircleDollarSign}
+                            iconClassName="text-purple-400"
+                            description="Suma de todos tus gastos recurrentes."
+                        />
+                         <KpiCard
+                            title="Próximo Pago"
+                            value={nextPayment ? `$${nextPayment.amount.toLocaleString('es-CL')}` : '-'}
+                            icon={CalendarClock}
+                            iconClassName="text-purple-400"
+                            description={nextPayment ? `${nextPayment.name} (${format(nextPayment.dueDate, "dd MMM", {locale: es})})` : 'No hay pagos próximos.'}
+                        />
+                    </>
+                )}
+            </div>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                      <div>
