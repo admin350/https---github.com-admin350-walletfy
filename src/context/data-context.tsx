@@ -153,7 +153,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Simulate fetching data on mount
     useEffect(() => {
         const timer = setTimeout(() => {
-            setTransactions(mockTransactions);
+            setTransactions(mockTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
             setGoals(mockGoals);
             setSubscriptions(mockSubscriptions);
             setDebts(mockDebts);
@@ -173,7 +173,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
-        setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t));
+        setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     };
 
     const deleteTransaction = async (id: string) => {
