@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent>
               <ExpenseChart />
             </CardContent>
           </Card>

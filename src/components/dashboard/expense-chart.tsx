@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
@@ -65,13 +64,19 @@ export function ExpenseChart() {
   }), [chartData]);
 
 
+  if (isLoading) {
+    return <Skeleton className="h-[200px] w-full" />;
+  }
+  
+  if (chartData.length === 0) {
+    return (
+        <div className="flex items-center justify-center h-[150px]">
+             <p className="text-muted-foreground text-sm">No hay datos para mostrar.</p>
+        </div>
+    );
+  }
+
   return (
-    <>
-    {isLoading ? (
-      <Skeleton className="h-[200px] w-full" />
-    ) : chartData.length === 0 ? (
-      <p className="text-muted-foreground text-sm">No hay datos para mostrar.</p>
-    ) : (
       <div className="grid grid-cols-2 gap-4 w-full">
         <div className="h-[150px]">
           <ChartContainer
@@ -119,7 +124,5 @@ export function ExpenseChart() {
             })}
         </div>
       </div>
-    )}
-    </>
   )
 }
