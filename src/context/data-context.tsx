@@ -31,9 +31,9 @@ const mockDebts: Debt[] = [
 ];
 
 const mockFixedExpenses: FixedExpense[] = [
-    { id: '1', name: "Gimnasio", amount: 50000, category: "Salud", profile: "Personal" },
-    { id: '2', name: "Plan Celular", amount: 45000, category: "Servicios", profile: "Personal" },
-    { id: '3', name: "Internet", amount: 60000, category: "Servicios", profile: "Negocio" },
+    { id: '1', name: "Gimnasio", amount: 50000, category: "Salud", profile: "Personal", type: 'expense' },
+    { id: '2', name: "Plan Celular", amount: 45000, category: "Servicios", profile: "Personal", type: 'expense' },
+    { id: '3', name: "Internet", amount: 60000, category: "Servicios", profile: "Negocio", type: 'expense' },
 ];
 
 const mockProfiles: Profile[] = [

@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { AddTransactionDialog } from "./add-transaction-dialog";
 import { AddFixedExpenseDialog } from "./add-fixed-expense-dialog";
+import { Badge } from "../ui/badge";
 
 export function FixedExpensesDataTable() {
     const { fixedExpenses, deleteFixedExpense } = useContext(DataContext);
@@ -37,9 +38,9 @@ export function FixedExpensesDataTable() {
 
     const handleRegister = (expense: FixedExpense) => {
         setExpenseToRegister({
-            type: 'expense',
+            type: expense.type,
             description: expense.name,
-            amount: expense.amount, // Set the base amount, user can change it
+            amount: undefined,
             category: expense.category,
             profile: expense.profile,
             date: new Date(),
@@ -72,6 +73,26 @@ export function FixedExpensesDataTable() {
         {
             accessorKey: "name",
             header: "Nombre de Plantilla",
+        },
+        {
+            accessorKey: "type",
+            header: "Tipo",
+            cell: ({ row }) => {
+                const type = row.getValue("type") as string;
+                let variant: "default" | "destructive" | "outline" = "outline";
+                let text = "";
+                if (type === 'income') {
+                    variant = 'default';
+                    text = 'Ingreso'
+                } else if (type === 'expense') {
+                    variant = 'destructive';
+                    text = 'Egreso'
+                } else {
+                    text = 'Transferencia'
+                }
+                const className = type === 'income' ? 'bg-green-500/20 text-green-500 border-green-500/20' : 'bg-red-500/20 text-red-500 border-red-500/20';
+                return <Badge variant={variant} className={className}>{text}</Badge>
+            }
         },
         {
             accessorKey: "category",
@@ -151,33 +172,23 @@ export function FixedExpensesDataTable() {
 
     return (
         <div className="w-full">
-             {isRegisterOpen && (
-                <AddTransactionDialog
-                    transactionToEdit={expenseToRegister as Transaction}
-                    open={isRegisterOpen}
-                    onOpenChange={setIsRegisterOpen}
-                    onFinish={() => {
-                        setExpenseToRegister(undefined);
-                        setIsRegisterOpen(false);
-                    }}
-                >
-                    {/* El diálogo se controla por estado, no necesita un trigger visible aquí */}
-                </AddTransactionDialog>
-            )}
+            <AddTransactionDialog
+                open={isRegisterOpen}
+                onOpenChange={setIsRegisterOpen}
+                transactionToEdit={expenseToRegister}
+                onFinish={() => {
+                    setExpenseToRegister(undefined);
+                }}
+            />
 
-            {isEditOpen && (
-                <AddFixedExpenseDialog
-                    expenseToEdit={expenseToEdit}
-                    open={isEditOpen}
-                    onOpenChange={setIsEditOpen}
-                    onFinish={() => {
-                        setExpenseToEdit(undefined);
-                        setIsEditOpen(false);
-                    }}
-                >
-                    {/* El diálogo se controla por estado, no necesita un trigger visible aquí */}
-                </AddFixedExpenseDialog>
-            )}
+            <AddFixedExpenseDialog
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                expenseToEdit={expenseToEdit}
+                onFinish={() => {
+                    setExpenseToEdit(undefined);
+                }}
+            />
 
             <div className="rounded-md border">
                 <Table>

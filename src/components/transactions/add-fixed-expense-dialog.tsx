@@ -31,6 +31,7 @@ import type { FixedExpense } from '@/types';
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre del gasto es muy corto." }),
   amount: z.coerce.number().positive({ message: "El monto debe ser positivo." }),
+  type: z.enum(["income", "expense"], { required_error: "El tipo es requerido." }),
   category: z.string().min(1, { message: "La categoría es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
@@ -53,13 +54,12 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const expenseCategories = categories.filter(c => c.type === 'Gasto');
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             amount: '' as any,
+            type: "expense",
             category: "",
             profile: "",
         },
@@ -75,11 +75,19 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
             form.reset({
                 name: "",
                 amount: '' as any,
+                type: "expense",
                 category: "",
                 profile: "",
             });
         }
     }, [expenseToEdit, form, dialogOpen]);
+    
+    const expenseType = form.watch("type");
+    const availableCategories = categories.filter(c => {
+        if (expenseType === 'income') return c.type === 'Ingreso';
+        if (expenseType === 'expense') return c.type === 'Gasto';
+        return true;
+    });
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -137,6 +145,27 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                                 </FormItem>
                             )}
                         />
+                         <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Tipo</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un tipo" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="expense">Egreso</SelectItem>
+                                        <SelectItem value="income">Ingreso</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <FormField
                             control={form.control}
                             name="amount"
@@ -163,7 +192,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {expenseCategories.map(c => (
+                                            {availableCategories.map(c => (
                                                 <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
                                             ))}
                                         </SelectContent>
