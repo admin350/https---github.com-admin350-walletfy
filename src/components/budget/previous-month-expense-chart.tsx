@@ -24,17 +24,25 @@ const COLORS = {
   investments: "hsl(var(--chart-4))",
 };
 
+const mockTransactions = [
+    { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString() },
+    { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString() },
+    { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString() },
+    { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
+    { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
+    { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
+    { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString() },
+    // This transaction is in the previous month
+    { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: subMonths(new Date(), 1).toISOString()},
+    { id: '9', type: "income", description: "Salario Mes Anterior", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: subMonths(new Date(), 1).toISOString()},
+    { id: '10', type: "expense", description: "Alquiler Mes Anterior", amount: 800000, category: "Vivienda", profile: 'Personal', date: subMonths(new Date(), 1).toISOString()},
+    { id: '11', type: "transfer", description: "Ahorro Mes Anterior", amount: 150000, category: "Sueldo", profile: 'Personal', date: subMonths(new Date(), 1).toISOString()},
+    { id: '12', type: "transfer-investment", description: "Inversión Mes Anterior", amount: 250000, category: "Sueldo", profile: 'Personal', date: subMonths(new Date(), 1).toISOString()},
+];
+
 
 export function PreviousMonthExpenseChart() {
-  // We need the raw (unfiltered) transactions to calculate previous month's data
-  // This component will not respect the global filters.
-  // Let's assume DataContext provides a way to get all transactions.
-  // For this example, we'll imagine a `rawTransactions` prop or similar.
-  // Since we don't have that, we will filter the already filtered transactions,
-  // which is not ideal but works for this mock setup if the date range is wide enough.
-  // A better implementation would have access to all data regardless of filters.
-
-  const { transactions, categories, isLoading } = useContext(DataContext);
+  const { categories, isLoading } = useContext(DataContext);
 
   const { chartData, totalIncome, previousMonthLabel } = useMemo(() => {
     const today = new Date();
@@ -85,19 +93,6 @@ export function PreviousMonthExpenseChart() {
     
     return { chartData: data, totalIncome, previousMonthLabel };
   }, [categories]);
-  
-  // This needs to be mocked since the original `transactions` are filtered
-  const mockTransactions = [
-      { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString() },
-      { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString() },
-      { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString() },
-      { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
-      { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
-      { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
-      { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString() },
-      { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: subMonths(new Date(), -1).toISOString()},
-    ];
-
 
   const dynamicChartConfig = useMemo(() => ({
     value: { label: 'Monto' },
