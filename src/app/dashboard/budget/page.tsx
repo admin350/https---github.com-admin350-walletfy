@@ -13,17 +13,21 @@ import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 export default function BudgetPage() {
-    const { budgets, isLoading } = useContext(DataContext);
+    const { budgets, isLoading, transactions } = useContext(DataContext);
     
+    const totalIncome = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                  <PreviousMonthExpenseChart />
-                <Card>
+                 <Card>
                     <CardHeader>
                         <CardTitle>Destino Real de tus Ingresos</CardTitle>
                         <CardDescription>
-                            Visualización en tiempo real de cómo se distribuyen tus ingresos según los registros.
+                            Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
