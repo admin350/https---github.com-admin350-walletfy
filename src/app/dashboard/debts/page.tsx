@@ -10,7 +10,7 @@ import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
+import { isPast } from "date-fns";
 
 export default function DebtsPage() {
     const { debts, isLoading } = useContext(DataContext);
@@ -19,7 +19,8 @@ export default function DebtsPage() {
     const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
     const remainingDebt = totalOwed - totalPaid;
     
-    const activeDebts = debts.filter(d => d.paidAmount < d.totalAmount);
+    const overdueDebts = debts.filter(d => isPast(d.dueDate) && d.paidAmount < d.totalAmount);
+    const activeDebts = debts.filter(d => !isPast(d.dueDate) && d.paidAmount < d.totalAmount);
     const paidDebts = debts.filter(d => d.paidAmount >= d.totalAmount);
 
     const KpiSkeleton = () => (
@@ -31,7 +32,6 @@ export default function DebtsPage() {
 
     return (
         <div className="space-y-6">
-             <OverdueDebtsWidget />
             <div className="grid gap-4 md:grid-cols-3">
                  {isLoading ? (
                     <>
@@ -82,10 +82,14 @@ export default function DebtsPage() {
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="active">
-                         <TabsList className="grid w-full grid-cols-2">
+                         <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="overdue">Vencidas</TabsTrigger>
                             <TabsTrigger value="active">Activas</TabsTrigger>
                             <TabsTrigger value="completed">Pagadas</TabsTrigger>
                         </TabsList>
+                        <TabsContent value="overdue" className="mt-4">
+                            <DebtsDataTable debts={overdueDebts} />
+                        </TabsContent>
                         <TabsContent value="active" className="mt-4">
                             <DebtsDataTable debts={activeDebts} />
                         </TabsContent>
