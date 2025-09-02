@@ -19,13 +19,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 interface SavingsGoalsWidgetProps {
-  goals: SavingsGoal[];
-  isLoading: boolean;
+  goals?: SavingsGoal[];
+  isLoading?: boolean;
+  isDashboardWidget?: boolean;
 }
 
 
-export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps) {
-  const { deleteGoal } = useContext(DataContext);
+export function SavingsGoalsWidget({ goals: goalsFromProps, isLoading: isLoadingFromProps, isDashboardWidget = false }: SavingsGoalsWidgetProps) {
+  const context = useContext(DataContext);
+  const { deleteGoal } = context;
+
+  const goals = goalsFromProps !== undefined ? goalsFromProps : context.goals;
+  const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : context.isLoading;
+
+
   const [isClient, setIsClient] = useState(false);
   const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<SavingsGoal | null>(null);
   const [selectedGoalForEdit, setSelectedGoalForEdit] = useState<SavingsGoal | null>(null);
@@ -58,11 +65,13 @@ export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps
       });
     }
   }
+  
+  const goalsToDisplay = isDashboardWidget ? (goals || []).filter(g => g.currentAmount < g.targetAmount).slice(0, 3) : goals;
 
   return (
     <div className="space-y-6">
       {isLoading || !isClient ? (
-        Array.from({ length: 3 }).map((_, i) => (
+        Array.from({ length: isDashboardWidget ? 3 : 1 }).map((_, i) => (
           <div key={i} className="space-y-2">
               <div className="flex justify-between mb-1">
                 <Skeleton className="h-4 w-1/3" />
@@ -72,10 +81,10 @@ export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps
               <Skeleton className="h-3 w-1/4" />
           </div>
         ))
-      ) : goals.length === 0 ? (
+      ) : !goalsToDisplay || goalsToDisplay.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-4">No hay metas en esta categoría.</p>
       ) : (
-        goals.map((goal) => {
+        goalsToDisplay.map((goal) => {
           const progress = (goal.currentAmount / goal.targetAmount) * 100;
           const isCompleted = progress >= 100;
           return (
@@ -87,40 +96,42 @@ export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps
                     {`$${goal.currentAmount.toLocaleString('es-CL')} / $${goal.targetAmount.toLocaleString('es-CL')}`}
                     </p>
                 </div>
-                  <AlertDialog>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Abrir menú</span>
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditClick(goal)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem>
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Eliminar
+                  {!isDashboardWidget && (
+                     <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Abrir menú</span>
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditClick(goal)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Editar
                                 </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la meta y sus contribuciones asociadas.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(goal.id)}>Continuar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la meta y sus contribuciones asociadas.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(goal.id)}>Continuar</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                  )}
               </div>
                <TooltipProvider>
                 <Tooltip>
@@ -137,9 +148,9 @@ export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps
                     <Badge variant='secondary'>
                         {goal.category}
                     </Badge>
-                    <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
+                     {!isDashboardWidget && <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>}
                 </div>
-                {!isCompleted && (
+                {!isCompleted && !isDashboardWidget && (
                   <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
                       <PiggyBank className="mr-2 h-4 w-4" />
                       Aportar

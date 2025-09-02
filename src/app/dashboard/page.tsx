@@ -1,3 +1,4 @@
+
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -16,10 +17,12 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, goals, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -77,7 +80,20 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <RecentTransactions />
         <UpcomingPaymentsWidget />
-        <SavingsGoalsWidget />
+        <Card className="bg-card/50 border-border/50">
+          <CardHeader>
+            <CardTitle>Resumen de Metas</CardTitle>
+            <CardDescription>Un vistazo rápido a tus metas activas.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SavingsGoalsWidget goals={goals} isLoading={isLoading} isDashboardWidget={true} />
+              <Button asChild variant="outline" className="w-full mt-4">
+                <Link href="/dashboard/goals">
+                    Ver Todas las Metas
+                </Link>
+             </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="fixed bottom-6 right-6">
