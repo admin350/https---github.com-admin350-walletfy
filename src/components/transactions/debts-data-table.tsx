@@ -28,7 +28,8 @@ import { Progress } from "../ui/progress";
 import Link from "next/link";
 import { PayDebtDialog } from "./pay-debt-dialog";
 import { Badge } from "../ui/badge";
-import { isPast } from "date-fns";
+import { format, isPast, differenceInMonths } from "date-fns";
+import { es } from "date-fns/locale";
 
 export function DebtsDataTable() {
     const { debts, deleteDebt } = useContext(DataContext);
@@ -102,18 +103,29 @@ export function DebtsDataTable() {
                 return `${paidInstallments} de ${debt.installments}`
             }
         },
+        {
+            accessorKey: "dueDate",
+            header: "Próximo Pago",
+            cell: ({row}) => format(row.original.dueDate, "dd 'de' MMMM, yyyy", { locale: es })
+        },
          {
             accessorKey: 'status',
             header: 'Estado',
             cell: ({ row }) => {
                 const debt = row.original;
                 const isOverdue = isPast(debt.dueDate) && debt.paidAmount < debt.totalAmount;
+                
                 if (debt.paidAmount >= debt.totalAmount) {
                      return <Badge variant="default" className="bg-blue-500/20 text-blue-500 border-blue-500/20">Pagada</Badge>
                 }
-                return isOverdue ? 
-                <Badge variant="destructive" className="bg-red-500/20 text-red-500 border-red-500/20">Atrasada</Badge> : 
-                <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">Al día</Badge>;
+
+                if (isOverdue) {
+                    const overdueMonths = differenceInMonths(new Date(), debt.dueDate);
+                    const overdueInstallments = overdueMonths > 0 ? overdueMonths : 1;
+                    return <Badge variant="destructive" className="bg-red-500/20 text-red-500 border-red-500/20">Atrasada ({overdueInstallments} cuota{overdueInstallments > 1 ? 's' : ''})</Badge>
+                }
+
+                return <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">Al día</Badge>;
             }
         },
         {
