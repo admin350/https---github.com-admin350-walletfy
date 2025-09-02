@@ -103,7 +103,7 @@ export function TransactionsDataTable() {
                     style: "currency",
                     currency: "CLP",
                 }).format(amount)
-                 const className = type === 'income' ? 'text-green-500' : 'text-red-500';
+                 const className = type === 'income' ? 'text-green-500' : type === 'expense' ? 'text-red-500' : '';
                 return <div className={`font-medium ${className}`}>{formatted}</div>
             },
         },
