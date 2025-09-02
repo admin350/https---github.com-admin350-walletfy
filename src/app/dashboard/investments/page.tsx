@@ -7,7 +7,9 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
+import { AddInvestmentDialog } from "@/components/investments/add-investment-dialog";
+import { InvestmentsWidget } from "@/components/investments/investments-widget";
+import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 
 export default function InvestmentsPage() {
     const { investments, isLoading } = useContext(DataContext);
@@ -63,20 +65,32 @@ export default function InvestmentsPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Mi Portafolio de Inversiones</CardTitle>
+                        <CardTitle>Mis Activos de Inversión</CardTitle>
                         <CardDescription>
-                            Gestiona y sigue el rendimiento de tus activos de inversión.
+                            Define, sigue y gestiona tus activos de inversión.
                         </CardDescription>
                     </div>
-                     <Link href="/dashboard/investments-portfolio">
+                     <AddInvestmentDialog>
                         <Button>
                            <PlusCircle className="mr-2 h-4 w-4 text-green-400" />
-                            Gestionar Portafolio
+                            Añadir Inversión
                         </Button>
-                    </Link>
+                    </AddInvestmentDialog>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-center text-muted-foreground p-4">Próximamente: Gráficos de rendimiento y análisis detallado.</p>
+                    <InvestmentsWidget />
+                </CardContent>
+            </Card>
+
+             <Card>
+                 <CardHeader>
+                    <CardTitle>Registro de Aportes a Inversiones</CardTitle>
+                    <CardDescription>
+                        Historial de todos los aportes desde tu cartera de ahorros hacia tus inversiones.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <InvestmentContributionsTable />
                 </CardContent>
             </Card>
         </div>
