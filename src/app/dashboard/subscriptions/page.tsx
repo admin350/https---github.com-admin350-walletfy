@@ -8,7 +8,7 @@ import { AddSubscriptionDialog } from "@/components/transactions/add-subscriptio
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isPast, isThisMonth, isFuture, startOfMonth, startOfToday, format } from "date-fns";
+import { isPast, isThisMonth, isFuture, startOfToday, format } from "date-fns";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
@@ -16,12 +16,11 @@ import { es } from "date-fns/locale";
 export default function SubscriptionsPage() {
     const { subscriptions, isLoading } = useContext(DataContext);
     const today = startOfToday();
-    const startOfCurrentMonth = startOfMonth(today);
 
     const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
     const cancelledSubscriptions = subscriptions.filter(s => s.status === 'cancelled');
 
-    // Vencidas: Fecha es anterior al inicio del mes actual.
+    // Vencidas: Fecha es anterior al día de hoy y no es de este mes.
     const overdueSubscriptions = activeSubscriptions.filter(s => isPast(s.dueDate) && !isThisMonth(s.dueDate));
 
     // Este Mes: Fecha está en el mes actual.
@@ -51,7 +50,7 @@ export default function SubscriptionsPage() {
                     <>
                         <KpiCard title="Suscripciones Activas" value={<KpiSkeleton />} icon={ListChecks} description="Cargando..." />
                         <KpiCard title="Gasto Mensual Total" value={<KpiSkeleton />} icon={CircleDollarSign} description="Cargando..." />
-                        <KpiCard title="Próximo Pago" value={<KpiSkeleton />} icon={CalendarClock} description="Cargando..." />
+                        <KpiCard title="Próximo Vencimiento" value={<KpiSkeleton />} icon={CalendarClock} description="Cargando..." />
                     </>
                 ) : (
                     <>
@@ -70,11 +69,11 @@ export default function SubscriptionsPage() {
                             description="Suma de todos tus gastos recurrentes."
                         />
                          <KpiCard
-                            title="Próximo Pago"
-                            value={nextPayment ? `$${nextPayment.amount.toLocaleString('es-CL')}` : '-'}
+                            title="Próximo Vencimiento"
+                            value={nextPayment ? format(nextPayment.dueDate, "dd MMM, yyyy", {locale: es}) : '-'}
                             icon={CalendarClock}
                             iconClassName="text-purple-400"
-                            description={nextPayment ? `${nextPayment.name} (${format(nextPayment.dueDate, "dd MMM", {locale: es})})` : 'No hay pagos próximos.'}
+                            description={nextPayment ? `${nextPayment.name} ($${nextPayment.amount.toLocaleString('es-CL')})` : 'No hay pagos próximos.'}
                         />
                     </>
                 )}
