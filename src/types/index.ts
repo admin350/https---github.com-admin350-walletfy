@@ -106,6 +106,8 @@ export type Profile = {
 }
 
 export type Category = {
+    id: string;
     name: string;
     type: 'Ingreso' | 'Gasto';
+    color: string;
 }

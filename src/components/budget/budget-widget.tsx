@@ -19,17 +19,8 @@ interface BudgetWidgetProps {
     isLoading: boolean;
 }
 
-const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-  "#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088fe", "#00c49f", "#ffbb28"
-];
-
 export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
-    const { deleteBudget, transactions } = useContext(DataContext);
+    const { deleteBudget, transactions, categories } = useContext(DataContext);
     const { toast } = useToast();
 
     const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
@@ -57,6 +48,11 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
             });
         }
     };
+    
+    const getCategoryColor = (categoryName: string) => {
+        const category = categories.find(c => c.name === categoryName);
+        return category ? category.color : "#8884d8"; // fallback color
+    };
 
     if (isLoading) {
         return <Skeleton className="h-64 w-full" />
@@ -81,8 +77,8 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                         <div className="flex justify-between items-start">
                             <div>
                                 <CardTitle>{budget.name}</CardTitle>
-                                <div className="text-sm text-muted-foreground mt-1">
-                                    Asignado al perfil <Badge variant="outline">{budget.profile}</Badge>
+                                <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                                    <span>Asignado al perfil</span> <Badge variant="outline">{budget.profile}</Badge>
                                 </div>
                             </div>
                              <AlertDialog>
@@ -125,7 +121,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                                 <PieChart>
                                     <Pie data={budget.items} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={80} label>
                                         {budget.items.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
                                         ))}
                                     </Pie>
                                     <Tooltip formatter={(value: number) => `${value}%`} />
@@ -136,7 +132,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                                 {budget.items.map((item, index) => (
                                     <div key={item.category} className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: getCategoryColor(item.category) }} />
                                             <span>{item.category}</span>
                                         </div>
                                         <span className="font-medium">{item.percentage}%</span>

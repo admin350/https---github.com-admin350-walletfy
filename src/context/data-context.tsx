@@ -76,22 +76,22 @@ const mockProfiles: Profile[] = [
 ];
 
 const mockCategories: Category[] = [
-    { name: "Alimentación", type: "Gasto" },
-    { name: "Transporte", type: "Gasto" },
-    { name: "Vivienda", type: "Gasto" },
-    { name: "Entretenimiento", type: "Gasto" },
-    { name: "Suscripciones", type: "Gasto" },
-    { name: "Servicios", type: "Gasto" },
-    { name: "Salud", type: "Gasto" },
-    { name: "Compras", type: "Gasto" },
-    { name: "Inversiones", type: "Gasto" },
-    { name: "Fondo de Emergencia", type: "Gasto" },
-    { name: "Otros", type: "Gasto" },
-    { name: "Pago de Deuda", type: "Gasto" },
-    { name: "Ahorro para Meta", type: "Gasto" },
-    { name: "Sueldo", type: "Ingreso" },
-    { name: "Negocio", type: "Ingreso" },
-    { name: "Otros Ingresos", type: "Ingreso" },
+    { id: '1', name: "Alimentación", type: "Gasto", color: "#f97316" },
+    { id: '2', name: "Transporte", type: "Gasto", color: "#3b82f6" },
+    { id: '3', name: "Vivienda", type: "Gasto", color: "#84cc16" },
+    { id: '4', name: "Entretenimiento", type: "Gasto", color: "#a855f7" },
+    { id: '5', name: "Suscripciones", type: "Gasto", color: "#6366f1" },
+    { id: '6', name: "Servicios", type: "Gasto", color: "#0ea5e9" },
+    { id: '7', name: "Salud", type: "Gasto", color: "#ef4444" },
+    { id: '8', name: "Compras", type: "Gasto", color: "#d946ef" },
+    { id: '9', name: "Inversiones", type: "Gasto", color: "#14b8a6" },
+    { id: '10', name: "Fondo de Emergencia", type: "Gasto", color: "#f59e0b" },
+    { id: '11', name: "Otros", type: "Gasto", color: "#6b7280" },
+    { id: '12', name: "Pago de Deuda", type: "Gasto", color: "#ec4899" },
+    { id: '13', name: "Ahorro para Meta", type: "Gasto", color: "#facc15" },
+    { id: '14', name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+    { id: '15', name: "Negocio", type: "Ingreso", color: "#06b6d4" },
+    { id: '16', name: "Otros Ingresos", type: "Ingreso", color: "#10b981" },
 ];
 
 const mockBudgets: Budget[] = [
@@ -160,6 +160,9 @@ interface DataContextType {
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
     deleteBudget: (id: string) => Promise<void>;
+    addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
+    updateCategory: (category: Category) => Promise<void>;
+    deleteCategory: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -204,6 +207,9 @@ export const DataContext = createContext<DataContextType>({
     addBudget: async () => {},
     updateBudget: async () => {},
     deleteBudget: async () => {},
+    addCategory: async () => {},
+    updateCategory: async () => {},
+    deleteCategory: async () => {},
 });
 
 // PROVIDER
@@ -509,6 +515,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setBudgets(prev => prev.filter(b => b.id !== id));
     };
 
+    const addCategory = async (category: Omit<Category, 'id'>) => {
+        const newCategory = { ...category, id: crypto.randomUUID() };
+        setCategories(prev => [...prev, newCategory]);
+    };
+
+    const updateCategory = async (updatedCategory: Category) => {
+        setCategories(prev => prev.map(c => (c.id === updatedCategory.id ? updatedCategory : c)));
+    };
+
+    const deleteCategory = async (id: string) => {
+        setCategories(prev => prev.filter(c => c.id !== id));
+    };
+
     return (
         <DataContext.Provider value={{ 
             transactions: filteredTransactions,
@@ -552,6 +571,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addBudget,
             updateBudget,
             deleteBudget,
+            addCategory,
+            updateCategory,
+            deleteCategory,
         }}>
             {children}
         </DataContext.Provider>

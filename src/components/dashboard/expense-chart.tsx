@@ -19,12 +19,6 @@ import { DataContext } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 const COLORS = {
-  expenses: [
-    "hsl(190, 80%, 60%)",
-    "hsl(340, 80%, 60%)",
-    "hsl(20, 90%, 60%)",
-    "hsl(260, 80%, 70%)",
-  ],
   savings: "hsl(var(--chart-2))",
   investments: "hsl(var(--chart-4))",
 };
@@ -38,18 +32,15 @@ export function ExpenseChart() {
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
 
-    const expenseCategories = categories.filter(c => c.type === 'Gasto').map(c => c.name);
+    const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
-    let expenseIndex = 0;
     const expenseData = expenseCategories.map((category) => {
         const total = transactions
-            .filter(t => t.type === 'expense' && t.category === category)
+            .filter(t => t.type === 'expense' && t.category === category.name)
             .reduce((sum, t) => sum + t.amount, 0);
         
         if (total > 0) {
-          const fill = COLORS.expenses[expenseIndex % COLORS.expenses.length];
-          expenseIndex++;
-          return { name: category, value: total, fill };
+          return { name: category.name, value: total, fill: category.color };
         }
         return null;
     }).filter(d => d !== null) as { name: string; value: number; fill: string }[];
