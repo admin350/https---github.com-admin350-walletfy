@@ -1,3 +1,4 @@
+
 'use client';
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, Landmark, Target, Settings, Repeat, CreditCard } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { useState } from "react";
 
 
 const navItems = [
@@ -23,6 +25,7 @@ export function Header() {
   const pageTitle = navItems.find(item => pathname === item.href)?.label || 
                   navItems.find(item => item.href !== "/dashboard" && pathname.startsWith(item.href))?.label || 
                   "Panel";
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -30,20 +33,22 @@ export function Header() {
       
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Alternar menú de navegación</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0 bg-card/80">
-                <SheetHeader className="p-4 border-b">
-                  <SheetTitle>Navegación Principal</SheetTitle>
-                </SheetHeader>
-              <MobileSidebar />
-            </SheetContent>
-          </Sheet>
+          <div onMouseEnter={() => setIsSheetOpen(true)} onMouseLeave={() => setIsSheetOpen(false)}>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Alternar menú de navegación</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex flex-col p-0 bg-card/80">
+                  <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Navegación Principal</SheetTitle>
+                  </SheetHeader>
+                <MobileSidebar />
+              </SheetContent>
+            </Sheet>
+          </div>
           <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-4">
