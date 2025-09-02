@@ -3,7 +3,7 @@
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
-import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth } from "date-fns";
+import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
 // MOCK DATA
 const mockTransactions: Transaction[] = [
@@ -173,9 +173,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Simulate fetching data on mount
     useEffect(() => {
         const timer = setTimeout(() => {
-            setTransactions(mockTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            let processedSubscriptions = [...mockSubscriptions];
+            const newTransactions : Transaction[] = [];
+
+            processedSubscriptions = processedSubscriptions.map(sub => {
+                let newSub = {...sub};
+                while (isPast(newSub.dueDate)) {
+                    const renewalDate = newSub.dueDate;
+                    newSub.dueDate = addMonths(newSub.dueDate, 1);
+                     newTransactions.push({
+                        id: crypto.randomUUID(),
+                        type: 'expense',
+                        amount: newSub.amount,
+                        description: `Suscripción: ${newSub.name}`,
+                        category: 'Suscripciones',
+                        profile: newSub.profile,
+                        date: renewalDate.toISOString(),
+                    });
+                }
+                return newSub;
+            });
+            
+            setSubscriptions(processedSubscriptions.sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
+            setTransactions(prev => [...prev, ...newTransactions, ...mockTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
             setGoals(mockGoals);
-            setSubscriptions(mockSubscriptions);
             setDebts(mockDebts);
             setDebtPayments(mockDebtPayments);
             setFixedExpenses(mockFixedExpenses);
