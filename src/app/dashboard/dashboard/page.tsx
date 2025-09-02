@@ -111,22 +111,9 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+      <div className="grid gap-6 lg:grid-cols-1">
+        <div className="lg:col-span-1">
           <CashflowChart />
-        </div>
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Destino Real de tus Ingresos</CardTitle>
-              <CardDescription>
-                Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ExpenseChart />
-            </CardContent>
-          </Card>
         </div>
       </div>
       
