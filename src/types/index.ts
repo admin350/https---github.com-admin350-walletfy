@@ -2,7 +2,7 @@
 
 export type Transaction = {
   id: string;
-  type: 'income' | 'expense' | 'transfer';
+  type: 'income' | 'expense' | 'transfer' | 'transfer-investment';
   amount: number;
   description: string;
   category: string;

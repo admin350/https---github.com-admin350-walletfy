@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
@@ -41,7 +42,7 @@ import type { Transaction } from '@/types';
 
 
 const formSchema = z.object({
-  type: z.enum(["income", "expense", "transfer"], { required_error: "Tipo es requerido." }),
+  type: z.enum(["income", "expense", "transfer", "transfer-investment"], { required_error: "Tipo es requerido." }),
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
   description: z.string().min(2, { message: "Descripción es muy corta." }),
   category: z.string().min(1, { message: "Categoría es requerida." }),
@@ -103,7 +104,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
-        if (transactionType === 'expense') return c.type === 'Gasto';
+        if (transactionType === 'expense' || transactionType === 'transfer' || transactionType === 'transfer-investment') return c.type === 'Gasto';
         return true;
     });
 
@@ -179,7 +180,8 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             <SelectContent>
                                 <SelectItem value="expense">Egreso</SelectItem>
                                 <SelectItem value="income">Ingreso</SelectItem>
-                                <SelectItem value="transfer">Transferencia de Ahorro</SelectItem>
+                                <SelectItem value="transfer">Transferencia a Ahorros</SelectItem>
+                                <SelectItem value="transfer-investment">Transferencia a Inversión</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />

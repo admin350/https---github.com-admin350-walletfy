@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useContext, useMemo } from 'react';
 import {
@@ -35,27 +36,23 @@ interface ContributeToInvestmentDialogProps {
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addInvestmentContribution, transactions, goalContributions, investmentContributions } = useContext(DataContext);
+    const { addInvestmentContribution, transactions, investmentContributions } = useContext(DataContext);
     
-    const totalSavings = useMemo(() => {
-        return transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
+    const totalInvestmentTransfers = useMemo(() => {
+        return transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
     }, [transactions]);
     
-    const totalContributedToGoals = useMemo(() => {
-        return goalContributions.reduce((acc, c) => acc + c.amount, 0);
-    }, [goalContributions]);
-
     const totalContributedToInvestments = useMemo(() => {
         return investmentContributions.reduce((acc, c) => acc + c.amount, 0);
     }, [investmentContributions]);
 
 
-    const availableSavings = totalSavings - totalContributedToGoals - totalContributedToInvestments;
+    const availableToInvest = totalInvestmentTransfers - totalContributedToInvestments;
 
     const formSchema = z.object({
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en ahorros ($${availableSavings.toLocaleString('es-CL')}).` }),
+        .max(availableToInvest, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de inversión ($${availableToInvest.toLocaleString('es-CL')}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -97,7 +94,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 <DialogHeader>
                     <DialogTitle>Aportar a: {investment.name}</DialogTitle>
                     <DialogDescription>
-                       Ahorro disponible en cartera: <span className="font-bold text-primary">${availableSavings.toLocaleString('es-CL')}</span>
+                       Saldo disponible para invertir: <span className="font-bold text-primary">${availableToInvest.toLocaleString('es-CL')}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

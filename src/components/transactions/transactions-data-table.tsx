@@ -1,4 +1,5 @@
 
+
 'use client'
 import {
     ColumnDef,
@@ -78,18 +79,36 @@ export function TransactionsDataTable() {
             header: "Tipo",
             cell: ({ row }) => {
                 const type = row.getValue("type") as string;
-                let variant: "default" | "destructive" | "outline" = "outline";
+                let variant: "default" | "destructive" | "outline" | "secondary" = "outline";
                 let text = "";
-                if (type === 'income') {
-                    variant = 'default';
-                    text = 'Ingreso'
-                } else if (type === 'expense') {
-                    variant = 'destructive';
-                    text = 'Egreso'
-                } else {
-                    text = 'Transferencia'
+                let className = "";
+
+                switch (type) {
+                    case 'income':
+                        variant = 'default';
+                        text = 'Ingreso';
+                        className = 'bg-green-500/20 text-green-500 border-green-500/20';
+                        break;
+                    case 'expense':
+                        variant = 'destructive';
+                        text = 'Egreso';
+                        className = 'bg-red-500/20 text-red-500 border-red-500/20';
+                        break;
+                    case 'transfer':
+                        variant = 'secondary';
+                        text = 'Ahorro';
+                        className = 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20';
+                        break;
+                    case 'transfer-investment':
+                        variant = 'secondary';
+                        text = 'Inversión';
+                        className = 'bg-blue-500/20 text-blue-500 border-blue-500/20';
+                        break;
+                    default:
+                        text = 'Transacción';
+                        break;
                 }
-                const className = type === 'income' ? 'bg-green-500/20 text-green-500 border-green-500/20' : type === 'expense' ? 'bg-red-500/20 text-red-500 border-red-500/20' : '';
+                
                 return <Badge variant={variant} className={className}>{text}</Badge>
             }
         },

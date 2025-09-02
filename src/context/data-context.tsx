@@ -14,6 +14,7 @@ const mockTransactions: Transaction[] = [
   { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
   { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
   { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
+  { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString() },
   { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: addMonths(new Date(), -1).toISOString()},
 ];
 
@@ -317,6 +318,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const deleteGoal = async (id: string) => {
         setGoals(prev => prev.filter(g => g.id !== id));
+        // Also delete associated contributions
+        setGoalContributions(prev => prev.filter(c => c.goalId !== id));
     }
     
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
@@ -343,6 +346,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const deleteDebt = async (id: string) => {
         setDebts(prev => prev.filter(d => d.id !== id));
+        // Also delete associated payments
+        setDebtPayments(prev => prev.filter(p => p.debtId !== id));
     }
 
     const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => {
@@ -437,6 +442,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const deleteInvestment = async (id: string) => {
         setInvestments(prev => prev.filter(i => i.id !== id));
+        // Also delete associated contributions
+        setInvestmentContributions(prev => prev.filter(c => c.investmentId !== id));
     };
 
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
@@ -446,7 +453,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setInvestments(prevInvestments =>
             prevInvestments.map(inv => {
                 if (inv.id === contribution.investmentId) {
-                    return { ...inv, currentValue: inv.currentValue + contribution.amount };
+                    // When adding a contribution, it increases both the initial amount (cost basis) and current value.
+                    return { 
+                        ...inv, 
+                        initialAmount: inv.initialAmount + contribution.amount,
+                        currentValue: inv.currentValue + contribution.amount 
+                    };
                 }
                 return inv;
             })
