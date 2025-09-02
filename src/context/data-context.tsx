@@ -73,7 +73,9 @@ interface DataContextType {
     profiles: Profile[];
     categories: Category[];
     isLoading: boolean;
-    addTransaction: (transaction: Transaction) => Promise<void>;
+    addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+    updateTransaction: (transaction: Transaction) => Promise<void>;
+    deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: SavingsGoal) => Promise<void>;
     addSubscription: (subscription: UpcomingPayment) => Promise<void>;
     addDebt: (debt: UpcomingPayment) => Promise<void>;
@@ -90,6 +92,8 @@ export const DataContext = createContext<DataContextType>({
     categories: [],
     isLoading: true,
     addTransaction: async () => {},
+    updateTransaction: async () => {},
+    deleteTransaction: async () => {},
     addGoal: async () => {},
     addSubscription: async () => {},
     addDebt: async () => {},
@@ -122,8 +126,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return () => clearTimeout(timer);
     }, []);
     
-    const addTransaction = async (transaction: Transaction) => {
-        setTransactions(prev => [transaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+        const newTransaction = { ...transaction, id: crypto.randomUUID() };
+        setTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    };
+
+    const updateTransaction = async (updatedTransaction: Transaction) => {
+        setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t));
+    };
+
+    const deleteTransaction = async (id: string) => {
+        setTransactions(prev => prev.filter(t => t.id !== id));
     };
 
     const addGoal = async (goal: SavingsGoal) => {
@@ -154,6 +167,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             categories,
             isLoading,
             addTransaction,
+            updateTransaction,
+            deleteTransaction,
             addGoal,
             addSubscription,
             addDebt,

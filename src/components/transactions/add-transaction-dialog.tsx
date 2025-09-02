@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode, useState, useContext } from 'react';
+import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
+import type { Transaction } from '@/types';
 
 
 const formSchema = z.object({
@@ -47,16 +48,24 @@ const formSchema = z.object({
   date: z.date({ required_error: "Fecha es requerida." }),
 });
 
+interface AddTransactionDialogProps {
+    children: ReactNode;
+    transactionToEdit?: Transaction;
+    onFinish?: () => void;
+}
 
-export function AddTransactionDialog({ children }: { children: ReactNode }) {
+export function AddTransactionDialog({ children, transactionToEdit, onFinish }: AddTransactionDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, categories, profiles } = useContext(DataContext);
+    const { addTransaction, updateTransaction, categories, profiles } = useContext(DataContext);
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
+        defaultValues: transactionToEdit ? {
+            ...transactionToEdit,
+            date: new Date(transactionToEdit.date),
+        } : {
             type: "expense",
             amount: undefined,
             description: "",
@@ -65,6 +74,24 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
             date: new Date(),
         },
     });
+
+    useEffect(() => {
+        if (transactionToEdit) {
+            form.reset({
+                ...transactionToEdit,
+                date: new Date(transactionToEdit.date)
+            });
+        } else {
+            form.reset({
+                type: "expense",
+                amount: undefined,
+                description: "",
+                category: "",
+                profile: "",
+                date: new Date(),
+            });
+        }
+    }, [transactionToEdit, form]);
 
     const transactionType = form.watch("type");
 
@@ -77,21 +104,34 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            await addTransaction({
-                id: crypto.randomUUID(),
-                ...values,
-                date: values.date.toISOString(),
-            });
-            toast({
-                title: "Transacción añadida",
-                description: "Tu transacción ha sido registrada exitosamente.",
-            });
+            if (transactionToEdit) {
+                await updateTransaction({
+                    ...values,
+                    id: transactionToEdit.id,
+                    date: values.date.toISOString(),
+                });
+                 toast({
+                    title: "Transacción actualizada",
+                    description: "Tu transacción ha sido actualizada exitosamente.",
+                });
+            } else {
+                 await addTransaction({
+                    ...values,
+                    date: values.date.toISOString(),
+                });
+                toast({
+                    title: "Transacción añadida",
+                    description: "Tu transacción ha sido registrada exitosamente.",
+                });
+            }
+           
             form.reset();
             setOpen(false);
+            if(onFinish) onFinish();
         } catch (error) {
             toast({
                 title: "Error",
-                description: "No se pudo añadir la transacción.",
+                description: `No se pudo ${transactionToEdit ? 'actualizar' : 'añadir'} la transacción.`,
                 variant: 'destructive'
             });
         } finally {
@@ -104,9 +144,9 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Añadir Transacción</DialogTitle>
+          <DialogTitle>{transactionToEdit ? 'Editar' : 'Añadir'} Transacción</DialogTitle>
           <DialogDescription>
-            Registra un nuevo ingreso, egreso o transferencia.
+            {transactionToEdit ? 'Edita los detalles de tu transacción.' : 'Registra un nuevo ingreso, egreso o transferencia.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -247,7 +287,7 @@ export function AddTransactionDialog({ children }: { children: ReactNode }) {
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Guardar Transacción
+                    {transactionToEdit ? 'Guardar Cambios' : 'Guardar Transacción'}
                 </Button>
             </form>
         </Form>
