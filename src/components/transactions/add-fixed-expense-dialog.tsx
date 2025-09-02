@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
@@ -37,15 +38,21 @@ const formSchema = z.object({
 interface AddFixedExpenseDialogProps {
     children: ReactNode;
     expenseToEdit?: FixedExpense;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
     onFinish?: () => void;
 }
 
-export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: AddFixedExpenseDialogProps) {
-    const [open, setOpen] = useState(false);
+export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenChange, onFinish }: AddFixedExpenseDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addFixedExpense, updateFixedExpense, categories, profiles } = useContext(DataContext);
     
+    const isControlled = open !== undefined && onOpenChange !== undefined;
+    const dialogOpen = isControlled ? open : internalOpen;
+    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
+
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -59,12 +66,12 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
     });
 
      useEffect(() => {
-        if (expenseToEdit) {
+        if (dialogOpen && expenseToEdit) {
             form.reset({
                 ...expenseToEdit,
                 amount: expenseToEdit.amount || ('' as any),
             });
-        } else {
+        } else if (dialogOpen && !expenseToEdit) {
             form.reset({
                 name: "",
                 amount: '' as any,
@@ -72,7 +79,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                 profile: "",
             });
         }
-    }, [expenseToEdit, form, open]);
+    }, [expenseToEdit, form, dialogOpen]);
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -92,7 +99,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                 });
             }
             form.reset();
-            setOpen(false);
+            setDialogOpen(false);
             if(onFinish) onFinish();
         } catch (error) {
              toast({
@@ -106,8 +113,8 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>{expenseToEdit ? 'Editar' : 'Añadir'} Plantilla de Gasto Fijo</DialogTitle>
@@ -149,7 +156,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Categoría</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Selecciona una categoría" />
@@ -171,7 +178,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Perfil</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Selecciona un perfil" />

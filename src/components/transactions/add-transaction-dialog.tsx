@@ -50,17 +50,23 @@ const formSchema = z.object({
 });
 
 interface AddTransactionDialogProps {
-    children: ReactNode;
+    children?: ReactNode;
     transactionToEdit?: Partial<Transaction>;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
     onFinish?: () => void;
 }
 
-export function AddTransactionDialog({ children, transactionToEdit, onFinish }: AddTransactionDialogProps) {
-    const [open, setOpen] = useState(false);
+export function AddTransactionDialog({ children, transactionToEdit, open, onOpenChange, onFinish }: AddTransactionDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addTransaction, updateTransaction, categories, profiles } = useContext(DataContext);
     
+    const isControlled = open !== undefined && onOpenChange !== undefined;
+    const dialogOpen = isControlled ? open : internalOpen;
+    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -74,13 +80,13 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
     });
 
     useEffect(() => {
-        if(transactionToEdit) {
+        if(dialogOpen && transactionToEdit) {
             form.reset({
                 ...transactionToEdit,
                 amount: transactionToEdit.amount || ('' as any),
                 date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date()
             });
-        } else {
+        } else if (dialogOpen && !transactionToEdit) {
              form.reset({
                 type: "expense",
                 amount: '' as any,
@@ -90,7 +96,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                 date: new Date(),
             });
         }
-    }, [transactionToEdit, form, open]);
+    }, [transactionToEdit, form, dialogOpen]);
 
 
     const transactionType = form.watch("type");
@@ -133,7 +139,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                 profile: "",
                 date: new Date(),
             });
-            setOpen(false);
+            setDialogOpen(false);
             if(onFinish) onFinish();
         } catch (error) {
             toast({
@@ -147,8 +153,8 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
     }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{transactionToEdit?.id ? 'Editar' : 'Añadir'} Transacción</DialogTitle>
@@ -164,7 +170,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona un tipo" />
@@ -212,7 +218,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Perfil</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona un perfil" />
@@ -234,7 +240,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Categoría</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona una categoría" />

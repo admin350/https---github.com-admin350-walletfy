@@ -31,21 +31,25 @@ export function FixedExpensesDataTable() {
     const { toast } = useToast();
     const [expenseToRegister, setExpenseToRegister] = useState<Partial<Transaction> | undefined>(undefined);
     const [expenseToEdit, setExpenseToEdit] = useState<FixedExpense | undefined>(undefined);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     
 
     const handleRegister = (expense: FixedExpense) => {
         setExpenseToRegister({
             type: 'expense',
             description: expense.name,
-            amount: undefined, // Dejar el monto en blanco para que el usuario lo ingrese
+            amount: expense.amount, // Set the base amount, user can change it
             category: expense.category,
             profile: expense.profile,
             date: new Date(),
         });
+        setIsRegisterOpen(true);
     };
 
     const handleEdit = (expense: FixedExpense) => {
         setExpenseToEdit(expense);
+        setIsEditOpen(true);
     };
     
     const handleDelete = async (id: string) => {
@@ -147,18 +151,33 @@ export function FixedExpensesDataTable() {
 
     return (
         <div className="w-full">
-            {/* Dialog for registering transaction */}
-            <AddTransactionDialog transactionToEdit={expenseToRegister as Transaction} onFinish={() => setExpenseToRegister(undefined)}>
-                {expenseToRegister && <button id="register-trigger" className="hidden"></button>}
-            </AddTransactionDialog>
+             {isRegisterOpen && (
+                <AddTransactionDialog
+                    transactionToEdit={expenseToRegister as Transaction}
+                    open={isRegisterOpen}
+                    onOpenChange={setIsRegisterOpen}
+                    onFinish={() => {
+                        setExpenseToRegister(undefined);
+                        setIsRegisterOpen(false);
+                    }}
+                >
+                    {/* El diálogo se controla por estado, no necesita un trigger visible aquí */}
+                </AddTransactionDialog>
+            )}
 
-            {/* Dialog for editing fixed expense template */}
-            <AddFixedExpenseDialog expenseToEdit={expenseToEdit} onFinish={() => setExpenseToEdit(undefined)}>
-                 {expenseToEdit && <button id="edit-trigger" className="hidden"></button>}
-            </AddFixedExpenseDialog>
-            
-            {expenseToRegister && <script dangerouslySetInnerHTML={{ __html: `document.getElementById('register-trigger')?.click()` }} />}
-            {expenseToEdit && <script dangerouslySetInnerHTML={{ __html: `document.getElementById('edit-trigger')?.click()`}} />}
+            {isEditOpen && (
+                <AddFixedExpenseDialog
+                    expenseToEdit={expenseToEdit}
+                    open={isEditOpen}
+                    onOpenChange={setIsEditOpen}
+                    onFinish={() => {
+                        setExpenseToEdit(undefined);
+                        setIsEditOpen(false);
+                    }}
+                >
+                    {/* El diálogo se controla por estado, no necesita un trigger visible aquí */}
+                </AddFixedExpenseDialog>
+            )}
 
             <div className="rounded-md border">
                 <Table>
