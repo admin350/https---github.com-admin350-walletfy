@@ -14,11 +14,13 @@ import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
-import { FixedExpensesWidget } from "@/components/dashboard/fixed-expenses-widget";
 import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
 import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
+import { FinancialSummary } from "@/components/dashboard/financial-summary";
+import { GoalsSummary } from "@/components/dashboard/goals-summary";
+
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
@@ -93,18 +95,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader>
-              <CardTitle>Progreso de Metas</CardTitle>
-              <CardDescription>Un vistazo rápido al avance de tus metas activas.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SavingsGoalsWidget isDashboardWidget={true} />
-            </CardContent>
-          </Card>
-          <UpcomingPaymentsWidget />
-          <FixedExpensesWidget />
-          <RecentTransactions />
+            <FinancialSummary />
+            <GoalsSummary />
+            <UpcomingPaymentsWidget />
+            <RecentTransactions />
         </div>
       </div>
 

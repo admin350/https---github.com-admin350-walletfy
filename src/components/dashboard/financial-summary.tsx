@@ -3,24 +3,35 @@
 import { useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataContext } from '@/context/data-context';
-import { CreditCard, Landmark, Repeat, TrendingDown } from 'lucide-react';
-import { Progress } from '../ui/progress';
+import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function FinancialSummary() {
-    const { debts, transactions, subscriptions, isLoading } = useContext(DataContext);
+    const { 
+        transactions, 
+        goalContributions, 
+        investmentContributions,
+        investments,
+        debts,
+        subscriptions,
+        isLoading 
+    } = useContext(DataContext);
 
-    // Debt calculations
-    const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
-    const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
-    const remainingDebt = totalOwed - totalPaid;
-    const debtProgress = totalOwed > 0 ? (totalPaid / totalOwed) * 100 : 0;
+    // Savings Portfolio Calculations
+    const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
+    const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+    const availableSavings = totalSavings - totalContributedToGoals;
 
-    // Subscription calculations
-    const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
-    const totalMonthlyCost = activeSubscriptions.reduce((acc, sub) => acc + sub.amount, 0);
-    const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-    const expenseParticipation = totalExpenses > 0 ? (totalMonthlyCost / totalExpenses) * 100 : 0;
+    // Investment Portfolio Calculations
+    const totalTransferredToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
+    const totalContributedToAssets = investmentContributions.reduce((acc, c) => acc + c.amount, 0);
+    const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
+
+    // Debt and Subscription Summary Calculations
+    const remainingDebt = debts.reduce((acc, debt) => acc + (debt.totalAmount - debt.paidAmount), 0);
+    const totalMonthlySubscriptionCost = subscriptions
+        .filter(s => s.status === 'active')
+        .reduce((acc, sub) => acc + sub.amount, 0);
 
     const SummarySkeleton = () => (
         <div className="space-y-4">
@@ -35,12 +46,8 @@ export function FinancialSummary() {
                     <Skeleton className="h-4 w-1/4" />
                 </div>
             </div>
-            <div className="flex justify-between text-sm">
-                 <Skeleton className="h-4 w-1/2" />
-                 <Skeleton className="h-4 w-1/3" />
-            </div>
         </div>
-    )
+    );
 
     if (isLoading) {
         return (
@@ -52,53 +59,65 @@ export function FinancialSummary() {
                 <CardContent className="grid gap-6">
                     <SummarySkeleton />
                     <SummarySkeleton />
+                    <SummarySkeleton />
                 </CardContent>
             </Card>
-        )
+        );
     }
-
 
     return (
         <Card className="bg-card/50 border-border/50">
             <CardHeader>
-                <CardTitle>Resumen Financiero</CardTitle>
-                <CardDescription>Una vista consolidada de tus finanzas.</CardDescription>
+                <CardTitle>Resúmenes Clave</CardTitle>
+                <CardDescription>Vistas consolidadas de tus carteras, deudas y suscripciones.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">
-                {/* Debts Summary */}
+                
+                {/* Savings Portfolio */}
                 <div className="space-y-2">
-                    <div className="flex items-center gap-2 font-semibold text-red-400">
-                        <CreditCard className="h-5 w-5" />
-                        <span>Resumen de Deudas</span>
-                    </div>
-                    <div>
-                         <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Pagado</span>
-                            <span>{debtProgress.toFixed(1)}%</span>
-                        </div>
-                        <Progress value={debtProgress} className="h-2 [&>div]:bg-red-400" />
+                    <div className="flex items-center gap-2 font-semibold text-emerald-400">
+                        <Landmark className="h-5 w-5" />
+                        <span>Cartera de Ahorro</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Pagado: <span className="font-medium text-foreground">${totalPaid.toLocaleString('es-CL')}</span></span>
-                        <span className="text-muted-foreground">Restante: <span className="font-medium text-foreground">${remainingDebt.toLocaleString('es-CL')}</span></span>
+                        <span className="text-muted-foreground">Disponible:</span>
+                        <span className="font-medium text-foreground">${availableSavings.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Destinado a Metas:</span>
+                        <span className="font-medium text-foreground">${totalContributedToGoals.toLocaleString('es-CL')}</span>
                     </div>
                 </div>
 
-                {/* Subscriptions Summary */}
+                {/* Investment Portfolio */}
                 <div className="space-y-2">
-                     <div className="flex items-center gap-2 font-semibold text-purple-400">
-                        <Repeat className="h-5 w-5" />
-                        <span>Resumen de Suscripciones</span>
+                    <div className="flex items-center gap-2 font-semibold text-blue-400">
+                        <TrendingUp className="h-5 w-5" />
+                        <span>Cartera de Inversión</span>
                     </div>
-                    <div className='bg-muted/50 p-3 rounded-lg flex items-start justify-between'>
-                        <div>
-                             <p className="text-sm text-muted-foreground">Gasto Mensual</p>
-                             <p className="text-xl font-bold">${totalMonthlyCost.toLocaleString('es-CL')}</p>
-                        </div>
-                         <div>
-                             <p className="text-sm text-muted-foreground text-right">Participación en Egresos</p>
-                             <p className="text-xl font-bold text-right">{expenseParticipation.toFixed(1)}%</p>
-                        </div>
+                     <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Disponible:</span>
+                        <span className="font-medium text-foreground">${availableToInvest.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Invertido en Activos:</span>
+                        <span className="font-medium text-foreground">${totalContributedToAssets.toLocaleString('es-CL')}</span>
+                    </div>
+                </div>
+
+                {/* Debts & Subscriptions */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-red-400">
+                        <Banknote className="h-5 w-5" />
+                        <span>Deudas y Suscripciones</span>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Deuda Restante:</span>
+                        <span className="font-medium text-foreground">${remainingDebt.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Gasto Mensual en Suscripciones:</span>
+                        <span className="font-medium text-foreground">${totalMonthlySubscriptionCost.toLocaleString('es-CL')}</span>
                     </div>
                 </div>
             </CardContent>
