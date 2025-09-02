@@ -1,12 +1,8 @@
+
 'use client';
 import type { ReactNode } from "react";
-import dynamic from "next/dynamic";
+import { Header } from "@/components/layout/header";
 import { DataProvider } from "@/context/data-context";
-
-const Header = dynamic(() => import('@/components/layout/header').then(mod => mod.Header), {
-  ssr: false,
-});
-
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
