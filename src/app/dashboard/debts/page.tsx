@@ -9,6 +9,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DebtsPage() {
     const { debts, isLoading } = useContext(DataContext);
@@ -16,6 +17,9 @@ export default function DebtsPage() {
     const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
     const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
     const remainingDebt = totalOwed - totalPaid;
+    
+    const activeDebts = debts.filter(d => d.paidAmount < d.totalAmount);
+    const paidDebts = debts.filter(d => d.paidAmount >= d.totalAmount);
 
     const KpiSkeleton = () => (
         <div className="space-y-2">
@@ -72,7 +76,18 @@ export default function DebtsPage() {
                     </AddDebtDialog>
                 </CardHeader>
                 <CardContent>
-                    <DebtsDataTable />
+                    <Tabs defaultValue="active">
+                         <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="active">Activas</TabsTrigger>
+                            <TabsTrigger value="completed">Pagadas</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="active" className="mt-4">
+                            <DebtsDataTable debts={activeDebts} />
+                        </TabsContent>
+                        <TabsContent value="completed" className="mt-4">
+                            <DebtsDataTable debts={paidDebts} />
+                        </TabsContent>
+                    </Tabs>
                 </CardContent>
             </Card>
         </div>

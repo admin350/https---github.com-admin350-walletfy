@@ -31,8 +31,13 @@ import { Badge } from "../ui/badge";
 import { format, isPast, differenceInMonths } from "date-fns";
 import { es } from "date-fns/locale";
 
-export function DebtsDataTable() {
-    const { debts, deleteDebt } = useContext(DataContext);
+interface DebtsDataTableProps {
+    debts: Debt[];
+}
+
+
+export function DebtsDataTable({ debts }: DebtsDataTableProps) {
+    const { deleteDebt } = useContext(DataContext);
     const { toast } = useToast();
     const [debtToEdit, setDebtToEdit] = useState<Debt | undefined>(undefined);
     const [debtToPay, setDebtToPay] = useState<Debt | undefined>(undefined);
@@ -132,12 +137,15 @@ export function DebtsDataTable() {
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
+                const isPaid = item.paidAmount >= item.totalAmount;
                 return (
                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePay(item)} disabled={item.paidAmount >= item.totalAmount}>
-                            <HandCoins className="mr-2 h-4 w-4" />
-                            Abonar
-                        </Button>
+                        {!isPaid && (
+                             <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
+                                <HandCoins className="mr-2 h-4 w-4" />
+                                Abonar
+                            </Button>
+                        )}
                         <AlertDialog>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -239,7 +247,7 @@ export function DebtsDataTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay deudas registradas.
+                                    No hay deudas en esta categoría.
                                 </TableCell>
                             </TableRow>
                         )}
