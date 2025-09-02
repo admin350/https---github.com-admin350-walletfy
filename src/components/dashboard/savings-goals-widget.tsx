@@ -18,8 +18,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
-export function SavingsGoalsWidget() {
-  const { goals, isLoading, deleteGoal } = useContext(DataContext);
+interface SavingsGoalsWidgetProps {
+  goals: SavingsGoal[];
+  isLoading: boolean;
+}
+
+
+export function SavingsGoalsWidget({ goals, isLoading }: SavingsGoalsWidgetProps) {
+  const { deleteGoal } = useContext(DataContext);
   const [isClient, setIsClient] = useState(false);
   const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<SavingsGoal | null>(null);
   const [selectedGoalForEdit, setSelectedGoalForEdit] = useState<SavingsGoal | null>(null);
@@ -67,10 +73,11 @@ export function SavingsGoalsWidget() {
           </div>
         ))
       ) : goals.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No tienes metas de ahorro definidas.</p>
+          <p className="text-muted-foreground text-sm text-center py-4">No hay metas en esta categoría.</p>
       ) : (
         goals.map((goal) => {
           const progress = (goal.currentAmount / goal.targetAmount) * 100;
+          const isCompleted = progress >= 100;
           return (
             <div key={goal.id}>
                 <div className="flex justify-between mb-1 items-start">
@@ -132,10 +139,12 @@ export function SavingsGoalsWidget() {
                     </Badge>
                     <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
-                    <PiggyBank className="mr-2 h-4 w-4" />
-                    Aportar
-                </Button>
+                {!isCompleted && (
+                  <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
+                      <PiggyBank className="mr-2 h-4 w-4" />
+                      Aportar
+                  </Button>
+                )}
               </div>
             </div>
           );

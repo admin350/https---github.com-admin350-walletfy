@@ -9,6 +9,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GoalsPage() {
     const { goals, isLoading } = useContext(DataContext);
@@ -17,6 +18,7 @@ export default function GoalsPage() {
     const totalTargetAmount = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
 
     const completedGoals = goals.filter(goal => goal.currentAmount >= goal.targetAmount);
+    const activeGoals = goals.filter(goal => goal.currentAmount < goal.targetAmount);
     const completedGoalsCount = completedGoals.length;
     const completedGoalsAmount = completedGoals.reduce((acc, goal) => acc + goal.targetAmount, 0);
 
@@ -82,7 +84,18 @@ export default function GoalsPage() {
                     </AddGoalDialog>
                 </CardHeader>
                 <CardContent>
-                   <SavingsGoalsWidget />
+                    <Tabs defaultValue="active">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="active">Activas</TabsTrigger>
+                            <TabsTrigger value="completed">Completadas</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="active" className="mt-4">
+                            <SavingsGoalsWidget goals={activeGoals} isLoading={isLoading} />
+                        </TabsContent>
+                        <TabsContent value="completed" className="mt-4">
+                             <SavingsGoalsWidget goals={completedGoals} isLoading={isLoading} />
+                        </TabsContent>
+                    </Tabs>
                 </CardContent>
             </Card>
         </div>
