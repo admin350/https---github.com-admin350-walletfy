@@ -118,12 +118,12 @@ export default function DashboardPage() {
         </div>
       </div>
       
-      <FinancialAnalysisIA />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FinancialSummary />
         <GoalsSummary />
       </div>
+
+      <FinancialAnalysisIA />
 
       <div className="fixed bottom-6 right-6">
         <DropdownMenu>
