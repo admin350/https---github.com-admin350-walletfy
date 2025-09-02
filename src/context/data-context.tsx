@@ -15,9 +15,9 @@ const mockTransactions: Transaction[] = [
 ];
 
 const mockGoals: SavingsGoal[] = [
-  { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000, estimatedDate: new Date('2025-12-01'), profile: 'Personal', type: 'Ahorro' },
-  { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000, estimatedDate: new Date('2024-10-31'), profile: 'Negocio', type: 'Ahorro' },
-  { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000, estimatedDate: new Date('2026-01-01'), profile: 'Personal', type: 'Inversión' },
+  { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000, estimatedDate: new Date('2025-12-01'), profile: 'Personal', category: 'Viaje' },
+  { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000, estimatedDate: new Date('2024-10-31'), profile: 'Negocio', category: 'Tecnología' },
+  { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000, estimatedDate: new Date('2026-01-01'), profile: 'Personal', category: 'Inversión' },
 ];
 
 const mockSubscriptions: Subscription[] = [

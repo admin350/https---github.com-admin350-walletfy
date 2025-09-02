@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -50,8 +51,8 @@ export function SavingsGoalsWidget() {
                   </div>
                   <Progress value={progress} className="h-2" />
                   <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                     <Badge variant={goal.type === 'Ahorro' ? 'secondary' : 'outline'}>
-                        {goal.type}
+                     <Badge variant='secondary'>
+                        {goal.category}
                     </Badge>
                     <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
                   </div>

@@ -1,3 +1,4 @@
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -15,7 +16,7 @@ export type SavingsGoal = {
   currentAmount: number;
   estimatedDate: Date;
   profile: string;
-  type: 'Ahorro' | 'Inversión';
+  category: string;
 };
 
 export type Debt = {

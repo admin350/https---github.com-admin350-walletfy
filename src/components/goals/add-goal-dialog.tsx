@@ -37,7 +37,7 @@ const formSchema = z.object({
   targetAmount: z.coerce.number().positive({ message: "Monto objetivo debe ser positivo." }),
   estimatedDate: z.date({ required_error: "Fecha estimada es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
-  type: z.enum(["Ahorro", "Inversión"], { required_error: "El tipo de meta es requerido." }),
+  category: z.string().min(2, { message: "La categoría es requerida." }),
 });
 
 export function AddGoalDialog({ children }: { children: ReactNode }) {
@@ -53,7 +53,7 @@ export function AddGoalDialog({ children }: { children: ReactNode }) {
             targetAmount: '' as any,
             estimatedDate: new Date(),
             profile: "",
-            type: "Ahorro",
+            category: "",
         },
     });
 
@@ -179,21 +179,13 @@ export function AddGoalDialog({ children }: { children: ReactNode }) {
                         />
                         <FormField
                             control={form.control}
-                            name="type"
+                            name="category"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Tipo</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona un tipo" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Ahorro">Ahorro</SelectItem>
-                                            <SelectItem value="Inversión">Inversión</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <FormLabel>Categoría</FormLabel>
+                                     <FormControl>
+                                        <Input placeholder="Ej: Viaje, Educación, Inversión" {...field} />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
