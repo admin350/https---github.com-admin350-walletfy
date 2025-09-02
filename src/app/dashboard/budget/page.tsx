@@ -16,37 +16,38 @@ export default function BudgetPage() {
     
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Mis Planes de Presupuesto</CardTitle>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Destino Real de tus Ingresos</CardTitle>
                         <CardDescription>
-                            Crea y gestiona planes presupuestarios para analizar y optimizar tus finanzas.
+                            Visualización en tiempo real de cómo se distribuyen tus ingresos según los registros.
                         </CardDescription>
-                    </div>
-                     <AddBudgetDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-rose-400" />
-                            Añadir Presupuesto
-                        </Button>
-                    </AddBudgetDialog>
-                </CardHeader>
-                <CardContent>
-                   <BudgetWidget budgets={budgets} isLoading={isLoading} />
-                </CardContent>
-            </Card>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
-                    <CardDescription>
-                        Visualización en tiempo real de cómo se distribuyen tus ingresos según los registros.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ExpenseChart />
-                </CardContent>
-            </Card>
+                    </CardHeader>
+                    <CardContent>
+                        <ExpenseChart />
+                    </CardContent>
+                </Card>
+                <Card className="lg:col-span-1">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Mis Planes de Presupuesto</CardTitle>
+                            <CardDescription>
+                                Crea y gestiona tus planes.
+                            </CardDescription>
+                        </div>
+                         <AddBudgetDialog>
+                            <Button size="sm">
+                               <PlusCircle className="mr-2 h-4 w-4 text-rose-400" />
+                                Añadir
+                            </Button>
+                        </AddBudgetDialog>
+                    </CardHeader>
+                    <CardContent>
+                       <BudgetWidget budgets={budgets} isLoading={isLoading} />
+                    </CardContent>
+                </Card>
+            </div>
 
             <Card>
                 <CardHeader>

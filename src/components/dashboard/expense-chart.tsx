@@ -74,21 +74,20 @@ export function ExpenseChart() {
 
 
   return (
-    <Card className="flex flex-col h-full bg-card/50 border-border/50">
-      <CardHeader>
-        <CardTitle>Destino de tus Ingresos</CardTitle>
+    <div className="flex flex-col h-full">
+      <CardHeader className="p-0 mb-4">
         <CardDescription>
             Total de ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0 flex items-center justify-center">
+      <CardContent className="flex-1 pb-0 flex items-center justify-center p-0">
         {isLoading ? (
           <Skeleton className="h-[200px] w-full" />
         ) : chartData.length === 0 ? (
           <p className="text-muted-foreground text-sm">No hay datos para mostrar.</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 w-full">
-            <div className="h-[200px]">
+            <div className="h-[150px]">
               <ChartContainer
                 config={dynamicChartConfig}
                 className="h-full w-full"
@@ -107,7 +106,7 @@ export function ExpenseChart() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius={60}
                   >
                     {chartData.map((entry) => (
                       <Cell key={`cell-${entry.name}`} fill={entry.fill} />
@@ -116,18 +115,18 @@ export function ExpenseChart() {
                 </PieChart>
               </ChartContainer>
             </div>
-             <div className="flex flex-col justify-center space-y-2 text-sm">
+             <div className="flex flex-col justify-center space-y-1 text-xs">
                 {chartData.map((item) => {
                     const percentage = totalIncome > 0 ? (item.value / totalIncome) * 100 : 0;
                     return (
                         <div key={item.name} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.fill }} />
                                 <span>{item.name}</span>
                             </div>
                             <div className="text-right">
                                 <span className="font-medium">${item.value.toLocaleString('es-CL')}</span>
-                                <span className="ml-2 text-xs text-muted-foreground">({percentage.toFixed(1)}%)</span>
+                                <span className="ml-2 text-muted-foreground">({percentage.toFixed(1)}%)</span>
                             </div>
                         </div>
                     )
@@ -136,6 +135,6 @@ export function ExpenseChart() {
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   )
 }

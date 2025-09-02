@@ -76,15 +76,15 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     }
 
     return (
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+        <div className="space-y-6">
             {budgets.map(budget => (
-                <Card key={budget.id} className="flex flex-col border-t-4" style={{ borderTopColor: getProfileColor(budget.profile) }}>
-                    <CardHeader>
+                <Card key={budget.id} className="flex flex-col border-t-4 shadow-none border" style={{ borderTopColor: getProfileColor(budget.profile) }}>
+                    <CardHeader className="p-4">
                         <div className="flex justify-between items-start">
                             <div>
-                                <CardTitle>{budget.name}</CardTitle>
+                                <CardTitle className="text-lg">{budget.name}</CardTitle>
                                  <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                                    <span>Asignado al perfil</span> <Badge variant="outline">{budget.profile}</Badge>
+                                    <span>Perfil:</span> <Badge variant="outline">{budget.profile}</Badge>
                                 </div>
                             </div>
                              <AlertDialog>
@@ -120,12 +120,12 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                             </AlertDialog>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-1">
+                    <CardContent className="flex-1 p-4 pt-0">
                        <div className="grid grid-cols-2 gap-4">
-                           <div className="h-[200px]">
+                           <div className="h-[150px]">
                              <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
-                                    <Pie data={budget.items} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={80} label>
+                                    <Pie data={budget.items} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={60} label>
                                         {budget.items.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
                                         ))}
@@ -134,11 +134,11 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                                 </PieChart>
                             </ResponsiveContainer>
                            </div>
-                            <div className="flex flex-col justify-center space-y-2">
+                            <div className="flex flex-col justify-center space-y-1">
                                 {budget.items.map((item, index) => (
-                                    <div key={item.category} className="flex items-center justify-between text-sm">
+                                    <div key={item.category} className="flex items-center justify-between text-xs">
                                         <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: getCategoryColor(item.category) }} />
+                                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCategoryColor(item.category) }} />
                                             <span>{item.category}</span>
                                         </div>
                                         <span className="font-medium">{item.percentage}%</span>
@@ -147,8 +147,8 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                             </div>
                        </div>
                     </CardContent>
-                    <CardFooter>
-                         <p className="text-sm text-muted-foreground">Monto estimado basado en ingresos del período: <strong className="text-foreground">${((totalIncome * budget.items.reduce((sum, item) => sum + item.percentage, 0)) / 100).toLocaleString('es-CL')}</strong></p>
+                    <CardFooter className="p-4 pt-0">
+                         <p className="text-xs text-muted-foreground">Monto estimado: <strong className="text-foreground">${((totalIncome * budget.items.reduce((sum, item) => sum + item.percentage, 0)) / 100).toLocaleString('es-CL')}</strong></p>
                     </CardFooter>
                 </Card>
             ))}
