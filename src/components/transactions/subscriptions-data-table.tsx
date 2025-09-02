@@ -17,12 +17,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState, useMemo } from "react";
+import { useContext } from "react";
 import type { Subscription } from "@/types";
 import { DataContext } from "@/context/data-context";
-import { format, getMonth, getYear } from "date-fns";
-import { es } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -32,18 +30,6 @@ export function SubscriptionsDataTable() {
     const { subscriptions, deleteSubscription } = useContext(DataContext);
     const { toast } = useToast();
     
-    const [date, setDate] = useState({
-        month: getMonth(new Date()),
-        year: getYear(new Date()),
-    });
-
-    const filteredData = useMemo(() => {
-        return subscriptions.filter(s => {
-            const itemDate = new Date(s.dueDate);
-            return getMonth(itemDate) === date.month && getYear(itemDate) === date.year;
-        });
-    }, [subscriptions, date]);
-
     const handleEdit = (item: Subscription) => {
         console.log("Editing subscription:", item);
          toast({
@@ -148,47 +134,15 @@ export function SubscriptionsDataTable() {
 
 
     const table = useReactTable({
-        data: filteredData,
+        data: subscriptions,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
     });
 
-    const months = Array.from({ length: 12 }, (_, i) => ({
-        value: i,
-        label: format(new Date(2000, i), 'LLLL', { locale: es }),
-    }));
-    
-    const currentYear = getYear(new Date());
-    const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
-
     return (
         <div className="w-full">
-            <div className="flex items-center py-4 gap-4">
-                <Select
-                    value={date.month.toString()}
-                    onValueChange={(value) => setDate(prev => ({...prev, month: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Mes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select
-                     value={date.year.toString()}
-                     onValueChange={(value) => setDate(prev => ({...prev, year: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Año" />
-                    </SelectTrigger>
-                    <SelectContent>
-                       {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -226,7 +180,7 @@ export function SubscriptionsDataTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay resultados.
+                                    No hay resultados para los filtros seleccionados.
                                 </TableCell>
                             </TableRow>
                         )}

@@ -56,7 +56,7 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <KpiCard title="Ingresos del Período" value={`$${totalIncome.toLocaleString('es-CL')}`} icon={TrendingUp} description="Suma de ingresos en el período." />
+            <KpiCard title="Ingresos del Período" value={`$${totalIncome.toLocaleString('es-CL')}`} icon={TrendingUp} description="Este es el 100% del presupuesto" />
             <KpiCard title="Egresos del Período" value={`$${totalExpenses.toLocaleString('es-CL')}`} icon={TrendingDown} description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} />
             <KpiCard title="Balance Neto" value={`$${netBalance.toLocaleString('es-CL')}`} icon={DollarSign} description="Ingresos - Egresos" />
             <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />

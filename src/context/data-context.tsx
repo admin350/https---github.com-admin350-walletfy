@@ -2,8 +2,8 @@
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment } from "@/types";
-import { createContext, useState, useEffect, ReactNode } from "react";
-import { addDays, addMonths, setDate } from "date-fns";
+import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
+import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth } from "date-fns";
 
 // MOCK DATA
 const mockTransactions: Transaction[] = [
@@ -13,6 +13,7 @@ const mockTransactions: Transaction[] = [
   { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
   { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
   { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
+  { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: addMonths(new Date(), -1).toISOString()},
 ];
 
 const mockGoals: SavingsGoal[] = [
@@ -29,12 +30,14 @@ const mockGoalContributions: GoalContribution[] = [
 const mockSubscriptions: Subscription[] = [
     { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal" },
     { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal" },
+    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Negocio" },
 ];
 
 const mockDebts: Debt[] = [
     { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
     { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal" },
     { id: '3', name: "Tarjeta de Crédito", totalAmount: 500000, paidAmount: 150000, monthlyPayment: 50000, installments: 10, dueDate: addDays(new Date(), -5), financialInstitution: "Falabella", profile: "Personal" },
+    { id: '4', name: "Línea de Crédito", totalAmount: 2000000, paidAmount: 500000, monthlyPayment: 100000, installments: 20, dueDate: addDays(new Date(), 20), financialInstitution: "Banco de Chile", profile: "Negocio" },
 ];
 
 const mockDebtPayments: DebtPayment[] = [
@@ -76,6 +79,12 @@ const mockCategories: Category[] = [
     { name: "Otros Ingresos", type: "Ingreso" },
 ];
 
+interface IFilters {
+    profile: string;
+    month: number; // -1 for all months
+    year: number;
+}
+
 // CONTEXT
 interface DataContextType {
     transactions: Transaction[];
@@ -88,6 +97,9 @@ interface DataContextType {
     goalContributions: GoalContribution[];
     debtPayments: DebtPayment[];
     isLoading: boolean;
+    filters: IFilters;
+    setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
+    availableYears: number[];
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -118,6 +130,9 @@ export const DataContext = createContext<DataContextType>({
     goalContributions: [],
     debtPayments: [],
     isLoading: true,
+    filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
+    setFilters: () => {},
+    availableYears: [],
     addTransaction: async () => {},
     updateTransaction: async () => {},
     deleteTransaction: async () => {},
@@ -149,6 +164,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [goalContributions, setGoalContributions] = useState<GoalContribution[]>([]);
     const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [filters, setFilters] = useState<IFilters>({
+        profile: 'all',
+        month: getMonth(new Date()),
+        year: getYear(new Date()),
+    });
     
     // Simulate fetching data on mount
     useEffect(() => {
@@ -166,7 +186,72 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }, 1000);
         return () => clearTimeout(timer);
     }, []);
+
+    const availableYears = useMemo(() => {
+        const years = new Set(transactions.map(t => getYear(new Date(t.date))));
+        return Array.from(years).sort((a, b) => b - a);
+    }, [transactions]);
     
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(t => {
+            const date = new Date(t.date);
+            const profileMatch = filters.profile === 'all' || t.profile === filters.profile;
+            const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
+            const yearMatch = getYear(date) === filters.year;
+            return profileMatch && monthMatch && yearMatch;
+        });
+    }, [transactions, filters]);
+
+    const filteredDebts = useMemo(() => {
+        return debts.filter(d => filters.profile === 'all' || d.profile === filters.profile);
+    }, [debts, filters]);
+    
+    const filteredSubscriptions = useMemo(() => {
+        const filterDate = new Date(filters.year, filters.month, 1);
+        const filterMonthStart = startOfMonth(filterDate);
+        const filterMonthEnd = endOfMonth(filterDate);
+
+        return subscriptions.filter(s => {
+            const profileMatch = filters.profile === 'all' || s.profile === filters.profile;
+            if (filters.month === -1) {
+                 return profileMatch && getYear(s.dueDate) === filters.year;
+            }
+            return profileMatch && s.dueDate >= filterMonthStart && s.dueDate <= filterMonthEnd;
+        });
+    }, [subscriptions, filters]);
+
+    const filteredGoals = useMemo(() => {
+        return goals.filter(g => filters.profile === 'all' || g.profile === filters.profile);
+    }, [goals, filters]);
+    
+    const filteredFixedExpenses = useMemo(() => {
+        return fixedExpenses.filter(fe => filters.profile === 'all' || fe.profile === filters.profile);
+    }, [fixedExpenses, filters]);
+
+    const filteredGoalContributions = useMemo(() => {
+        return goalContributions.filter(gc => {
+            const goal = goals.find(g => g.id === gc.goalId);
+            if (!goal) return false;
+            const profileMatch = filters.profile === 'all' || goal.profile === filters.profile;
+            const date = new Date(gc.date);
+            const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
+            const yearMatch = getYear(date) === filters.year;
+            return profileMatch && monthMatch && yearMatch;
+        });
+    }, [goalContributions, goals, filters]);
+
+     const filteredDebtPayments = useMemo(() => {
+        return debtPayments.filter(dp => {
+            const debt = debts.find(d => d.id === dp.debtId);
+            if (!debt) return false;
+            const profileMatch = filters.profile === 'all' || debt.profile === filters.profile;
+            const date = new Date(dp.date);
+            const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
+            const yearMatch = getYear(date) === filters.year;
+            return profileMatch && monthMatch && yearMatch;
+        });
+    }, [debtPayments, debts, filters]);
+
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         const newTransaction = { ...transaction, id: crypto.randomUUID() };
         setTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -284,16 +369,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <DataContext.Provider value={{ 
-            transactions,
-            goals,
-            subscriptions,
-            debts,
-            fixedExpenses,
+            transactions: filteredTransactions,
+            goals: filteredGoals,
+            subscriptions: filteredSubscriptions,
+            debts: filteredDebts,
+            fixedExpenses: filteredFixedExpenses,
             profiles,
             categories,
-            goalContributions,
-            debtPayments,
+            goalContributions: filteredGoalContributions,
+            debtPayments: filteredDebtPayments,
             isLoading,
+            filters,
+            setFilters,
+            availableYears,
             addTransaction,
             updateTransaction,
             deleteTransaction,

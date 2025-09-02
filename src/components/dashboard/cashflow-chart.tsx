@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/chart"
 import { useContext, useMemo } from "react"
 import { DataContext } from "@/context/data-context"
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO } from "date-fns"
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, getYear, getMonth, lastDayOfMonth } from "date-fns"
 import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
@@ -32,12 +33,14 @@ const chartConfig = {
 }
 
 export function CashflowChart() {
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, isLoading, filters } = useContext(DataContext);
 
   const chartData = useMemo(() => {
-    const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
+    if (filters.month === -1) return []; // Don't show month-based chart for "All Year" view
+
+    const date = new Date(filters.year, filters.month);
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
     let cumulativeIncome = 0;
@@ -61,15 +64,40 @@ export function CashflowChart() {
         expenses: cumulativeExpenses,
       };
     });
-  }, [transactions]);
+  }, [transactions, filters]);
 
+
+  const yearlyChartData = useMemo(() => {
+    if (filters.month !== -1) return []; // Only for "All Year" view
+
+    const months = Array.from({ length: 12 }, (_, i) => i);
+    
+    return months.map(month => {
+        const monthlyIncome = transactions
+            .filter(t => t.type === 'income' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year)
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        const monthlyExpenses = transactions
+            .filter(t => t.type === 'expense' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        return {
+            month: format(new Date(filters.year, month), 'LLL', { locale: es }),
+            income: monthlyIncome,
+            expenses: monthlyExpenses,
+        };
+    });
+  }, [transactions, filters]);
+  
+  const isYearlyView = filters.month === -1;
+  const currentChartData = isYearlyView ? yearlyChartData : chartData;
 
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
-        <CardTitle>Flujo de Caja Mensual</CardTitle>
+        <CardTitle>Flujo de Caja del Período</CardTitle>
         <CardDescription>
-          Ingresos acumulados vs. egresos acumulados a lo largo del mes
+          {isYearlyView ? 'Ingresos vs. egresos a lo largo del año' : 'Ingresos acumulados vs. egresos acumulados a lo largo del mes'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -81,7 +109,7 @@ export function CashflowChart() {
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <AreaChart
               accessibilityLayer
-              data={chartData}
+              data={currentChartData}
               margin={{
                 left: 12,
                 right: 12,
@@ -89,7 +117,7 @@ export function CashflowChart() {
             >
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="day"
+                dataKey={isYearlyView ? "month" : "day"}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}

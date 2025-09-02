@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,10 @@ import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Land
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
-
+import { DataContext } from "@/context/data-context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { format, getYear } from "date-fns";
+import { es } from "date-fns/locale";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
@@ -27,6 +30,17 @@ export function Header() {
                   "Panel";
                   
   const [isClient, setIsClient] = useState(false);
+  const { 
+    profiles, 
+    filters,
+    setFilters,
+    availableYears 
+  } = useContext(DataContext);
+  
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    value: i,
+    label: format(new Date(2000, i), 'LLLL', { locale: es }),
+  }));
 
   useEffect(() => {
     setIsClient(true);
@@ -54,11 +68,55 @@ export function Header() {
             )}
           <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
         </div>
-        <div className="flex items-center gap-4">
-           <Button variant="ghost">
+        <div className="flex items-center gap-2 md:gap-4">
+            {isClient && (
+                 <div className="flex items-center gap-2">
+                     <Select
+                        value={filters.profile}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, profile: value }))}
+                    >
+                        <SelectTrigger className="w-[130px] hidden md:flex">
+                            <SelectValue placeholder="Perfil" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los Perfiles</SelectItem>
+                             {profiles.map(p => (
+                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                     <Select
+                        value={filters.month.toString()}
+                        onValueChange={(value) => setFilters(prev => ({...prev, month: parseInt(value)}))}
+                    >
+                        <SelectTrigger className="w-[130px] hidden md:flex">
+                            <SelectValue placeholder="Mes" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="-1">Todo el Año</SelectItem>
+                            {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select
+                         value={filters.year.toString()}
+                         onValueChange={(value) => setFilters(prev => ({...prev, year: parseInt(value)}))}
+                    >
+                        <SelectTrigger className="w-[100px] hidden md:flex">
+                            <SelectValue placeholder="Año" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                 </div>
+            )}
+           <Button variant="ghost" className="hidden sm:inline-flex">
             <LogOut className="mr-2 h-4 w-4" />
             Cerrar Sesión
            </Button>
+            <Button variant="ghost" size="icon" className="sm:hidden">
+                <LogOut className="h-4 w-4" />
+            </Button>
         </div>
       </div>
     </header>
@@ -67,12 +125,68 @@ export function Header() {
 
 export function MobileSidebar({ navItems }: { navItems: any[] }) {
     const pathname = usePathname();
+    const { 
+        profiles, 
+        filters,
+        setFilters,
+        availableYears 
+    } = useContext(DataContext);
+
+    const months = Array.from({ length: 12 }, (_, i) => ({
+        value: i,
+        label: format(new Date(2000, i), 'LLLL', { locale: es }),
+    }));
+
+
     return (
         <div className="p-4 flex flex-col h-full">
             <div className="flex items-center gap-2 text-2xl font-bold text-primary mb-8">
                 <Rocket className="h-7 w-7" />
                 <h1 className="font-headline">FA Vision</h1>
             </div>
+
+            <div className="grid gap-2 mb-8">
+                 <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase">Filtros</h3>
+                 <Select
+                    value={filters.profile}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, profile: value }))}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Perfil" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los Perfiles</SelectItem>
+                         {profiles.map(p => (
+                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                 <Select
+                    value={filters.month.toString()}
+                    onValueChange={(value) => setFilters(prev => ({...prev, month: parseInt(value)}))}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Mes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="-1">Todo el Año</SelectItem>
+                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Select
+                     value={filters.year.toString()}
+                     onValueChange={(value) => setFilters(prev => ({...prev, year: parseInt(value)}))}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                       {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase mb-2">Navegación</h3>
             <nav className="grid gap-2 text-lg font-medium">
                 {navItems.map((item) => (
                     <Link

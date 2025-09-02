@@ -17,33 +17,15 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState, useMemo } from "react";
+import { useContext } from "react";
 import type { Transaction } from "@/types";
 import { DataContext } from "@/context/data-context";
-import { format, getMonth, getYear } from "date-fns";
-import { es } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "../ui/badge";
+import { format } from "date-fns";
 
 export function SavingsPortfolioDataTable() {
     const { transactions } = useContext(DataContext);
     
-    const [date, setDate] = useState({
-        month: getMonth(new Date()),
-        year: getYear(new Date()),
-    });
-
-    const savingsTransactions = useMemo(() => {
-        return transactions.filter(t => t.type === 'transfer');
-    }, [transactions]);
-
-    const filteredTransactions = useMemo(() => {
-        return savingsTransactions.filter(t => {
-            const transactionDate = new Date(t.date);
-            return getMonth(transactionDate) === date.month && getYear(transactionDate) === date.year;
-        });
-    }, [savingsTransactions, date]);
-
+    const savingsTransactions = transactions.filter(t => t.type === 'transfer');
     
     const columns: ColumnDef<Transaction>[] = [
         {
@@ -79,47 +61,15 @@ export function SavingsPortfolioDataTable() {
 
 
     const table = useReactTable({
-        data: filteredTransactions,
+        data: savingsTransactions,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
     });
 
-    const months = Array.from({ length: 12 }, (_, i) => ({
-        value: i,
-        label: format(new Date(2000, i), 'LLLL', { locale: es }),
-    }));
-    
-    const currentYear = getYear(new Date());
-    const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
-
     return (
         <div className="w-full">
-            <div className="flex items-center py-4 gap-4">
-                <Select
-                    value={date.month.toString()}
-                    onValueChange={(value) => setDate(prev => ({...prev, month: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Mes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select
-                     value={date.year.toString()}
-                     onValueChange={(value) => setDate(prev => ({...prev, year: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Año" />
-                    </SelectTrigger>
-                    <SelectContent>
-                       {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
