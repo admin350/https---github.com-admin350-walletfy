@@ -209,16 +209,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [debts, filters]);
     
     const filteredSubscriptions = useMemo(() => {
-        const filterDate = new Date(filters.year, filters.month, 1);
-        const filterMonthStart = startOfMonth(filterDate);
-        const filterMonthEnd = endOfMonth(filterDate);
-
+        // Subscriptions page has its own time-based filtering (overdue, this month, upcoming)
+        // so we only filter by profile here.
         return subscriptions.filter(s => {
             const profileMatch = filters.profile === 'all' || s.profile === filters.profile;
-            if (filters.month === -1) {
-                 return profileMatch && getYear(s.dueDate) === filters.year;
-            }
-            return profileMatch && s.dueDate >= filterMonthStart && s.dueDate <= filterMonthEnd;
+            return profileMatch;
         });
     }, [subscriptions, filters]);
 
