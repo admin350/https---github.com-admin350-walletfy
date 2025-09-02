@@ -1,18 +1,77 @@
+
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Target, CheckCircle, PiggyBank } from "lucide-react";
 import { AddGoalDialog } from "@/components/goals/add-goal-dialog";
+import { KpiCard } from "@/components/dashboard/kpi-card";
+import { useContext } from "react";
+import { DataContext } from "@/context/data-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GoalsPage() {
+    const { goals, isLoading } = useContext(DataContext);
+    
+    const totalGoals = goals.length;
+    const totalTargetAmount = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+
+    const completedGoals = goals.filter(goal => goal.currentAmount >= goal.targetAmount);
+    const completedGoalsCount = completedGoals.length;
+    const completedGoalsAmount = completedGoals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+
+    const remainingAmount = goals.reduce((acc, goal) => {
+        const remaining = goal.targetAmount - goal.currentAmount;
+        return acc + (remaining > 0 ? remaining : 0);
+    }, 0);
+
+    const KpiSkeleton = () => (
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+    )
+
+
     return (
         <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-3">
+                {isLoading ? (
+                    <>
+                        <KpiCard title="Metas Totales" value={<KpiSkeleton />} icon={Target} description="Cargando..." />
+                        <KpiCard title="Metas Completadas" value={<KpiSkeleton />} icon={CheckCircle} description="Cargando..." />
+                        <KpiCard title="Monto Restante" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
+                    </>
+                ) : (
+                    <>
+                        <KpiCard 
+                            title="Metas Totales" 
+                            value={totalGoals} 
+                            icon={Target} 
+                            description={`Presupuesto Total: $${totalTargetAmount.toLocaleString('es-CL')}`}
+                        />
+                        <KpiCard 
+                            title="Metas Completadas" 
+                            value={completedGoalsCount} 
+                            icon={CheckCircle} 
+                            description={`Monto Cumplido: $${completedGoalsAmount.toLocaleString('es-CL')}`}
+                        />
+                        <KpiCard
+                            title="Monto Restante"
+                            value={`$${remainingAmount.toLocaleString('es-CL')}`}
+                            icon={PiggyBank}
+                            description="Para alcanzar todas tus metas"
+                        />
+                    </>
+                )}
+            </div>
+
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Metas</CardTitle>
+                        <CardTitle>Mis Metas</CardTitle>
                         <CardDescription>
-                            Define tus metas financieras para dar un propósito a tus ahorros.
+                            Define, sigue y gestiona tus objetivos financieros.
                         </CardDescription>
                     </div>
                      <AddGoalDialog>

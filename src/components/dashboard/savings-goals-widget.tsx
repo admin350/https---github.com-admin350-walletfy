@@ -53,113 +53,106 @@ export function SavingsGoalsWidget() {
   }
 
   return (
-    <Card className="bg-card/50 border-border/50">
-      <CardHeader>
-        <CardDescription>Tu progreso hacia tus objetivos financieros.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {isLoading || !isClient ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                 <div className="flex justify-between mb-1">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-4 w-1/2" />
-                 </div>
-                 <Skeleton className="h-2 w-full" />
-                  <Skeleton className="h-3 w-1/4" />
+    <div className="space-y-6">
+      {isLoading || !isClient ? (
+        Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+              <div className="flex justify-between mb-1">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/2" />
               </div>
-            ))
-          ) : goals.length === 0 ? (
-             <p className="text-muted-foreground text-sm">No tienes metas de ahorro definidas.</p>
-          ) : (
-            goals.map((goal) => {
-              const progress = (goal.currentAmount / goal.targetAmount) * 100;
-              return (
-                <div key={goal.id}>
-                   <div className="flex justify-between mb-1 items-start">
-                    <div>
-                        <p className="text-base font-medium">{goal.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                        {`$${goal.currentAmount.toLocaleString('es-CL')} / $${goal.targetAmount.toLocaleString('es-CL')}`}
-                        </p>
-                    </div>
-                     <AlertDialog>
-                       <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Abrir menú</span>
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditClick(goal)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                         <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la meta y sus contribuciones asociadas.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(goal.id)}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Badge variant='secondary'>
-                            {goal.category}
-                        </Badge>
-                        <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
-                    </div>
-                    <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
-                        <PiggyBank className="mr-2 h-4 w-4" />
-                        Aportar
-                    </Button>
-                  </div>
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-3 w-1/4" />
+          </div>
+        ))
+      ) : goals.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No tienes metas de ahorro definidas.</p>
+      ) : (
+        goals.map((goal) => {
+          const progress = (goal.currentAmount / goal.targetAmount) * 100;
+          return (
+            <div key={goal.id}>
+                <div className="flex justify-between mb-1 items-start">
+                <div>
+                    <p className="text-base font-medium">{goal.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                    {`$${goal.currentAmount.toLocaleString('es-CL')} / $${goal.targetAmount.toLocaleString('es-CL')}`}
+                    </p>
                 </div>
-              );
-            })
-          )}
-        </div>
-         {selectedGoalForContribution && (
-          <ContributeToGoalDialog
-            goal={selectedGoalForContribution}
-            open={!!selectedGoalForContribution}
+                  <AlertDialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menú</span>
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditClick(goal)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Esto eliminará permanentemente la meta y sus contribuciones asociadas.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(goal.id)}>Continuar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <Progress value={progress} className="h-2" />
+              <div className="flex justify-between items-center mt-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant='secondary'>
+                        {goal.category}
+                    </Badge>
+                    <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
+                    <PiggyBank className="mr-2 h-4 w-4" />
+                    Aportar
+                </Button>
+              </div>
+            </div>
+          );
+        })
+      )}
+      {selectedGoalForContribution && (
+      <ContributeToGoalDialog
+        goal={selectedGoalForContribution}
+        open={!!selectedGoalForContribution}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setSelectedGoalForContribution(null);
+          }
+        }}
+      />
+    )}
+      {selectedGoalForEdit && (
+        <AddGoalDialog 
+            open={!!selectedGoalForEdit}
             onOpenChange={(isOpen) => {
-              if (!isOpen) {
-                setSelectedGoalForContribution(null);
-              }
+                if(!isOpen) {
+                    setSelectedGoalForEdit(null)
+                }
             }}
-          />
-        )}
-         {selectedGoalForEdit && (
-            <AddGoalDialog 
-                open={!!selectedGoalForEdit}
-                onOpenChange={(isOpen) => {
-                    if(!isOpen) {
-                        setSelectedGoalForEdit(null)
-                    }
-                }}
-                goalToEdit={selectedGoalForEdit}
-            />
-         )}
-      </CardContent>
-    </Card>
+            goalToEdit={selectedGoalForEdit}
+        />
+      )}
+    </div>
   );
 }
