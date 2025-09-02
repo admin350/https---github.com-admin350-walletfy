@@ -70,6 +70,25 @@ export type FixedExpense = {
   profile: string;
 }
 
+export type Investment = {
+  id: string;
+  name: string; // e.g., 'Portafolio Acciones US'
+  initialAmount: number;
+  currentValue: number;
+  investmentType: string; // e.g., 'Acciones', 'Criptomonedas', 'Forex', 'Índices'
+  platform: string; // e.g., 'Interactive Brokers', 'Binance'
+  profile: string;
+};
+
+export type InvestmentContribution = {
+  id: string;
+  investmentId: string;
+  investmentName: string;
+  amount: number;
+  date: Date;
+}
+
+
 export type Profile = {
     name: string;
     color: string;

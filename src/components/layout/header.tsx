@@ -1,10 +1,11 @@
 
+
 'use client';
 import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target } from "lucide-react";
+import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
   { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Cartera de Ahorros", color: "text-emerald-400" },
   { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
+  { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
 ];
 
 export function Header() {
