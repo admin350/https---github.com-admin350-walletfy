@@ -10,6 +10,7 @@ import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
 
 export default function DebtsPage() {
     const { debts, isLoading } = useContext(DataContext);
@@ -30,6 +31,7 @@ export default function DebtsPage() {
 
     return (
         <div className="space-y-6">
+             <OverdueDebtsWidget />
             <div className="grid gap-4 md:grid-cols-3">
                  {isLoading ? (
                     <>

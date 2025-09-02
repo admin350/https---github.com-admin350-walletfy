@@ -6,7 +6,7 @@ import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
+import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
@@ -17,6 +17,8 @@ import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Target } from "lucide-react";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
@@ -99,10 +101,20 @@ export default function DashboardPage() {
       
       <FinancialAnalysisIA />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         <RecentTransactions />
-        <UpcomingPaymentsWidget />
-        <OverdueDebtsWidget />
+         <Card className="bg-card/50 border-border/50">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Target className="text-yellow-400" />
+                    Metas de Ahorro Activas
+                </CardTitle>
+                <CardDescription>Un vistazo rápido a tus metas financieras en curso.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <SavingsGoalsWidget isDashboardWidget={true} />
+            </CardContent>
+        </Card>
       </div>
 
       <div className="fixed bottom-6 right-6">
@@ -143,5 +155,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
