@@ -65,7 +65,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: "expense",
-            amount: undefined,
+            amount: '' as any,
             description: "",
             category: "",
             profile: "",
@@ -77,12 +77,13 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
         if(transactionToEdit) {
             form.reset({
                 ...transactionToEdit,
+                amount: transactionToEdit.amount || ('' as any),
                 date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date()
             });
         } else {
              form.reset({
                 type: "expense",
-                amount: undefined,
+                amount: '' as any,
                 description: "",
                 category: "",
                 profile: "",
@@ -126,7 +127,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
            
             form.reset({
                 type: "expense",
-                amount: undefined,
+                amount: '' as any,
                 description: "",
                 category: "",
                 profile: "",

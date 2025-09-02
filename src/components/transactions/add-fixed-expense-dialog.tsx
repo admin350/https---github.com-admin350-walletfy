@@ -52,7 +52,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: undefined,
+            amount: '' as any,
             category: "",
             profile: "",
         },
@@ -60,11 +60,14 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
 
      useEffect(() => {
         if (expenseToEdit) {
-            form.reset(expenseToEdit);
+            form.reset({
+                ...expenseToEdit,
+                amount: expenseToEdit.amount || ('' as any),
+            });
         } else {
             form.reset({
                 name: "",
-                amount: undefined,
+                amount: '' as any,
                 category: "",
                 profile: "",
             });
@@ -134,7 +137,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                                 <FormItem>
                                     <FormLabel>Monto Mensual</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$50.000" {...field} />
+                                        <Input type="number" placeholder="$50.000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

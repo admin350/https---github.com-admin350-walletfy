@@ -50,9 +50,9 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            totalAmount: undefined,
-            interestRate: undefined,
-            monthlyPayment: undefined,
+            totalAmount: '' as any,
+            interestRate: '' as any,
+            monthlyPayment: '' as any,
             nextDueDate: new Date(),
             financialInstitution: "",
         },
@@ -131,7 +131,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Monto Total</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$10.000.000" {...field} />
+                                        <Input type="number" placeholder="$10.000.000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -144,7 +144,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Tasa de Interés (%)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="1.5" {...field} />
+                                        <Input type="number" placeholder="1.5" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -157,7 +157,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Pago Mensual</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$350.000" {...field} />
+                                        <Input type="number" placeholder="$350.000" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
