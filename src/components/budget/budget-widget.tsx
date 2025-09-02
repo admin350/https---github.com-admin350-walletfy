@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AddBudgetDialog } from "./add-budget-dialog";
+import { ChartContainer, ChartTooltipContent } from "../ui/chart";
 
 interface BudgetWidgetProps {
     budgets: Budget[];
@@ -77,7 +78,19 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
 
     return (
         <div className="space-y-6">
-            {budgets.map(budget => (
+            {budgets.map(budget => {
+                 const chartData = budget.items.map(item => ({
+                    ...item,
+                    fill: getCategoryColor(item.category)
+                }));
+                const chartConfig = {
+                    ...chartData.reduce((acc, item) => {
+                        acc[item.category] = { label: item.category, color: item.fill };
+                        return acc;
+                    }, {} as any)
+                };
+
+                return (
                 <Card key={budget.id} className="flex flex-col border-t-4 shadow-none border" style={{ borderTopColor: getProfileColor(budget.profile) }}>
                     <CardHeader className="p-4">
                         <div className="flex justify-between items-start">
@@ -123,35 +136,46 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                     <CardContent className="flex-1 p-4 pt-0">
                        <div className="grid grid-cols-2 gap-4">
                            <div className="h-[150px]">
-                             <ResponsiveContainer width="100%" height="100%">
+                             <ChartContainer
+                                config={chartConfig}
+                                className="h-full w-full"
+                            >
                                 <PieChart>
-                                    <Pie data={budget.items} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={60} label>
-                                        {budget.items.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
+                                    <Tooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent 
+                                            hideLabel
+                                            formatter={(value) => `${value}%`}
+                                        />}
+                                    />
+                                    <Pie data={chartData} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={60} labelLine={false}>
+                                        {chartData.map((entry) => (
+                                            <Cell key={`cell-${entry.category}`} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value: number) => `${value}%`} />
                                 </PieChart>
-                            </ResponsiveContainer>
+                            </ChartContainer>
                            </div>
-                            <div className="flex flex-col justify-center space-y-1">
-                                {budget.items.map((item, index) => (
-                                    <div key={item.category} className="flex items-center justify-between text-xs">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: getCategoryColor(item.category) }} />
-                                            <span>{item.category}</span>
+                            <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
+                                {chartData.map((item) => (
+                                    <div key={item.category} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 truncate">
+                                            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
+                                            <span className="truncate" title={item.category}>{item.category}</span>
                                         </div>
-                                        <span className="font-medium">{item.percentage}%</span>
+                                        <div className="text-right flex-shrink-0">
+                                            <span className="font-medium">{item.percentage}%</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                        </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
-                         <p className="text-xs text-muted-foreground">Monto estimado: <strong className="text-foreground">${((totalIncome * budget.items.reduce((sum, item) => sum + item.percentage, 0)) / 100).toLocaleString('es-CL')}</strong></p>
+                         <p className="text-xs text-muted-foreground">Monto estimado basado en ingresos del período: <strong className="text-foreground">${((totalIncome * budget.items.reduce((sum, item) => sum + item.percentage, 0)) / 100).toLocaleString('es-CL')}</strong></p>
                     </CardFooter>
                 </Card>
-            ))}
+            )})}
 
             {budgetToEdit && (
                  <AddBudgetDialog
