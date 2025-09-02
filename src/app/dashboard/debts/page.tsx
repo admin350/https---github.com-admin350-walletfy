@@ -37,19 +37,19 @@ export default function DebtsPage() {
                     <>
                         <KpiCard 
                             title="Deuda Total" 
-                            value={`$${totalOwed.toLocaleString('es-CL')}`} 
+                            value={<span className="text-red-500">${totalOwed.toLocaleString('es-CL')}</span>} 
                             icon={Scale} 
                             description="Monto original de todas tus deudas"
                         />
                          <KpiCard 
                             title="Total Pagado" 
-                            value={`$${totalPaid.toLocaleString('es-CL')}`} 
+                            value={<span className="text-green-500">${totalPaid.toLocaleString('es-CL')}</span>} 
                             icon={HandCoins} 
                             description="Suma de todos los abonos realizados" 
                         />
                         <KpiCard
                             title="Saldo Restante"
-                            value={`$${remainingDebt.toLocaleString('es-CL')}`}
+                            value={<span className="text-red-500">${remainingDebt.toLocaleString('es-CL')}</span>}
                             icon={Banknote}
                             description="Lo que queda por pagar del total"
                         />
