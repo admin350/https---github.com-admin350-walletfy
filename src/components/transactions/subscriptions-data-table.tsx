@@ -20,15 +20,20 @@ import { Button } from "@/components/ui/button";
 import { useContext, useState } from "react";
 import type { Subscription } from "@/types";
 import { DataContext } from "@/context/data-context";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { PaySubscriptionDialog } from "./pay-subscription-dialog";
+import { Badge } from "../ui/badge";
 
-export function SubscriptionsDataTable() {
-    const { subscriptions, deleteSubscription } = useContext(DataContext);
+interface SubscriptionsDataTableProps {
+    subscriptions: Subscription[];
+}
+
+export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTableProps) {
+    const { deleteSubscription } = useContext(DataContext);
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -94,7 +99,16 @@ export function SubscriptionsDataTable() {
         {
             accessorKey: "dueDate",
             header: "Vencimiento",
-            cell: ({ row }) => format(new Date(row.getValue("dueDate")), "dd/MM/yyyy")
+            cell: ({ row }) => {
+                 const dueDate = new Date(row.getValue("dueDate"));
+                 const isDue = isPast(dueDate);
+                 return (
+                    <div className="flex items-center gap-2">
+                        <span>{format(dueDate, "dd/MM/yyyy")}</span>
+                        {isDue && <Badge variant="destructive">Vencida</Badge>}
+                    </div>
+                 )
+            }
         },
         {
             id: "actions",
@@ -201,7 +215,7 @@ export function SubscriptionsDataTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay resultados para los filtros seleccionados.
+                                    No hay suscripciones en esta categoría.
                                 </TableCell>
                             </TableRow>
                         )}
