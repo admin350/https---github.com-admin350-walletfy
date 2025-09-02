@@ -3,15 +3,7 @@
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useContext, useMemo } from "react"
@@ -74,62 +66,60 @@ export function ExpenseChart() {
 
 
   return (
-    <div className="flex flex-col h-full">
-      <CardContent className="flex-1 pb-0 flex items-center justify-center">
-        {isLoading ? (
-          <Skeleton className="h-[200px] w-full" />
-        ) : chartData.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No hay datos para mostrar.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 w-full">
-            <div className="h-[150px]">
-              <ChartContainer
-                config={dynamicChartConfig}
-                className="h-full w-full"
+    <>
+    {isLoading ? (
+      <Skeleton className="h-[200px] w-full" />
+    ) : chartData.length === 0 ? (
+      <p className="text-muted-foreground text-sm">No hay datos para mostrar.</p>
+    ) : (
+      <div className="grid grid-cols-2 gap-4 w-full">
+        <div className="h-[150px]">
+          <ChartContainer
+            config={dynamicChartConfig}
+            className="h-full w-full"
+          >
+            <PieChart>
+              <Tooltip
+                cursor={false}
+                content={<ChartTooltipContent 
+                    hideLabel 
+                    formatter={(value, name) => `${name}: $${Number(value).toLocaleString('es-CL')}`}
+                 />}
+              />
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={60}
               >
-                <PieChart>
-                  <Tooltip
-                    cursor={false}
-                    content={<ChartTooltipContent 
-                        hideLabel 
-                        formatter={(value, name) => `${name}: $${Number(value).toLocaleString('es-CL')}`}
-                     />}
-                  />
-                  <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={60}
-                  >
-                    {chartData.map((entry) => (
-                      <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-            </div>
-             <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
-                {chartData.map((item) => {
-                    const percentage = totalIncome > 0 ? (item.value / totalIncome) * 100 : 0;
-                    return (
-                        <div key={item.name} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 truncate">
-                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
-                                <span className="truncate" title={item.name}>{item.name}</span>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                                <span className="font-medium">${item.value.toLocaleString('es-CL')}</span>
-                                <span className="ml-2 text-muted-foreground">({percentage.toFixed(1)}%)</span>
-                            </div>
+                {chartData.map((entry) => (
+                  <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        </div>
+         <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
+            {chartData.map((item) => {
+                const percentage = totalIncome > 0 ? (item.value / totalIncome) * 100 : 0;
+                return (
+                    <div key={item.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 truncate">
+                            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
+                            <span className="truncate" title={item.name}>{item.name}</span>
                         </div>
-                    )
-                })}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </div>
+                        <div className="text-right flex-shrink-0">
+                            <span className="font-medium">${item.value.toLocaleString('es-CL')}</span>
+                            <span className="ml-2 text-muted-foreground">({percentage.toFixed(1)}%)</span>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+      </div>
+    )}
+    </>
   )
 }
