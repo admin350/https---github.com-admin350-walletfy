@@ -2,11 +2,9 @@
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat, Wallet, Landmark } from "lucide-react";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
-import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
@@ -16,11 +14,13 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
-import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
+import { FinancialSummary } from "@/components/dashboard/financial-summary";
+import { GoalsSummary } from "@/components/dashboard/goals-summary";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, goalContributions, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -36,6 +36,13 @@ export default function DashboardPage() {
 
   const netBalance = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0;
+  
+  const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
+  const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+  const availableSavings = totalSavings - totalContributedToGoals;
+
+  const totalToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
+  const investmentRate = totalIncome > 0 ? (totalToInvestment / totalIncome) * 100 : 0;
 
   const KpiSkeleton = () => (
     <div className="space-y-2">
@@ -46,20 +53,60 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {isLoading || !isClient ? (
           <>
             <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
             <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
             <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
             <KpiCard title="Tasa de Ahorro" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
+            <KpiCard title="Saldo Disponible para Aportar" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
+            <KpiCard title="Inversiones del Período" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
           </>
         ) : (
           <>
-            <KpiCard title="Ingresos del Período" value={`$${totalIncome.toLocaleString('es-CL')}`} icon={TrendingUp} description="Este es el 100% del presupuesto" />
-            <KpiCard title="Egresos del Período" value={`$${totalExpenses.toLocaleString('es-CL')}`} icon={TrendingDown} description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} />
-            <KpiCard title="Balance Neto" value={`$${netBalance.toLocaleString('es-CL')}`} icon={DollarSign} description="Ingresos - Egresos" />
-            <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
+            <KpiCard 
+              title="Ingresos del Período" 
+              value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
+              icon={TrendingUp} 
+              iconClassName="text-green-500"
+              description="Suma de ingresos en el período." 
+            />
+            <KpiCard 
+              title="Egresos del Período" 
+              value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
+              icon={TrendingDown}
+              iconClassName="text-red-500"
+              description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
+            />
+            <KpiCard 
+              title="Balance Neto" 
+              value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
+              icon={DollarSign}
+              iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
+              description="Ingresos - Egresos" 
+            />
+            <KpiCard 
+              title="Tasa de Ahorro" 
+              value={`${savingsRate.toFixed(1)}%`} 
+              icon={PiggyBank}
+              iconClassName="text-emerald-400"
+              description="Porcentaje de ingresos no gastado" 
+            />
+             <KpiCard 
+              title="Saldo Disponible para Aportar" 
+              value={<span className="text-green-500">${availableSavings.toLocaleString('es-CL')}</span>} 
+              icon={Wallet} 
+              iconClassName="text-green-500"
+              description={`Ahorrado este mes: $${totalSavings.toLocaleString('es-CL')}`} 
+            />
+             <KpiCard 
+              title="Inversiones del Período" 
+              value={<span className="text-blue-400">${totalToInvestment.toLocaleString('es-CL')}</span>} 
+              icon={Landmark} 
+              iconClassName="text-blue-400"
+              description={`${investmentRate.toFixed(1)}% de tus ingresos`} 
+            />
           </>
         )}
       </div>
@@ -69,17 +116,26 @@ export default function DashboardPage() {
           <CashflowChart />
         </div>
         <div className="lg:col-span-2">
-          <ExpenseChart />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                    <CardDescription>
+                        Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ExpenseChart />
+                </CardContent>
+            </Card>
         </div>
       </div>
       
-      <FinancialAnalysisIA />
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <RecentTransactions />
-        <UpcomingPaymentsWidget />
-        <OverdueDebtsWidget />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FinancialSummary />
+        <GoalsSummary />
       </div>
+
+      <FinancialAnalysisIA />
 
       <div className="fixed bottom-6 right-6">
         <DropdownMenu>
