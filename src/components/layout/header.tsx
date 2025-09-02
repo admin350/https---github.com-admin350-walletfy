@@ -15,7 +15,7 @@ import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
+  { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
   { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
   { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
   { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
@@ -30,7 +30,7 @@ const navItems = [
 export function Header() {
   const pathname = usePathname();
   const pageTitle = navItems.find(item => pathname === item.href)?.label || 
-                  navItems.find(item => item.href !== "/dashboard" && pathname.startsWith(item.href))?.label || 
+                  navItems.find(item => item.href !== "/dashboard/dashboard" && pathname.startsWith(item.href))?.label || 
                   "Panel";
                   
   const [isClient, setIsClient] = useState(false);
@@ -143,7 +143,7 @@ export function MobileSidebar({ navItems }: { navItems: any[] }) {
                     <Link
                         href={item.href}
                         key={item.label}
-                        className={`flex items-center gap-4 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) ? "bg-muted text-primary" : "text-muted-foreground"}`}
+                        className={`flex items-center gap-4 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href || (item.href !== "/dashboard/dashboard" && pathname.startsWith(item.href)) ? "bg-muted text-primary" : "text-muted-foreground"}`}
                     >
                         <item.icon className={`h-5 w-5 ${item.color}`} />
                         {item.label}

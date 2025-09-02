@@ -13,13 +13,16 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
-import { FinancialSummary } from "@/components/dashboard/financial-summary";
-import { GoalsSummary } from "@/components/dashboard/goals-summary";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
+import { FixedExpensesWidget } from "@/components/dashboard/fixed-expenses-widget";
+import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
+import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, goalContributions, isLoading } = useContext(DataContext);
+  const { transactions, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -34,14 +37,6 @@ export default function DashboardPage() {
     .reduce((acc, t) => acc + t.amount, 0);
 
   const netBalance = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0;
-  
-  const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
-  const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
-  const availableSavings = totalSavings - totalContributedToGoals;
-
-  const totalToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
-  const investmentRate = totalIncome > 0 ? (totalToInvestment / totalIncome) * 100 : 0;
 
   const KpiSkeleton = () => (
     <div className="space-y-2">
@@ -52,76 +47,67 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading || !isClient ? (
-          <>
-            <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
-            <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
-            <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
-            <KpiCard title="Tasa de Ahorro" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
-            <KpiCard title="Saldo Disponible para Aportar" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
-            <KpiCard title="Inversiones del Período" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
-          </>
-        ) : (
-          <>
-            <KpiCard 
-              title="Ingresos del Período" 
-              value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
-              icon={TrendingUp} 
-              iconClassName="text-green-500"
-              description="Suma de ingresos en el período." 
-            />
-            <KpiCard 
-              title="Egresos del Período" 
-              value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
-              icon={TrendingDown}
-              iconClassName="text-red-500"
-              description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
-            />
-            <KpiCard 
-              title="Balance Neto" 
-              value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
-              icon={DollarSign}
-              iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
-              description="Ingresos - Egresos" 
-            />
-            <KpiCard 
-              title="Tasa de Ahorro" 
-              value={`${savingsRate.toFixed(1)}%`} 
-              icon={PiggyBank}
-              iconClassName="text-emerald-400"
-              description="Porcentaje de ingresos no gastado" 
-            />
-             <KpiCard 
-              title="Saldo Disponible para Aportar" 
-              value={<span className="text-green-500">${availableSavings.toLocaleString('es-CL')}</span>} 
-              icon={Wallet} 
-              iconClassName="text-green-500"
-              description={`Ahorrado este mes: $${totalSavings.toLocaleString('es-CL')}`} 
-            />
-             <KpiCard 
-              title="Inversiones del Período" 
-              value={<span className="text-blue-400">${totalToInvestment.toLocaleString('es-CL')}</span>} 
-              icon={Landmark} 
-              iconClassName="text-blue-400"
-              description={`${investmentRate.toFixed(1)}% de tus ingresos`} 
-            />
-          </>
-        )}
-      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <OverdueDebtsWidget />
 
-      <div className="grid gap-6 lg:grid-cols-1">
-        <div className="lg:col-span-1">
+          <div className="grid gap-4 md:grid-cols-3">
+              {isLoading || !isClient ? (
+              <>
+                  <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
+                  <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
+                  <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
+              </>
+              ) : (
+              <>
+                  <KpiCard 
+                      title="Ingresos del Período" 
+                      value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
+                      icon={TrendingUp} 
+                      iconClassName="text-green-500"
+                      description="Suma de ingresos en el período." 
+                  />
+                  <KpiCard 
+                      title="Egresos del Período" 
+                      value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
+                      icon={TrendingDown}
+                      iconClassName="text-red-500"
+                      description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
+                  />
+                  <KpiCard 
+                      title="Balance Neto" 
+                      value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
+                      icon={DollarSign}
+                      iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
+                      description="Ingresos - Egresos" 
+                  />
+              </>
+              )}
+          </div>
+          
           <CashflowChart />
+
+          <FinancialAnalysisIA />
+
+        </div>
+
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="bg-card/50 border-border/50">
+            <CardHeader>
+              <CardTitle>Progreso de Metas</CardTitle>
+              <CardDescription>Un vistazo rápido al avance de tus metas activas.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SavingsGoalsWidget isDashboardWidget={true} />
+            </CardContent>
+          </Card>
+          <UpcomingPaymentsWidget />
+          <FixedExpensesWidget />
+          <RecentTransactions />
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FinancialSummary />
-        <GoalsSummary />
-      </div>
 
-      <FinancialAnalysisIA />
 
       <div className="fixed bottom-6 right-6">
         <DropdownMenu>
