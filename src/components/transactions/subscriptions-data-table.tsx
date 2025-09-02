@@ -20,6 +20,7 @@ import { useContext, useState, useMemo } from "react";
 import type { UpcomingPayment } from "@/types";
 import { DataContext } from "@/context/data-context";
 import { format, getMonth, getYear } from "date-fns";
+import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -143,7 +144,7 @@ export function SubscriptionsDataTable() {
 
     const months = Array.from({ length: 12 }, (_, i) => ({
         value: i,
-        label: format(new Date(2000, i), 'LLLL', { locale: 'es' }),
+        label: format(new Date(2000, i), 'LLLL', { locale: es }),
     }));
     
     const currentYear = getYear(new Date());
