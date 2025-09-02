@@ -17,18 +17,21 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import type { Subscription } from "@/types";
 import { DataContext } from "@/context/data-context";
 import { format } from "date-fns";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { PaySubscriptionDialog } from "./pay-subscription-dialog";
 
 export function SubscriptionsDataTable() {
     const { subscriptions, deleteSubscription } = useContext(DataContext);
     const { toast } = useToast();
+    const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
+    const [isPayModalOpen, setIsPayModalOpen] = useState(false);
     
     const handleEdit = (item: Subscription) => {
         console.log("Editing subscription:", item);
@@ -37,6 +40,11 @@ export function SubscriptionsDataTable() {
             description: "La edición de suscripciones se añadirá en una futura actualización."
         })
     };
+
+    const handlePay = (item: Subscription) => {
+        setSubscriptionToPay(item);
+        setIsPayModalOpen(true);
+    }
 
     const handleDelete = async (id: string) => {
         try {
@@ -93,40 +101,46 @@ export function SubscriptionsDataTable() {
             cell: ({ row }) => {
                 const item = row.original;
                 return (
-                     <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Abrir menú</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEdit(item)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
+                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
+                            <HandCoins className="mr-2 h-4 w-4" />
+                            Pagar
+                        </Button>
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Editar
                                     </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el registro.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el registro.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 )
             },
         },
@@ -143,6 +157,13 @@ export function SubscriptionsDataTable() {
 
     return (
         <div className="w-full">
+            {subscriptionToPay && (
+                <PaySubscriptionDialog
+                    open={isPayModalOpen}
+                    onOpenChange={setIsPayModalOpen}
+                    subscription={subscriptionToPay}
+                />
+            )}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>

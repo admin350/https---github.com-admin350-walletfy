@@ -117,6 +117,7 @@ interface DataContextType {
     deleteFixedExpense: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
+    paySubscription: (subscription: Subscription) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -150,6 +151,7 @@ export const DataContext = createContext<DataContextType>({
     deleteFixedExpense: async () => {},
     addGoalContribution: async () => {},
     addDebtPayment: async () => {},
+    paySubscription: async () => {},
 });
 
 // PROVIDER
@@ -173,29 +175,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Simulate fetching data on mount
     useEffect(() => {
         const timer = setTimeout(() => {
-            let processedSubscriptions = [...mockSubscriptions];
-            const newTransactions : Transaction[] = [];
-
-            processedSubscriptions = processedSubscriptions.map(sub => {
-                let newSub = {...sub};
-                while (isPast(newSub.dueDate)) {
-                    const renewalDate = newSub.dueDate;
-                    newSub.dueDate = addMonths(newSub.dueDate, 1);
-                     newTransactions.push({
-                        id: crypto.randomUUID(),
-                        type: 'expense',
-                        amount: newSub.amount,
-                        description: `Suscripción: ${newSub.name}`,
-                        category: 'Suscripciones',
-                        profile: newSub.profile,
-                        date: renewalDate.toISOString(),
-                    });
-                }
-                return newSub;
-            });
-            
-            setSubscriptions(processedSubscriptions.sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
-            setTransactions(prev => [...prev, ...newTransactions, ...mockTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            setTransactions(mockTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            setSubscriptions(mockSubscriptions.sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
             setGoals(mockGoals);
             setDebts(mockDebts);
             setDebtPayments(mockDebtPayments);
@@ -358,10 +339,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setDebts(prevDebts => prevDebts.map(debt => {
             if (debt.id === payment.debtId) {
                 debtToUpdate = debt;
-                // Get original due date to preserve the day of the month
                 const originalDueDateDay = new Date(debt.dueDate).getDate();
                 const newDueDate = addMonths(new Date(debt.dueDate), 1);
-                // Set the day of the month to the original due date's day
                 const finalDueDate = setDate(newDueDate, originalDueDateDay);
 
                 return { 
@@ -387,6 +366,26 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     }
     
+    const paySubscription = async (subscription: Subscription) => {
+        const originalDueDateDay = new Date(subscription.dueDate).getDate();
+        const newDueDate = addMonths(new Date(subscription.dueDate), 1);
+        const finalDueDate = setDate(newDueDate, originalDueDateDay);
+
+        setSubscriptions(prev => prev.map(s => 
+            s.id === subscription.id 
+            ? { ...s, dueDate: finalDueDate }
+            : s
+        ).sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
+
+        await addTransaction({
+            type: 'expense',
+            amount: subscription.amount,
+            description: `Suscripción: ${subscription.name}`,
+            category: 'Suscripciones',
+            profile: subscription.profile,
+            date: new Date().toISOString(),
+        });
+    }
 
     return (
         <DataContext.Provider value={{ 
@@ -420,6 +419,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteFixedExpense,
             addGoalContribution,
             addDebtPayment,
+            paySubscription,
         }}>
             {children}
         </DataContext.Provider>
