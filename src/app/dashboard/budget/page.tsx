@@ -10,14 +10,16 @@ import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BudgetAnalysis } from "@/components/budget/budget-analysis";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
+import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 export default function BudgetPage() {
     const { budgets, isLoading } = useContext(DataContext);
     
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="lg:col-span-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                 <PreviousMonthExpenseChart />
+                <Card>
                     <CardHeader>
                         <CardTitle>Destino Real de tus Ingresos</CardTitle>
                         <CardDescription>
@@ -28,7 +30,7 @@ export default function BudgetPage() {
                         <ExpenseChart />
                     </CardContent>
                 </Card>
-                <Card className="lg:col-span-1">
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Mis Planes de Presupuesto</CardTitle>
