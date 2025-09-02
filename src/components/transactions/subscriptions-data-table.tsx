@@ -30,10 +30,11 @@ import { Badge } from "../ui/badge";
 
 interface SubscriptionsDataTableProps {
     subscriptions: Subscription[];
+    tab: 'overdue' | 'this-month' | 'upcoming' | 'cancelled';
 }
 
-export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTableProps) {
-    const { deleteSubscription } = useContext(DataContext);
+export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
+    const { cancelSubscription } = useContext(DataContext);
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -51,17 +52,17 @@ export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTable
         setIsPayModalOpen(true);
     }
 
-    const handleDelete = async (id: string) => {
+    const handleCancelSubscription = async (id: string) => {
         try {
-            await deleteSubscription(id);
+            await cancelSubscription(id);
             toast({
-                title: "Suscripción eliminada",
-                description: "La suscripción ha sido eliminada exitosamente.",
+                title: "Suscripción Cancelada",
+                description: "La suscripción ha sido marcada como cancelada.",
             });
         } catch (error) {
             toast({
                 title: "Error",
-                description: "No se pudo eliminar la suscripción.",
+                description: "No se pudo cancelar la suscripción.",
                 variant: "destructive"
             });
         }
@@ -105,7 +106,8 @@ export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTable
                  return (
                     <div className="flex items-center gap-2">
                         <span>{format(dueDate, "dd/MM/yyyy")}</span>
-                        {isDue && <Badge variant="destructive">Vencida</Badge>}
+                        {isDue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
+                        {tab === 'cancelled' && <Badge variant="outline">Cancelada</Badge>}
                     </div>
                  )
             }
@@ -114,12 +116,16 @@ export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTable
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
+                const showPayButton = tab === 'overdue' || tab === 'this-month';
+
                 return (
                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
-                            <HandCoins className="mr-2 h-4 w-4" />
-                            Pagar
-                        </Button>
+                        {showPayButton && (
+                            <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
+                                <HandCoins className="mr-2 h-4 w-4" />
+                                Pagar
+                            </Button>
+                        )}
                         <AlertDialog>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -134,23 +140,23 @@ export function SubscriptionsDataTable({ subscriptions }: SubscriptionsDataTable
                                         Editar
                                     </DropdownMenuItem>
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem disabled={item.status === 'cancelled'}>
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            Eliminar
+                                            Cancelar Suscripción
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogTitle>¿Dar de baja la suscripción?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el registro.
+                                        Esta acción no eliminará los pagos históricos, pero moverá la suscripción a la pestaña "Canceladas" y no se te recordará pagarla.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
+                                    <AlertDialogCancel>Cerrar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleCancelSubscription(item.id)}>Continuar</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>

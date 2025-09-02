@@ -28,9 +28,10 @@ const mockGoalContributions: GoalContribution[] = [
 ];
 
 const mockSubscriptions: Subscription[] = [
-    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal" },
-    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal" },
-    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Negocio" },
+    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal", status: 'active' },
+    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal", status: 'active' },
+    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Negocio", status: 'active' },
+    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Personal", status: 'cancelled' },
 ];
 
 const mockDebts: Debt[] = [
@@ -106,9 +107,9 @@ interface DataContextType {
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
-    addSubscription: (subscription: Subscription) => Promise<void>;
+    addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
-    deleteSubscription: (id: string) => Promise<void>;
+    cancelSubscription: (id: string) => Promise<void>;
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
@@ -142,7 +143,7 @@ export const DataContext = createContext<DataContextType>({
     deleteGoal: async () => {},
     addSubscription: async () => {},
     updateSubscription: async () => {},
-    deleteSubscription: async () => {},
+    cancelSubscription: async () => {},
     addDebt: async () => {},
     updateDebt: async () => {},
     deleteDebt: async () => {},
@@ -275,8 +276,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.filter(g => g.id !== id));
     }
     
-    const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
-        const newSubscription = { ...subscription, id: crypto.randomUUID() };
+    const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
+        const newSubscription = { ...subscription, id: crypto.randomUUID(), status: 'active' as const };
         setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
 
@@ -284,8 +285,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => prev.map(s => s.id === updatedSubscription.id ? updatedSubscription : s));
     }
 
-    const deleteSubscription = async (id: string) => {
-        setSubscriptions(prev => prev.filter(s => s.id !== id));
+    const cancelSubscription = async (id: string) => {
+        setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, status: 'cancelled' } : s));
     }
 
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
@@ -405,7 +406,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteGoal,
             addSubscription,
             updateSubscription,
-            deleteSubscription,
+            cancelSubscription,
             addDebt,
             updateDebt,
             deleteDebt,

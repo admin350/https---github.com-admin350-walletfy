@@ -15,14 +15,17 @@ export default function SubscriptionsPage() {
     const today = startOfToday();
     const startOfCurrentMonth = startOfMonth(today);
 
+    const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
+    const cancelledSubscriptions = subscriptions.filter(s => s.status === 'cancelled');
+
     // Vencidas: Fecha es anterior al inicio del mes actual.
-    const overdueSubscriptions = subscriptions.filter(s => s.dueDate < startOfCurrentMonth);
+    const overdueSubscriptions = activeSubscriptions.filter(s => isPast(s.dueDate) && !isThisMonth(s.dueDate));
 
     // Este Mes: Fecha está en el mes actual.
-    const thisMonthSubscriptions = subscriptions.filter(s => isThisMonth(s.dueDate));
+    const thisMonthSubscriptions = activeSubscriptions.filter(s => isThisMonth(s.dueDate));
 
     // Próximas: Fecha es futura y no es de este mes.
-    const upcomingSubscriptions = subscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
+    const upcomingSubscriptions = activeSubscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
 
     return (
         <div className="grid gap-6">
@@ -43,19 +46,23 @@ export default function SubscriptionsPage() {
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="this-month">
-                         <TabsList className="grid w-full grid-cols-3">
+                         <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger value="overdue">Vencidas</TabsTrigger>
                             <TabsTrigger value="this-month">Este Mes</TabsTrigger>
                             <TabsTrigger value="upcoming">Próximas</TabsTrigger>
+                            <TabsTrigger value="cancelled">Canceladas</TabsTrigger>
                         </TabsList>
                         <TabsContent value="overdue" className="mt-4">
-                           <SubscriptionsDataTable subscriptions={overdueSubscriptions} />
+                           <SubscriptionsDataTable subscriptions={overdueSubscriptions} tab="overdue" />
                         </TabsContent>
                         <TabsContent value="this-month" className="mt-4">
-                             <SubscriptionsDataTable subscriptions={thisMonthSubscriptions} />
+                             <SubscriptionsDataTable subscriptions={thisMonthSubscriptions} tab="this-month" />
                         </TabsContent>
                          <TabsContent value="upcoming" className="mt-4">
-                             <SubscriptionsDataTable subscriptions={upcomingSubscriptions} />
+                             <SubscriptionsDataTable subscriptions={upcomingSubscriptions} tab="upcoming" />
+                        </TabsContent>
+                         <TabsContent value="cancelled" className="mt-4">
+                             <SubscriptionsDataTable subscriptions={cancelledSubscriptions} tab="cancelled" />
                         </TabsContent>
                     </Tabs>
                 </CardContent>

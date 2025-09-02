@@ -56,6 +56,7 @@ export type Subscription = {
   paymentMethod: string;
   bank: string;
   profile: string;
+  status: 'active' | 'cancelled';
 };
 
 

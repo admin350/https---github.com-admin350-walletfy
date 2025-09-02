@@ -52,7 +52,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: undefined,
+            amount: '' as any,
             billingCycle: "monthly",
             nextDueDate: new Date(),
             paymentMethod: "",
@@ -65,7 +65,6 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         setIsLoading(true);
         try {
             await addSubscription({
-                id: crypto.randomUUID(),
                 name: values.name,
                 amount: values.amount,
                 dueDate: values.nextDueDate,
@@ -144,7 +143,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                 <FormItem>
                                     <FormLabel>Monto</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$15.990" {...field} />
+                                        <Input type="number" placeholder="$15.990" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
