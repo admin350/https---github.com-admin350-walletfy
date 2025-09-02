@@ -57,6 +57,7 @@ export type Subscription = {
   bank: string;
   profile: string;
   status: 'active' | 'cancelled';
+  cancellationDate?: Date;
 };
 
 

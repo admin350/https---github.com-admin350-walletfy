@@ -31,7 +31,7 @@ const mockSubscriptions: Subscription[] = [
     { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal", status: 'active' },
     { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal", status: 'active' },
     { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Negocio", status: 'active' },
-    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Personal", status: 'cancelled' },
+    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Personal", status: 'cancelled', cancellationDate: new Date() },
 ];
 
 const mockDebts: Debt[] = [
@@ -286,7 +286,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const cancelSubscription = async (id: string) => {
-        setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, status: 'cancelled' } : s));
+        setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, status: 'cancelled', cancellationDate: new Date() } : s));
     }
 
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {

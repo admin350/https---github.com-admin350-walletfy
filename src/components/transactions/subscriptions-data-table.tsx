@@ -98,14 +98,18 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             },
         },
         {
-            accessorKey: "dueDate",
-            header: "Vencimiento",
+            accessorKey: "dateColumn",
+            header: () => tab === 'cancelled' ? "Fecha de Cancelación" : "Vencimiento",
             cell: ({ row }) => {
-                 const dueDate = new Date(row.getValue("dueDate"));
-                 const isDue = isPast(dueDate);
+                 const subscription = row.original;
+                 const date = tab === 'cancelled' ? subscription.cancellationDate : subscription.dueDate;
+                 if (!date) return null;
+
+                 const isDue = isPast(subscription.dueDate);
+
                  return (
                     <div className="flex items-center gap-2">
-                        <span>{format(dueDate, "dd/MM/yyyy")}</span>
+                        <span>{format(date, "dd/MM/yyyy")}</span>
                         {isDue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
                         {tab === 'cancelled' && <Badge variant="outline">Cancelada</Badge>}
                     </div>
