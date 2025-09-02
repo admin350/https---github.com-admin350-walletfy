@@ -14,12 +14,8 @@ import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
-import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
-import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
-import { GoalsSummary } from "@/components/dashboard/goals-summary";
 
 
 export default function DashboardPage() {
@@ -96,8 +92,6 @@ export default function DashboardPage() {
 
         <div className="lg:col-span-1 space-y-6">
             <FinancialSummary />
-            <GoalsSummary />
-            <UpcomingPaymentsWidget />
             <RecentTransactions />
         </div>
       </div>
