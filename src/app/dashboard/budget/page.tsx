@@ -17,7 +17,7 @@ export default function BudgetPage() {
     
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                  <PreviousMonthExpenseChart />
                 <Card>
                     <CardHeader>
@@ -30,26 +30,27 @@ export default function BudgetPage() {
                         <ExpenseChart />
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Mis Planes de Presupuesto</CardTitle>
-                            <CardDescription>
-                                Crea y gestiona tus planes.
-                            </CardDescription>
-                        </div>
-                         <AddBudgetDialog>
-                            <Button size="sm">
-                               <PlusCircle className="mr-2 h-4 w-4 text-rose-400" />
-                                Añadir
-                            </Button>
-                        </AddBudgetDialog>
-                    </CardHeader>
-                    <CardContent>
-                       <BudgetWidget budgets={budgets} isLoading={isLoading} />
-                    </CardContent>
-                </Card>
             </div>
+            
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Mis Planes de Presupuesto</CardTitle>
+                        <CardDescription>
+                            Crea y gestiona tus planes.
+                        </CardDescription>
+                    </div>
+                     <AddBudgetDialog>
+                        <Button size="sm">
+                           <PlusCircle className="mr-2 h-4 w-4 text-rose-400" />
+                            Añadir
+                        </Button>
+                    </AddBudgetDialog>
+                </CardHeader>
+                <CardContent>
+                   <BudgetWidget budgets={budgets} isLoading={isLoading} />
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
