@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const availableSavings = totalSavings - totalContributedToGoals;
 
   const totalToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
+  const investmentRate = totalIncome > 0 ? (totalToInvestment / totalIncome) * 100 : 0;
 
   const KpiSkeleton = () => (
     <div className="space-y-2">
@@ -103,7 +104,7 @@ export default function DashboardPage() {
               value={<span className="text-blue-400">${totalToInvestment.toLocaleString('es-CL')}</span>} 
               icon={Landmark} 
               iconClassName="text-blue-400"
-              description="Total transferido a tu cartera de inversión." 
+              description={`${investmentRate.toFixed(1)}% de tus ingresos`} 
             />
           </>
         )}
