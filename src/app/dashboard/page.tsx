@@ -2,10 +2,9 @@
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat, Wallet } from "lucide-react";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
-import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
@@ -15,14 +14,12 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Target } from "lucide-react";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { GoalsSummary } from "@/components/dashboard/goals-summary";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, goalContributions, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -38,6 +35,10 @@ export default function DashboardPage() {
 
   const netBalance = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? (netBalance / totalIncome) * 100 : 0;
+  
+  const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
+  const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+  const availableSavings = totalSavings - totalContributedToGoals;
 
   const KpiSkeleton = () => (
     <div className="space-y-2">
@@ -48,13 +49,14 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {isLoading || !isClient ? (
           <>
             <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
             <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
             <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
             <KpiCard title="Tasa de Ahorro" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
+            <KpiCard title="Saldo Disponible" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
           </>
         ) : (
           <>
@@ -85,6 +87,13 @@ export default function DashboardPage() {
               icon={PiggyBank}
               iconClassName="text-emerald-400"
               description="Porcentaje de ingresos no gastado" 
+            />
+             <KpiCard 
+              title="Saldo Disponible para Aportar" 
+              value={<span className="text-green-500">${availableSavings.toLocaleString('es-CL')}</span>} 
+              icon={Wallet} 
+              iconClassName="text-green-500"
+              description="De tu cartera de ahorros." 
             />
           </>
         )}

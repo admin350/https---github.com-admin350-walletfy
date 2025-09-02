@@ -8,20 +8,13 @@ import { Progress } from '../ui/progress';
 import { Skeleton } from '../ui/skeleton';
 
 export function FinancialSummary() {
-    const { debts, transactions, goalContributions, subscriptions, isLoading } = useContext(DataContext);
+    const { debts, transactions, subscriptions, isLoading } = useContext(DataContext);
 
     // Debt calculations
     const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
     const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
     const remainingDebt = totalOwed - totalPaid;
     const debtProgress = totalOwed > 0 ? (totalPaid / totalOwed) * 100 : 0;
-
-    // Savings calculations
-    const savingsTransactions = transactions.filter(t => t.type === 'transfer');
-    const totalSavings = savingsTransactions.reduce((acc, t) => acc + t.amount, 0);
-    const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
-    const availableSavings = totalSavings - totalContributedToGoals;
-    const savingsProgress = totalSavings > 0 ? (totalContributedToGoals / totalSavings) * 100 : 0;
 
     // Subscription calculations
     const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
@@ -59,7 +52,6 @@ export function FinancialSummary() {
                 <CardContent className="grid gap-6">
                     <SummarySkeleton />
                     <SummarySkeleton />
-                    <SummarySkeleton />
                 </CardContent>
             </Card>
         )
@@ -89,25 +81,6 @@ export function FinancialSummary() {
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Pagado: <span className="font-medium text-foreground">${totalPaid.toLocaleString('es-CL')}</span></span>
                         <span className="text-muted-foreground">Restante: <span className="font-medium text-foreground">${remainingDebt.toLocaleString('es-CL')}</span></span>
-                    </div>
-                </div>
-
-                {/* Savings Summary */}
-                <div className="space-y-2">
-                     <div className="flex items-center gap-2 font-semibold text-emerald-400">
-                        <Landmark className="h-5 w-5" />
-                        <span>Resumen de Ahorros</span>
-                    </div>
-                     <div>
-                         <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>Aportado a Metas</span>
-                            <span>{savingsProgress.toFixed(1)}%</span>
-                        </div>
-                        <Progress value={savingsProgress} className="h-2 [&>div]:bg-emerald-400" />
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Aportado: <span className="font-medium text-foreground">${totalContributedToGoals.toLocaleString('es-CL')}</span></span>
-                        <span className="text-muted-foreground">Disponible: <span className="font-medium text-foreground">${availableSavings.toLocaleString('es-CL')}</span></span>
                     </div>
                 </div>
 
