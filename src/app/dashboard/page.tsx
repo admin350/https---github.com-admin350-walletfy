@@ -17,6 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Target } from "lucide-react";
+import { FinancialSummary } from "@/components/dashboard/financial-summary";
+import { GoalsSummary } from "@/components/dashboard/goals-summary";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
@@ -99,8 +101,9 @@ export default function DashboardPage() {
       
       <FinancialAnalysisIA />
 
-      <div className="grid gap-6">
-        <RecentTransactions />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FinancialSummary />
+        <GoalsSummary />
       </div>
 
       <div className="fixed bottom-6 right-6">
