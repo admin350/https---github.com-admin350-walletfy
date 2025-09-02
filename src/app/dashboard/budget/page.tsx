@@ -8,6 +8,7 @@ import { BudgetWidget } from "@/components/budget/budget-widget";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BudgetAnalysis } from "@/components/budget/budget-analysis";
 
 export default function BudgetPage() {
     const { budgets, isLoading } = useContext(DataContext);
@@ -17,7 +18,7 @@ export default function BudgetPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Mis Presupuestos</CardTitle>
+                        <CardTitle>Mis Planes de Presupuesto</CardTitle>
                         <CardDescription>
                             Crea y gestiona planes presupuestarios para analizar y optimizar tus finanzas.
                         </CardDescription>
@@ -31,6 +32,18 @@ export default function BudgetPage() {
                 </CardHeader>
                 <CardContent>
                    <BudgetWidget budgets={budgets} isLoading={isLoading} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Análisis Comparativo del Presupuesto</CardTitle>
+                    <CardDescription>
+                        Compara tu presupuesto planificado con tus gastos reales del período seleccionado.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <BudgetAnalysis />
                 </CardContent>
             </Card>
         </div>
