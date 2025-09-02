@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Pie, PieChart, Cell } from "recharts"
+import { Pie, PieChart, Cell, Tooltip } from "recharts"
 import {
   Card,
   CardContent,
@@ -67,52 +67,57 @@ export function ExpenseChart() {
     <Card className="flex flex-col h-full bg-card/50 border-border/50">
       <CardHeader>
         <CardTitle>Distribución de Egresos</CardTitle>
-        <CardDescription>Distribución de gastos por categoría este mes</CardDescription>
+        <CardDescription>Distribución de gastos reales por categoría en el período</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0 flex items-center justify-center">
         {isLoading ? (
-          <Skeleton className="aspect-square w-full max-w-[300px] rounded-full" />
+          <Skeleton className="h-[200px] w-full" />
         ) : chartData.length === 0 ? (
           <p className="text-muted-foreground text-sm">No hay datos de gastos para mostrar.</p>
         ) : (
-          <ChartContainer
-            config={dynamicChartConfig}
-            className="mx-auto aspect-square max-h-[300px]"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent 
-                    hideLabel 
-                    formatter={(value, name) => `${name}: $${Number(value).toLocaleString('es-CL')}`}
-                 />}
-              />
-              <Pie
-                data={chartData}
-                dataKey="amount"
-                nameKey="category"
-                innerRadius="60%"
-                strokeWidth={5}
-                labelLine={false}
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="h-[200px]">
+              <ChartContainer
+                config={dynamicChartConfig}
+                className="h-full w-full"
               >
-                {chartData.map((entry) => (
-                  <Cell key={`cell-${entry.category}`} fill={entry.fill} />
+                <PieChart>
+                  <Tooltip
+                    cursor={false}
+                    content={<ChartTooltipContent 
+                        hideLabel 
+                        formatter={(value, name) => `${name}: $${Number(value).toLocaleString('es-CL')}`}
+                     />}
+                  />
+                  <Pie
+                    data={chartData}
+                    dataKey="amount"
+                    nameKey="category"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label
+                  >
+                    {chartData.map((entry) => (
+                      <Cell key={`cell-${entry.category}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+            </div>
+             <div className="flex flex-col justify-center space-y-2">
+                {chartData.map((item) => (
+                    <div key={item.category} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                            <span>{item.category}</span>
+                        </div>
+                        <span className="font-medium">${item.amount.toLocaleString('es-CL')}</span>
+                    </div>
                 ))}
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-        )}
-      </CardContent>
-       <CardContent className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-        {chartData.map((item) => (
-          <div key={item.category} className="flex items-center gap-2">
-            <span
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: item.fill }}
-            />
-            <span>{item.category}</span>
+            </div>
           </div>
-        ))}
+        )}
       </CardContent>
     </Card>
   )
