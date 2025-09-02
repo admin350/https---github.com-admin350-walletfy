@@ -15,6 +15,7 @@ import { useState, useEffect, useContext } from "react";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
@@ -71,6 +72,8 @@ export default function DashboardPage() {
         </div>
       </div>
       
+      <FinancialAnalysisIA />
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <RecentTransactions />
         <UpcomingPaymentsWidget />
