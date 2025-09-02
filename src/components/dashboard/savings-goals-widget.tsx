@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AddGoalDialog } from "../goals/add-goal-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 export function SavingsGoalsWidget() {
   const { goals, isLoading, deleteGoal } = useContext(DataContext);
@@ -114,7 +115,16 @@ export function SavingsGoalsWidget() {
                     </AlertDialogContent>
                 </AlertDialog>
               </div>
-              <Progress value={progress} className="h-2" />
+               <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                         <Progress value={progress} className="h-2" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{progress.toFixed(1)}% completado</p>
+                    </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <div className="flex justify-between items-center mt-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant='secondary'>
