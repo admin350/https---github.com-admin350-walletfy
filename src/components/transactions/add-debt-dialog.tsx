@@ -41,6 +41,7 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
   financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
+  accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
 });
 
 interface AddDebtDialogProps {
@@ -54,7 +55,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebt, updateDebt, profiles } = useContext(DataContext);
+    const { addDebt, updateDebt, profiles, bankAccounts } = useContext(DataContext);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -70,6 +71,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             dueDate: new Date(),
             financialInstitution: "",
             profile: "",
+            accountId: "",
         },
     });
 
@@ -88,6 +90,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 dueDate: new Date(),
                 financialInstitution: "",
                 profile: "",
+                accountId: "",
             });
         }
     }, [debtToEdit, form, dialogOpen]);
@@ -164,6 +167,28 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                     <SelectContent>
                                         {profiles.map(p => (
                                             <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="accountId"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Cuenta de Origen</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona una cuenta" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {bankAccounts.map(a => (
+                                            <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank})</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>

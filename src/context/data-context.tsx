@@ -2,20 +2,26 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BudgetItem } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
 // MOCK DATA
+const mockBankAccounts: BankAccount[] = [
+    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', balance: 1850000, profile: 'Personal' },
+    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', balance: 3200000, profile: 'Negocio' },
+    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', balance: 250000, profile: 'Personal' },
+];
+
 const mockTransactions: Transaction[] = [
-  { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString() },
-  { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString() },
-  { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString() },
-  { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
-  { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
-  { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
-  { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString() },
-  { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: addMonths(new Date(), -1).toISOString()},
+  { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
+  { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
+  { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString(), accountId: 'acc3' },
+  { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString(), accountId: 'acc3' },
+  { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString(), accountId: 'acc2' },
+  { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString(), accountId: 'acc1' },
+  { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString(), accountId: 'acc1' },
+  { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: addMonths(new Date(), -1).toISOString(), accountId: 'acc2'},
 ];
 
 const mockGoals: SavingsGoal[] = [
@@ -49,16 +55,16 @@ const mockSubscriptions: Subscription[] = [
 ];
 
 const mockDebts: Debt[] = [
-    { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
-    { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal" },
-    { id: '3', name: "Tarjeta de Crédito", totalAmount: 500000, paidAmount: 150000, monthlyPayment: 50000, installments: 10, dueDate: addDays(new Date(), -5), financialInstitution: "Falabella", profile: "Personal" },
-    { id: '4', name: "Línea de Crédito", totalAmount: 2000000, paidAmount: 500000, monthlyPayment: 100000, installments: 20, dueDate: addDays(new Date(), 20), financialInstitution: "Banco de Chile", profile: "Negocio" },
+    { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal", accountId: 'acc1' },
+    { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal", accountId: 'acc1' },
+    { id: '3', name: "Tarjeta de Crédito", totalAmount: 500000, paidAmount: 150000, monthlyPayment: 50000, installments: 10, dueDate: addDays(new Date(), -5), financialInstitution: "Falabella", profile: "Personal", accountId: 'acc3' },
+    { id: '4', name: "Línea de Crédito", totalAmount: 2000000, paidAmount: 500000, monthlyPayment: 100000, installments: 20, dueDate: addDays(new Date(), 20), financialInstitution: "Banco de Chile", profile: "Negocio", accountId: 'acc2' },
 ];
 
 const mockDebtPayments: DebtPayment[] = [
-    { id: '1', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -1) },
-    { id: '2', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -2) },
-    { id: '3', debtId: '2', debtName: 'Crédito Hipotecario', amount: 800000, date: addMonths(new Date(), -1) },
+    { id: '1', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -1), accountId: 'acc1' },
+    { id: '2', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -2), accountId: 'acc1' },
+    { id: '3', debtId: '2', debtName: 'Crédito Hipotecario', amount: 800000, date: addMonths(new Date(), -1), accountId: 'acc1' },
 ];
 
 const mockFixedExpenses: FixedExpense[] = [
@@ -131,6 +137,7 @@ interface DataContextType {
     investments: Investment[];
     investmentContributions: InvestmentContribution[];
     budgets: Budget[];
+    bankAccounts: BankAccount[];
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -163,6 +170,9 @@ interface DataContextType {
     addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
+    addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
+    updateBankAccount: (account: BankAccount) => Promise<void>;
+    deleteBankAccount: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -178,6 +188,7 @@ export const DataContext = createContext<DataContextType>({
     investments: [],
     investmentContributions: [],
     budgets: [],
+    bankAccounts: [],
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
     setFilters: () => {},
@@ -210,6 +221,9 @@ export const DataContext = createContext<DataContextType>({
     addCategory: async () => {},
     updateCategory: async () => {},
     deleteCategory: async () => {},
+    addBankAccount: async () => {},
+    updateBankAccount: async () => {},
+    deleteBankAccount: async () => {},
 });
 
 // PROVIDER
@@ -226,6 +240,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [investmentContributions, setInvestmentContributions] = useState<InvestmentContribution[]>([]);
     const [budgets, setBudgets] = useState<Budget[]>([]);
+    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -248,6 +263,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setInvestments(mockInvestments);
             setInvestmentContributions(mockInvestmentContributions);
             setBudgets(mockBudgets);
+            setBankAccounts(mockBankAccounts);
             setIsLoading(false);
         }, 1000);
         return () => clearTimeout(timer);
@@ -334,14 +350,65 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         const newTransaction = { ...transaction, id: crypto.randomUUID() };
         setTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        // Update bank account balance
+        setBankAccounts(prev => prev.map(acc => {
+            if (acc.id === newTransaction.accountId) {
+                if (newTransaction.type === 'income') {
+                    return { ...acc, balance: acc.balance + newTransaction.amount };
+                } else {
+                    return { ...acc, balance: acc.balance - newTransaction.amount };
+                }
+            }
+            return acc;
+        }));
     };
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
-        setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        let originalTransaction: Transaction | undefined;
+        setTransactions(prev => {
+            originalTransaction = prev.find(t => t.id === updatedTransaction.id);
+            return prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        });
+        
+        if (originalTransaction) {
+            setBankAccounts(prev => prev.map(acc => {
+                // Revert original transaction
+                let balance = acc.balance;
+                if (acc.id === originalTransaction!.accountId) {
+                    if (originalTransaction!.type === 'income') {
+                        balance -= originalTransaction!.amount;
+                    } else {
+                        balance += originalTransaction!.amount;
+                    }
+                }
+                // Apply new transaction
+                if (acc.id === updatedTransaction.accountId) {
+                     if (updatedTransaction.type === 'income') {
+                        balance += updatedTransaction.amount;
+                    } else {
+                        balance -= updatedTransaction.amount;
+                    }
+                }
+                return { ...acc, balance };
+            }));
+        }
     };
 
     const deleteTransaction = async (id: string) => {
-        setTransactions(prev => prev.filter(t => t.id !== id));
+        const transactionToDelete = transactions.find(t => t.id === id);
+        if (transactionToDelete) {
+             setTransactions(prev => prev.filter(t => t.id !== id));
+             setBankAccounts(prev => prev.map(acc => {
+                if (acc.id === transactionToDelete.accountId) {
+                     if (transactionToDelete.type === 'income') {
+                        return { ...acc, balance: acc.balance - transactionToDelete.amount };
+                    } else {
+                        return { ...acc, balance: acc.balance + transactionToDelete.amount };
+                    }
+                }
+                return acc;
+             }));
+        }
     };
 
     const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
@@ -443,6 +510,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 category: 'Pago de Deuda',
                 profile: debtToUpdate.profile,
                 date: payment.date.toISOString(),
+                accountId: payment.accountId,
             });
         }
     }
@@ -465,6 +533,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             category: 'Suscripciones',
             profile: subscription.profile,
             date: new Date().toISOString(),
+            accountId: '' // Subscriptions are often auto-paid, maybe from a default account? Or this needs to be specified.
         });
     }
 
@@ -527,6 +596,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteCategory = async (id: string) => {
         setCategories(prev => prev.filter(c => c.id !== id));
     };
+    
+    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
+        const newAccount = { ...account, id: crypto.randomUUID() };
+        setBankAccounts(prev => [...prev, newAccount]);
+    };
+
+    const updateBankAccount = async (updatedAccount: BankAccount) => {
+        setBankAccounts(prev => prev.map(a => (a.id === updatedAccount.id ? updatedAccount : a)));
+    };
+
+    const deleteBankAccount = async (id: string) => {
+        setBankAccounts(prev => prev.filter(a => a.id !== id));
+    };
 
     return (
         <DataContext.Provider value={{ 
@@ -542,6 +624,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
             budgets: filteredBudgets,
+            bankAccounts,
             isLoading,
             filters,
             setFilters,
@@ -574,6 +657,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addCategory,
             updateCategory,
             deleteCategory,
+            addBankAccount,
+            updateBankAccount,
+            deleteBankAccount,
         }}>
             {children}
         </DataContext.Provider>

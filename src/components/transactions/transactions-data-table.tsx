@@ -30,7 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "../ui/badge";
 
 export function TransactionsDataTable() {
-    const { transactions, deleteTransaction, profiles } = useContext(DataContext);
+    const { transactions, deleteTransaction, profiles, bankAccounts } = useContext(DataContext);
     const { toast } = useToast();
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,6 +65,15 @@ export function TransactionsDataTable() {
         {
             accessorKey: "description",
             header: "Descripción",
+        },
+        {
+            accessorKey: "accountId",
+            header: "Cuenta",
+            cell: ({row}) => {
+                const accountId = row.getValue("accountId") as string;
+                const account = bankAccounts.find(a => a.id === accountId);
+                return account ? `${account.name} (${account.bank})` : 'N/A';
+            }
         },
         {
             accessorKey: "profile",

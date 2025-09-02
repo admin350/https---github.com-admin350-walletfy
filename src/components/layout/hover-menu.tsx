@@ -8,10 +8,10 @@ import { Menu } from "lucide-react";
 import { MobileSidebar } from "./header";
 
 interface HoverMenuProps {
-    navItems: any[];
+    navSections: any[];
 }
 
-export function HoverMenu({ navItems }: HoverMenuProps) {
+export function HoverMenu({ navSections }: HoverMenuProps) {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     
     return (
@@ -35,7 +35,7 @@ export function HoverMenu({ navItems }: HoverMenuProps) {
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle>Navegación Principal</SheetTitle>
                     </SheetHeader>
-                    <MobileSidebar navItems={navItems} />
+                    <MobileSidebar navSections={navSections} />
                 </SheetContent>
             </Sheet>
         </div>

@@ -47,6 +47,7 @@ const formSchema = z.object({
   description: z.string().min(2, { message: "Descripción es muy corta." }),
   category: z.string().min(1, { message: "Categoría es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido."}),
+  accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
   date: z.date({ required_error: "Fecha es requerida." }),
 });
 
@@ -62,7 +63,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, updateTransaction, categories, profiles } = useContext(DataContext);
+    const { addTransaction, updateTransaction, categories, profiles, bankAccounts } = useContext(DataContext);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -76,6 +77,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             description: "",
             category: "",
             profile: "",
+            accountId: "",
             date: new Date(),
         },
     });
@@ -94,6 +96,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 description: "",
                 category: "",
                 profile: "",
+                accountId: "",
                 date: new Date(),
             });
         }
@@ -138,6 +141,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 description: "",
                 category: "",
                 profile: "",
+                accountId: "",
                 date: new Date(),
             });
             setDialogOpen(false);
@@ -230,6 +234,28 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                                 {profiles.map(p => (
                                     <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
                                 ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="accountId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Cuenta de Origen</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona una cuenta" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                               {bankAccounts.map(a => (
+                                   <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
+                               ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />

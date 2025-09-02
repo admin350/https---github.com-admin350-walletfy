@@ -8,7 +8,17 @@ export type Transaction = {
   category: string;
   profile: string;
   date: string; // ISO 8601 format
+  accountId: string;
 };
+
+export type BankAccount = {
+  id: string;
+  name: string;
+  bank: string;
+  accountType: string;
+  balance: number;
+  profile: string;
+}
 
 export type SavingsGoal = {
   id: string;
@@ -38,6 +48,7 @@ export type Debt = {
   dueDate: Date; // next payment due date
   financialInstitution: string;
   profile: string;
+  accountId: string;
 };
 
 export type DebtPayment = {
@@ -46,6 +57,7 @@ export type DebtPayment = {
     debtName: string;
     amount: number;
     date: Date;
+    accountId: string;
 }
 
 export type Subscription = {
