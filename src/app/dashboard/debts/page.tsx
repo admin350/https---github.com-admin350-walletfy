@@ -70,7 +70,7 @@ export default function DebtsPage() {
                     </div>
                     <AddDebtDialog>
                         <Button>
-                           <PlusCircle className="mr-2 h-4 w-4" />
+                           <PlusCircle className="mr-2 h-4 w-4 text-red-400" />
                             Añadir Deuda
                         </Button>
                     </AddDebtDialog>

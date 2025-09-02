@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TransactionsDataTable } from "@/components/transactions/transactions-data-table";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ export default function TransactionsPage() {
                     </div>
                     <AddTransactionDialog>
                         <Button>
-                           <PlusCircle className="mr-2 h-4 w-4" />
+                           <PlusCircle className="mr-2 h-4 w-4 text-orange-400" />
                             Añadir Transacción
                         </Button>
                     </AddTransactionDialog>

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FixedExpensesDataTable } from "@/components/transactions/fixed-expenses-data-table";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
@@ -17,7 +18,7 @@ export default function FixedExpensesPage() {
                     </div>
                     <AddFixedExpenseDialog>
                         <Button>
-                           <PlusCircle className="mr-2 h-4 w-4" />
+                           <PlusCircle className="mr-2 h-4 w-4 text-indigo-400" />
                             Añadir Plantilla
                         </Button>
                     </AddFixedExpenseDialog>
