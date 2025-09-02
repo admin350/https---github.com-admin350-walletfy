@@ -60,11 +60,11 @@ export default function DebtDetailPage() {
              </div>
              
              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                <KpiCard title="Monto Total" value={`$${debt.totalAmount.toLocaleString('es-CL')}`} icon={Scale} description="Monto original de la deuda"/>
-                <KpiCard title="Monto Pagado" value={`$${debt.paidAmount.toLocaleString('es-CL')}`} icon={HandCoins} description="Suma de todos los abonos"/>
-                <KpiCard title="Monto Restante" value={`$${remainingAmount.toLocaleString('es-CL')}`} icon={Banknote} description="Lo que queda por pagar"/>
-                <KpiCard title="Cuota Mensual" value={`$${debt.monthlyPayment.toLocaleString('es-CL')}`} icon={Landmark} description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
-                <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} description="Total de cuotas pagadas"/>
+                <KpiCard title="Monto Total" value={`$${debt.totalAmount.toLocaleString('es-CL')}`} icon={Scale} iconClassName="text-red-400" description="Monto original de la deuda"/>
+                <KpiCard title="Monto Pagado" value={`$${debt.paidAmount.toLocaleString('es-CL')}`} icon={HandCoins} iconClassName="text-green-400" description="Suma de todos los abonos"/>
+                <KpiCard title="Monto Restante" value={`$${remainingAmount.toLocaleString('es-CL')}`} icon={Banknote} iconClassName="text-red-400" description="Lo que queda por pagar"/>
+                <KpiCard title="Cuota Mensual" value={`$${debt.monthlyPayment.toLocaleString('es-CL')}`} icon={Landmark} iconClassName="text-red-400" description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
+                <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} iconClassName="text-green-400" description="Total de cuotas pagadas"/>
              </div>
 
             <div>
@@ -110,3 +110,5 @@ export default function DebtDetailPage() {
         </div>
     )
 }
+
+    

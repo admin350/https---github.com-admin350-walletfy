@@ -56,20 +56,34 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <KpiCard title="Ingresos del Período" value={`$${totalIncome.toLocaleString('es-CL')}`} icon={TrendingUp} description="Suma de ingresos en el período." />
+            <KpiCard 
+              title="Ingresos del Período" 
+              value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
+              icon={TrendingUp} 
+              iconClassName="text-green-500"
+              description="Suma de ingresos en el período." 
+            />
             <KpiCard 
               title="Egresos del Período" 
               value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
-              icon={TrendingDown} 
+              icon={TrendingDown}
+              iconClassName="text-red-500"
               description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
             />
             <KpiCard 
               title="Balance Neto" 
               value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
-              icon={DollarSign} 
+              icon={DollarSign}
+              iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
               description="Ingresos - Egresos" 
             />
-            <KpiCard title="Tasa de Ahorro" value={`${savingsRate.toFixed(1)}%`} icon={PiggyBank} description="Porcentaje de ingresos no gastado" />
+            <KpiCard 
+              title="Tasa de Ahorro" 
+              value={`${savingsRate.toFixed(1)}%`} 
+              icon={PiggyBank}
+              iconClassName="text-emerald-400"
+              description="Porcentaje de ingresos no gastado" 
+            />
           </>
         )}
       </div>
@@ -129,3 +143,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

@@ -50,18 +50,21 @@ export default function GoalsPage() {
                             title="Metas Totales" 
                             value={totalGoals} 
                             icon={Target} 
+                            iconClassName="text-yellow-400"
                             description={`Presupuesto Total: $${totalTargetAmount.toLocaleString('es-CL')}`}
                         />
                         <KpiCard 
                             title="Metas Completadas" 
                             value={completedGoalsCount} 
-                            icon={CheckCircle} 
+                            icon={CheckCircle}
+                            iconClassName="text-yellow-400"
                             description={`Monto Cumplido: $${completedGoalsAmount.toLocaleString('es-CL')}`}
                         />
                         <KpiCard
                             title="Monto Restante"
                             value={`$${remainingAmount.toLocaleString('es-CL')}`}
                             icon={PiggyBank}
+                            iconClassName="text-yellow-400"
                             description="Para alcanzar todas tus metas"
                         />
                     </>
@@ -101,3 +104,5 @@ export default function GoalsPage() {
         </div>
     )
 }
+
+    
