@@ -6,7 +6,6 @@ import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";
 import { UpcomingPaymentsWidget } from "@/components/dashboard/upcoming-payments-widget";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -77,23 +76,9 @@ export default function DashboardPage() {
       
       <FinancialAnalysisIA />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <RecentTransactions />
         <UpcomingPaymentsWidget />
-        <Card className="bg-card/50 border-border/50">
-          <CardHeader>
-            <CardTitle>Resumen de Metas</CardTitle>
-            <CardDescription>Un vistazo rápido a tus metas activas.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SavingsGoalsWidget goals={goals} isLoading={isLoading} isDashboardWidget={true} />
-              <Button asChild variant="outline" className="w-full mt-4">
-                <Link href="/dashboard/goals">
-                    Ver Todas las Metas
-                </Link>
-             </Button>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="fixed bottom-6 right-6">
