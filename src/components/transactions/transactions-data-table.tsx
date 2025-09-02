@@ -278,9 +278,13 @@ export function TransactionsDataTable() {
              }}>
                  <button id="edit-dialog-trigger" className="hidden"></button>
             </AddTransactionDialog>}
-             <script>
-                {isEditModalOpen && `document.getElementById('edit-dialog-trigger')?.click()`}
-             </script>
+            {isEditModalOpen && (
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `document.getElementById('edit-dialog-trigger')?.click()`,
+                    }}
+                />
+            )}
         </div>
     )
 }
