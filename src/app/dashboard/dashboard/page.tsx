@@ -116,17 +116,17 @@ export default function DashboardPage() {
           <CashflowChart />
         </div>
         <div className="lg:col-span-2">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
-                    <CardDescription>
-                        Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ExpenseChart />
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Destino Real de tus Ingresos</CardTitle>
+              <CardDescription>
+                Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ExpenseChart />
+            </CardContent>
+          </Card>
         </div>
       </div>
       

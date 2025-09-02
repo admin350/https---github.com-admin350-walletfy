@@ -75,7 +75,7 @@ export function ExpenseChart() {
 
   return (
     <div className="flex flex-col h-full">
-      <CardContent className="flex-1 pb-0 flex items-center justify-center p-0">
+      <CardContent className="flex-1 pb-0 flex items-center justify-center">
         {isLoading ? (
           <Skeleton className="h-[200px] w-full" />
         ) : chartData.length === 0 ? (
