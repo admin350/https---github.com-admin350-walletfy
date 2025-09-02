@@ -37,6 +37,7 @@ const formSchema = z.object({
   interestRate: z.coerce.number().min(0, { message: "Tasa de interés no puede ser negativa." }),
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
   nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
+  financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
 });
 
 export function AddDebtDialog({ children }: { children: ReactNode }) {
@@ -53,6 +54,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
             interestRate: undefined,
             monthlyPayment: undefined,
             nextDueDate: new Date(),
+            financialInstitution: "",
         },
     });
 
@@ -64,6 +66,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                 name: values.name,
                 amount: values.monthlyPayment,
                 dueDate: values.nextDueDate,
+                financialInstitution: values.financialInstitution
             });
             
             toast({
@@ -103,6 +106,19 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                     <FormLabel>Nombre de la Deuda</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Ej: Préstamo de auto" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="financialInstitution"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Entidad Financiera / Banco</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej: Banco Santander" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

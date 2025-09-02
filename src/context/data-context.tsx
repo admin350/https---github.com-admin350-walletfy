@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, UpcomingPayment, Profile, Category, FixedExpense } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt } from "@/types";
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { addDays } from "date-fns";
 
@@ -20,14 +20,14 @@ const mockGoals: SavingsGoal[] = [
   { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000 },
 ];
 
-const mockSubscriptions: UpcomingPayment[] = [
-    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3) },
-    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12) },
+const mockSubscriptions: Subscription[] = [
+    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado" },
+    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank" },
 ];
 
-const mockDebts: UpcomingPayment[] = [
-    { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7) },
-    { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10) },
+const mockDebts: Debt[] = [
+    { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7), financialInstitution: "Santander" },
+    { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10), financialInstitution: "Inmobiliaria" },
 ];
 
 const mockFixedExpenses: FixedExpense[] = [
@@ -67,8 +67,8 @@ const mockCategories: Category[] = [
 interface DataContextType {
     transactions: Transaction[];
     goals: SavingsGoal[];
-    subscriptions: UpcomingPayment[];
-    debts: UpcomingPayment[];
+    subscriptions: Subscription[];
+    debts: Debt[];
     fixedExpenses: FixedExpense[];
     profiles: Profile[];
     categories: Category[];
@@ -77,11 +77,11 @@ interface DataContextType {
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: SavingsGoal) => Promise<void>;
-    addSubscription: (subscription: Omit<UpcomingPayment, 'id'>) => Promise<void>;
-    updateSubscription: (subscription: UpcomingPayment) => Promise<void>;
+    addSubscription: (subscription: Omit<Subscription, 'id'>) => Promise<void>;
+    updateSubscription: (subscription: Subscription) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<UpcomingPayment, 'id'>) => Promise<void>;
-    updateDebt: (debt: UpcomingPayment) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id'>) => Promise<void>;
+    updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: FixedExpense) => Promise<void>;
 }
@@ -112,8 +112,8 @@ export const DataContext = createContext<DataContextType>({
 export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
-    const [subscriptions, setSubscriptions] = useState<UpcomingPayment[]>([]);
-    const [debts, setDebts] = useState<UpcomingPayment[]>([]);
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const [debts, setDebts] = useState<Debt[]>([]);
     const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -151,12 +151,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => [...prev, goal]);
     }
     
-    const addSubscription = async (subscription: Omit<UpcomingPayment, 'id'>) => {
+    const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
         const newSubscription = { ...subscription, id: crypto.randomUUID() };
         setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
 
-    const updateSubscription = async (updatedSubscription: UpcomingPayment) => {
+    const updateSubscription = async (updatedSubscription: Subscription) => {
         setSubscriptions(prev => prev.map(s => s.id === updatedSubscription.id ? updatedSubscription : s));
     }
 
@@ -164,12 +164,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => prev.filter(s => s.id !== id));
     }
 
-    const addDebt = async (debt: Omit<UpcomingPayment, 'id'>) => {
+    const addDebt = async (debt: Omit<Debt, 'id'>) => {
         const newDebt = { ...debt, id: crypto.randomUUID() };
         setDebts(prev => [...prev, newDebt].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
 
-    const updateDebt = async (updatedDebt: UpcomingPayment) => {
+    const updateDebt = async (updatedDebt: Debt) => {
         setDebts(prev => prev.map(d => d.id === updatedDebt.id ? updatedDebt : d));
     }
 

@@ -1,3 +1,4 @@
+
 'use client'
 import {
     ColumnDef,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useContext, useState, useMemo } from "react";
-import type { UpcomingPayment } from "@/types";
+import type { Debt } from "@/types";
 import { DataContext } from "@/context/data-context";
 import { format, getMonth, getYear } from "date-fns";
 import { es } from "date-fns/locale";
@@ -31,7 +32,7 @@ import { AddDebtDialog } from "./add-debt-dialog";
 export function DebtsDataTable() {
     const { debts, deleteDebt } = useContext(DataContext);
     const { toast } = useToast();
-    const [itemToEdit, setItemToEdit] = useState<UpcomingPayment | undefined>(undefined);
+    const [itemToEdit, setItemToEdit] = useState<Debt | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const [date, setDate] = useState({
@@ -46,7 +47,7 @@ export function DebtsDataTable() {
         });
     }, [debts, date]);
 
-    const handleEdit = (item: UpcomingPayment) => {
+    const handleEdit = (item: Debt) => {
         // Since we don't have a full edit form for debts yet,
         // we'll just log this for now and prepare the state.
         // The AddDebtDialog would need to be enhanced to support editing.
@@ -73,10 +74,14 @@ export function DebtsDataTable() {
         }
     };
     
-    const columns: ColumnDef<UpcomingPayment>[] = [
+    const columns: ColumnDef<Debt>[] = [
         {
             accessorKey: "name",
             header: "Nombre",
+        },
+        {
+            accessorKey: "financialInstitution",
+            header: "Entidad Financiera",
         },
         {
             accessorKey: "amount",

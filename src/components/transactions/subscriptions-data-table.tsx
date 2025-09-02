@@ -1,3 +1,4 @@
+
 'use client'
 import {
     ColumnDef,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useContext, useState, useMemo } from "react";
-import type { UpcomingPayment } from "@/types";
+import type { Subscription } from "@/types";
 import { DataContext } from "@/context/data-context";
 import { format, getMonth, getYear } from "date-fns";
 import { es } from "date-fns/locale";
@@ -43,7 +44,7 @@ export function SubscriptionsDataTable() {
         });
     }, [subscriptions, date]);
 
-    const handleEdit = (item: UpcomingPayment) => {
+    const handleEdit = (item: Subscription) => {
         console.log("Editing subscription:", item);
          toast({
             title: "Función no implementada",
@@ -67,10 +68,18 @@ export function SubscriptionsDataTable() {
         }
     };
     
-    const columns: ColumnDef<UpcomingPayment>[] = [
+    const columns: ColumnDef<Subscription>[] = [
         {
             accessorKey: "name",
             header: "Nombre",
+        },
+        {
+            accessorKey: "paymentMethod",
+            header: "Método de Pago",
+            cell: ({row}) => {
+                const sub = row.original;
+                return `${sub.paymentMethod} (${sub.bank})`
+            }
         },
         {
             accessorKey: "amount",

@@ -15,12 +15,23 @@ export type SavingsGoal = {
   currentAmount: number;
 };
 
-export type UpcomingPayment = {
+export type Debt = {
   id: string;
   name: string;
   amount: number;
   dueDate: Date;
+  financialInstitution: string;
 };
+
+export type Subscription = {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: Date;
+  paymentMethod: string;
+  bank: string;
+};
+
 
 export type FixedExpense = {
   id: string;

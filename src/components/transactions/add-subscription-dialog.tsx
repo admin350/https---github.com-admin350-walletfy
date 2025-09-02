@@ -37,6 +37,8 @@ const formSchema = z.object({
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
   billingCycle: z.enum(["monthly", "yearly"], { required_error: "Ciclo de facturación es requerido." }),
   nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
+  paymentMethod: z.string().min(1, { message: "Método de pago es requerido."}),
+  bank: z.string().min(2, { message: "Banco es requerido." }),
 });
 
 export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
@@ -52,6 +54,8 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             amount: undefined,
             billingCycle: "monthly",
             nextDueDate: new Date(),
+            paymentMethod: "",
+            bank: "",
         },
     });
 
@@ -63,6 +67,8 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 name: values.name,
                 amount: values.amount,
                 dueDate: values.nextDueDate,
+                paymentMethod: values.paymentMethod,
+                bank: values.bank,
             });
             toast({
                 title: "Suscripción añadida",
@@ -114,6 +120,40 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                     <FormLabel>Monto</FormLabel>
                                     <FormControl>
                                         <Input type="number" placeholder="$15.990" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="paymentMethod"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Método de Pago</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un método" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Tarjeta de Crédito">Tarjeta de Crédito</SelectItem>
+                                            <SelectItem value="Tarjeta de Débito">Tarjeta de Débito</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="bank"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Banco</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej: Banco Estado" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
