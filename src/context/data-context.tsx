@@ -83,7 +83,9 @@ interface DataContextType {
     addDebt: (debt: Omit<Debt, 'id'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
-    addFixedExpense: (expense: FixedExpense) => Promise<void>;
+    addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
+    updateFixedExpense: (expense: FixedExpense) => Promise<void>;
+    deleteFixedExpense: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -106,6 +108,8 @@ export const DataContext = createContext<DataContextType>({
     updateDebt: async () => {},
     deleteDebt: async () => {},
     addFixedExpense: async () => {},
+    updateFixedExpense: async () => {},
+    deleteFixedExpense: async () => {},
 });
 
 // PROVIDER
@@ -177,8 +181,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setDebts(prev => prev.filter(d => d.id !== id));
     }
 
-    const addFixedExpense = async (expense: FixedExpense) => {
-        setFixedExpenses(prev => [...prev, expense]);
+    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => {
+        const newExpense = { ...expense, id: crypto.randomUUID() };
+        setFixedExpenses(prev => [...prev, newExpense]);
+    }
+
+    const updateFixedExpense = async (updatedExpense: FixedExpense) => {
+        setFixedExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
+    }
+
+    const deleteFixedExpense = async (id: string) => {
+        setFixedExpenses(prev => prev.filter(e => e.id !== id));
     }
     
 
@@ -202,7 +215,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addDebt,
             updateDebt,
             deleteDebt,
-            addFixedExpense
+            addFixedExpense,
+            updateFixedExpense,
+            deleteFixedExpense
         }}>
             {children}
         </DataContext.Provider>
