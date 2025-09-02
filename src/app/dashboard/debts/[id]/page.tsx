@@ -15,8 +15,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 export default function DebtDetailPage() {
     const { id } = useParams();
@@ -36,11 +37,25 @@ export default function DebtDetailPage() {
     const progress = (debt.paidAmount / debt.totalAmount) * 100;
     const remainingAmount = debt.totalAmount - debt.paidAmount;
     const paidInstallments = Math.floor(debt.paidAmount / debt.monthlyPayment);
+    const isOverdue = isPast(debt.dueDate) && debt.paidAmount < debt.totalAmount;
+    
+    const getStatusBadge = () => {
+         if (debt.paidAmount >= debt.totalAmount) {
+            return <Badge variant="default" className="bg-blue-500/20 text-blue-500 border-blue-500/20">Pagada</Badge>
+        }
+        if (isOverdue) {
+            return <Badge variant="destructive" className="bg-red-500/20 text-red-500 border-red-500/20">Atrasada</Badge>
+        }
+        return <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">Al día</Badge>;
+    }
     
     return (
         <div className="space-y-6">
              <div className="flex flex-col space-y-2">
-                <h1 className="text-2xl font-bold">{debt.name}</h1>
+                 <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold">{debt.name}</h1>
+                    {getStatusBadge()}
+                 </div>
                 <p className="text-muted-foreground">Detalle y progreso de tu deuda.</p>
              </div>
              

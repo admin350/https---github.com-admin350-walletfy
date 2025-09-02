@@ -3,7 +3,7 @@
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment } from "@/types";
 import { createContext, useState, useEffect, ReactNode } from "react";
-import { addDays, addMonths } from "date-fns";
+import { addDays, addMonths, setDate } from "date-fns";
 
 // MOCK DATA
 const mockTransactions: Transaction[] = [
@@ -34,6 +34,7 @@ const mockSubscriptions: Subscription[] = [
 const mockDebts: Debt[] = [
     { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
     { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal" },
+    { id: '3', name: "Tarjeta de Crédito", totalAmount: 500000, paidAmount: 150000, monthlyPayment: 50000, installments: 10, dueDate: addDays(new Date(), -5), financialInstitution: "Falabella", profile: "Personal" },
 ];
 
 const mockDebtPayments: DebtPayment[] = [
@@ -249,7 +250,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         setDebts(prevDebts => prevDebts.map(debt => {
             if (debt.id === payment.debtId) {
-                return { ...debt, paidAmount: debt.paidAmount + payment.amount };
+                // Get original due date to preserve the day of the month
+                const originalDueDateDay = debt.dueDate.getDate();
+                const newDueDate = addMonths(debt.dueDate, 1);
+                // Set the day of the month to the original due date's day
+                const finalDueDate = setDate(newDueDate, originalDueDateDay);
+
+                return { 
+                    ...debt, 
+                    paidAmount: debt.paidAmount + payment.amount,
+                    dueDate: finalDueDate,
+                };
             }
             return debt;
         }));

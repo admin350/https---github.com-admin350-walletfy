@@ -27,6 +27,8 @@ import { AddDebtDialog } from "./add-debt-dialog";
 import { Progress } from "../ui/progress";
 import Link from "next/link";
 import { PayDebtDialog } from "./pay-debt-dialog";
+import { Badge } from "../ui/badge";
+import { isPast } from "date-fns";
 
 export function DebtsDataTable() {
     const { debts, deleteDebt } = useContext(DataContext);
@@ -100,13 +102,27 @@ export function DebtsDataTable() {
                 return `${paidInstallments} de ${debt.installments}`
             }
         },
+         {
+            accessorKey: 'status',
+            header: 'Estado',
+            cell: ({ row }) => {
+                const debt = row.original;
+                const isOverdue = isPast(debt.dueDate) && debt.paidAmount < debt.totalAmount;
+                if (debt.paidAmount >= debt.totalAmount) {
+                     return <Badge variant="default" className="bg-blue-500/20 text-blue-500 border-blue-500/20">Pagada</Badge>
+                }
+                return isOverdue ? 
+                <Badge variant="destructive" className="bg-red-500/20 text-red-500 border-red-500/20">Atrasada</Badge> : 
+                <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">Al día</Badge>;
+            }
+        },
         {
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
                 return (
-                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
+                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePay(item)} disabled={item.paidAmount >= item.totalAmount}>
                             <HandCoins className="mr-2 h-4 w-4" />
                             Abonar
                         </Button>
@@ -164,7 +180,9 @@ export function DebtsDataTable() {
                 open={isEditModalOpen}
                 onOpenChange={setIsEditModalOpen}
                 debtToEdit={debtToEdit}
-            />
+            >
+              <></>
+            </AddDebtDialog>
             {debtToPay && (
                 <PayDebtDialog
                     open={isPayModalOpen}

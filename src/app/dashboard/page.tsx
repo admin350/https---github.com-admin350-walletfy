@@ -16,12 +16,11 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, goals, isLoading } = useContext(DataContext);
+  const { transactions, isLoading } = useContext(DataContext);
 
   useEffect(() => {
     setIsClient(true);
@@ -76,9 +75,10 @@ export default function DashboardPage() {
       
       <FinancialAnalysisIA />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <RecentTransactions />
         <UpcomingPaymentsWidget />
+        <OverdueDebtsWidget />
       </div>
 
       <div className="fixed bottom-6 right-6">
