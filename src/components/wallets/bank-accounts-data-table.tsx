@@ -26,7 +26,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
 
 export function BankAccountsDataTable() {
-    const { bankAccounts, deleteBankAccount, profiles } = useContext(DataContext);
+    const { filteredBankAccounts, deleteBankAccount, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -139,7 +139,7 @@ export function BankAccountsDataTable() {
 
 
     const table = useReactTable({
-        data: bankAccounts,
+        data: filteredBankAccounts,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),

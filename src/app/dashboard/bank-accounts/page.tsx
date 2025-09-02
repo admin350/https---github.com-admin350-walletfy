@@ -11,11 +11,11 @@ import { BankAccountsDataTable } from "@/components/wallets/bank-accounts-data-t
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 
 export default function BankAccountsPage() {
-    const { bankAccounts, isLoading } = useContext(DataContext);
+    const { filteredBankAccounts, isLoading } = useContext(DataContext);
     
-    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.balance, 0);
-    const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
-    const businessBalance = bankAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
+    const totalBalance = filteredBankAccounts.reduce((acc, account) => acc + account.balance, 0);
+    const personalBalance = filteredBankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
+    const businessBalance = filteredBankAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
     
     const KpiSkeleton = () => (
       <div className="space-y-2">
