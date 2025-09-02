@@ -8,14 +8,21 @@ import { AddSubscriptionDialog } from "@/components/transactions/add-subscriptio
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isPast, isThisMonth, isFuture } from "date-fns";
+import { isPast, isThisMonth, isFuture, startOfMonth, startOfToday } from "date-fns";
 
 export default function SubscriptionsPage() {
     const { subscriptions } = useContext(DataContext);
+    const today = startOfToday();
+    const startOfCurrentMonth = startOfMonth(today);
 
-    const overdueSubscriptions = subscriptions.filter(s => isPast(s.dueDate) && !isThisMonth(s.dueDate));
+    // Vencidas: Fecha es anterior al inicio del mes actual.
+    const overdueSubscriptions = subscriptions.filter(s => s.dueDate < startOfCurrentMonth);
+
+    // Este Mes: Fecha está en el mes actual.
     const thisMonthSubscriptions = subscriptions.filter(s => isThisMonth(s.dueDate));
-    const upcomingSubscriptions = subscriptions.filter(s => isFuture(s.dueDate));
+
+    // Próximas: Fecha es futura y no es de este mes.
+    const upcomingSubscriptions = subscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
 
     return (
         <div className="grid gap-6">
