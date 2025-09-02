@@ -2,7 +2,7 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ListChecks, PlusCircle, CalendarClock, CircleDollarSign } from "lucide-react";
+import { ListChecks, PlusCircle, CalendarClock, CircleDollarSign, Percent } from "lucide-react";
 import { SubscriptionsDataTable } from "@/components/transactions/subscriptions-data-table";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 import { useContext } from "react";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
 
 export default function SubscriptionsPage() {
-    const { subscriptions, isLoading } = useContext(DataContext);
+    const { subscriptions, transactions, isLoading } = useContext(DataContext);
     const today = startOfToday();
 
     const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
@@ -32,9 +32,11 @@ export default function SubscriptionsPage() {
     const totalActiveSubscriptions = activeSubscriptions.length;
     const totalMonthlyCost = activeSubscriptions.reduce((acc, sub) => acc + sub.amount, 0);
 
-    const nextPayment = activeSubscriptions
-      .filter(s => isFuture(s.dueDate) || isThisMonth(s.dueDate))
-      .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
+    const totalExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const expenseParticipation = totalExpenses > 0 ? (totalMonthlyCost / totalExpenses) * 100 : 0;
 
     const KpiSkeleton = () => (
         <div className="space-y-2">
@@ -50,7 +52,7 @@ export default function SubscriptionsPage() {
                     <>
                         <KpiCard title="Suscripciones Activas" value={<KpiSkeleton />} icon={ListChecks} description="Cargando..." />
                         <KpiCard title="Gasto Mensual Total" value={<KpiSkeleton />} icon={CircleDollarSign} description="Cargando..." />
-                        <KpiCard title="Próximo Vencimiento" value={<KpiSkeleton />} icon={CalendarClock} description="Cargando..." />
+                        <KpiCard title="Participación en Egresos" value={<KpiSkeleton />} icon={Percent} description="Cargando..." />
                     </>
                 ) : (
                     <>
@@ -69,11 +71,11 @@ export default function SubscriptionsPage() {
                             description="Suma de todos tus gastos recurrentes."
                         />
                          <KpiCard
-                            title="Próximo Vencimiento"
-                            value={nextPayment ? format(nextPayment.dueDate, "dd MMM, yyyy", {locale: es}) : '-'}
-                            icon={CalendarClock}
+                            title="Participación en Egresos"
+                            value={`${expenseParticipation.toFixed(1)}%`}
+                            icon={Percent}
                             iconClassName="text-purple-400"
-                            description={nextPayment ? `${nextPayment.name} ($${nextPayment.amount.toLocaleString('es-CL')})` : 'No hay pagos próximos.'}
+                            description="Porcentaje del total de egresos del período."
                         />
                     </>
                 )}
