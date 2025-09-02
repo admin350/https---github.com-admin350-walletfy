@@ -119,44 +119,46 @@ export function FixedExpensesDataTable() {
             cell: ({ row }) => {
                 const item = row.original;
                 return (
-                     <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Abrir menú</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleRegister(item)}>
-                                    <FilePlus2 className="mr-2 h-4 w-4" />
-                                    Registrar como Gasto
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEdit(item)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
+                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleRegister(item)}>
+                            <FilePlus2 className="mr-2 h-4 w-4" />
+                            Registrar
+                        </Button>
+                         <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Editar
                                     </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la plantilla.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente la plantilla.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     </div>
                 )
             },
         },
@@ -181,14 +183,16 @@ export function FixedExpensesDataTable() {
                 }}
             />
 
-            <AddFixedExpenseDialog
+             <AddFixedExpenseDialog
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
                 expenseToEdit={expenseToEdit}
                 onFinish={() => {
                     setExpenseToEdit(undefined);
                 }}
-            />
+            >
+                <></>
+            </AddFixedExpenseDialog>
 
             <div className="rounded-md border">
                 <Table>
