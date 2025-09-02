@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,10 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
 import type { Debt } from '@/types';
 
-const formSchema = z.object({
-  amount: z.coerce.number().positive({ message: "El monto debe ser positivo." }),
-});
-
 interface PayDebtDialogProps {
     debt: Debt;
     open: boolean;
@@ -39,7 +35,23 @@ interface PayDebtDialogProps {
 export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebtPayment } = useContext(DataContext);
+    const { addDebtPayment, transactions } = useContext(DataContext);
+
+    const netBalance = useMemo(() => {
+        const totalIncome = transactions
+            .filter(t => t.type === 'income')
+            .reduce((acc, t) => acc + t.amount, 0);
+        const totalExpenses = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((acc, t) => acc + t.amount, 0);
+        return totalIncome - totalExpenses;
+    }, [transactions]);
+
+    const formSchema = z.object({
+        amount: z.coerce.number()
+          .positive({ message: "El monto debe ser positivo." })
+          .max(netBalance, { message: `No puedes pagar más de tu balance disponible ($${netBalance.toLocaleString('es-CL')}).` }),
+    });
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -80,7 +92,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                 <DialogHeader>
                     <DialogTitle>Abonar a: {debt.name}</DialogTitle>
                     <DialogDescription>
-                       Registra un pago para esta deuda. El monto de la cuota es ${debt.monthlyPayment.toLocaleString('es-CL')}.
+                       Balance disponible para pagar: <span className="font-bold text-primary">${netBalance.toLocaleString('es-CL')}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -90,7 +102,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                             name="amount"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Monto a Abonar</FormLabel>
+                                    <FormLabel>Monto a Abonar (Cuota: ${debt.monthlyPayment.toLocaleString('es-CL')})</FormLabel>
                                     <FormControl>
                                         <Input type="number" {...field} value={field.value ?? ''} />
                                     </FormControl>

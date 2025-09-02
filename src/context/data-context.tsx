@@ -246,13 +246,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         const newPayment = { ...payment, id: crypto.randomUUID() };
-        setDebtPayments(prev => [newPayment, ...prev]);
-
+        
+        let debtToUpdate: Debt | undefined;
+        
         setDebts(prevDebts => prevDebts.map(debt => {
             if (debt.id === payment.debtId) {
+                debtToUpdate = debt;
                 // Get original due date to preserve the day of the month
-                const originalDueDateDay = debt.dueDate.getDate();
-                const newDueDate = addMonths(debt.dueDate, 1);
+                const originalDueDateDay = new Date(debt.dueDate).getDate();
+                const newDueDate = addMonths(new Date(debt.dueDate), 1);
                 // Set the day of the month to the original due date's day
                 const finalDueDate = setDate(newDueDate, originalDueDateDay);
 
@@ -265,14 +267,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return debt;
         }));
 
-        const debt = debts.find(d => d.id === payment.debtId);
-        if (debt) {
+        setDebtPayments(prev => [newPayment, ...prev]);
+
+        if (debtToUpdate) {
             await addTransaction({
                 type: 'expense',
                 amount: payment.amount,
-                description: `Abono a: ${debt.name}`,
+                description: `Abono a: ${debtToUpdate.name}`,
                 category: 'Pago de Deuda',
-                profile: debt.profile,
+                profile: debtToUpdate.profile,
                 date: payment.date.toISOString(),
             });
         }
