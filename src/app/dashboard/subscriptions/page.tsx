@@ -1,29 +1,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DebtsDataTable } from "@/components/transactions/debts-data-table";
 import { Button } from "@/components/ui/button";
-import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { PlusCircle } from "lucide-react";
+import { SubscriptionsDataTable } from "@/components/transactions/subscriptions-data-table";
+import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 
-export default function DebtsPage() {
+export default function SubscriptionsPage() {
     return (
         <div className="grid gap-6">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Deudas</CardTitle>
+                     <div>
+                        <CardTitle>Suscripciones</CardTitle>
                         <CardDescription>
-                            Registra y gestiona tus deudas como préstamos o hipotecas.
+                            Rastrea tus pagos recurrentes como Netflix, Spotify, etc.
                         </CardDescription>
                     </div>
-                    <AddDebtDialog>
+                    <AddSubscriptionDialog>
                         <Button>
                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Añadir Deuda
+                            Añadir Suscripción
                         </Button>
-                    </AddDebtDialog>
+                    </AddSubscriptionDialog>
                 </CardHeader>
                 <CardContent>
-                    <DebtsDataTable />
+                    <SubscriptionsDataTable />
                 </CardContent>
             </Card>
         </div>

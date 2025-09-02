@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, PiggyBank, Target, Settings, Repeat } from "lucide-react";
+import { Menu, Rocket, Building, ChevronDown, LayoutDashboard, List, PiggyBank, Target, Settings, Repeat, CreditCard } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 
@@ -11,7 +11,8 @@ import { LogOut } from "lucide-react";
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
   { href: "/dashboard/transactions", icon: List, label: "Transacciones" },
-  { href: "/dashboard/debts", icon: PiggyBank, label: "Deudas y Suscripciones" },
+  { href: "/dashboard/debts", icon: PiggyBank, label: "Deudas" },
+  { href: "/dashboard/subscriptions", icon: CreditCard, label: "Suscripciones" },
   { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos" },
   { href: "/dashboard/goals", icon: Target, label: "Metas de Ahorro" },
 ];
