@@ -20,7 +20,6 @@ export function SavingsGoalsWidget() {
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
-        <CardTitle>Metas de Ahorro</CardTitle>
         <CardDescription>Tu progreso hacia tus objetivos financieros.</CardDescription>
       </CardHeader>
       <CardContent>
