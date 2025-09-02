@@ -106,7 +106,7 @@ export function DebtsDataTable() {
         {
             accessorKey: "dueDate",
             header: "Próximo Pago",
-            cell: ({row}) => format(row.original.dueDate, "dd 'de' MMMM, yyyy", { locale: es })
+            cell: ({row}) => format(row.original.dueDate, "dd/MM/yyyy")
         },
          {
             accessorKey: 'status',

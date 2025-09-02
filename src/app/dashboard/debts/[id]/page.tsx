@@ -63,7 +63,7 @@ export default function DebtDetailPage() {
                 <KpiCard title="Monto Total" value={`$${debt.totalAmount.toLocaleString('es-CL')}`} icon={Scale} description="Monto original de la deuda"/>
                 <KpiCard title="Monto Pagado" value={`$${debt.paidAmount.toLocaleString('es-CL')}`} icon={HandCoins} description="Suma de todos los abonos"/>
                 <KpiCard title="Monto Restante" value={`$${remainingAmount.toLocaleString('es-CL')}`} icon={Banknote} description="Lo que queda por pagar"/>
-                <KpiCard title="Cuota Mensual" value={`$${debt.monthlyPayment.toLocaleString('es-CL')}`} icon={Landmark} description={`Próximo vencimiento: ${format(debt.dueDate, "dd 'de' MMMM", { locale: es })}`}/>
+                <KpiCard title="Cuota Mensual" value={`$${debt.monthlyPayment.toLocaleString('es-CL')}`} icon={Landmark} description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
                 <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} description="Total de cuotas pagadas"/>
              </div>
 
@@ -91,7 +91,7 @@ export default function DebtDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{format(payment.date, "dd 'de' MMMM, yyyy", { locale: es })}</TableCell>
+                                        <TableCell>{format(payment.date, "dd/MM/yyyy")}</TableCell>
                                         <TableCell className="text-right font-medium">${payment.amount.toLocaleString('es-CL')}</TableCell>
                                     </TableRow>
                                 ))
