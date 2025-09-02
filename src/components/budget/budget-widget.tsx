@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useContext } from "react";
 import type { Budget } from "@/types";
@@ -20,7 +21,7 @@ interface BudgetWidgetProps {
 }
 
 export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
-    const { deleteBudget, transactions, categories } = useContext(DataContext);
+    const { deleteBudget, transactions, categories, profiles } = useContext(DataContext);
     const { toast } = useToast();
 
     const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
@@ -54,6 +55,11 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
         return category ? category.color : "#8884d8"; // fallback color
     };
 
+    const getProfileColor = (profileName: string) => {
+        const profile = profiles.find(p => p.name === profileName);
+        return profile ? profile.color : "#8884d8";
+    }
+
     if (isLoading) {
         return <Skeleton className="h-64 w-full" />
     }
@@ -72,12 +78,12 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     return (
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
             {budgets.map(budget => (
-                <Card key={budget.id} className="flex flex-col">
+                <Card key={budget.id} className="flex flex-col border-t-4" style={{ borderTopColor: getProfileColor(budget.profile) }}>
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <div>
                                 <CardTitle>{budget.name}</CardTitle>
-                                <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                                 <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
                                     <span>Asignado al perfil</span> <Badge variant="outline">{budget.profile}</Badge>
                                 </div>
                             </div>

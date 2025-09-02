@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts"
 
 import {
   Card,
@@ -17,87 +17,104 @@ import {
 } from "@/components/ui/chart"
 import { useContext, useMemo } from "react"
 import { DataContext } from "@/context/data-context"
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, getYear, getMonth, lastDayOfMonth } from "date-fns"
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, getYear, getMonth } from "date-fns"
 import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
-const chartConfig = {
-  income: {
-    label: "Ingresos",
-    color: "hsl(var(--chart-2))",
-  },
-  expenses: {
-    label: "Egresos",
-    color: "hsl(var(--chart-5))",
-  },
-}
-
 export function CashflowChart() {
-  const { transactions, isLoading, filters } = useContext(DataContext);
-
-  const chartData = useMemo(() => {
-    if (filters.month === -1) return []; // Don't show month-based chart for "All Year" view
-
-    const date = new Date(filters.year, filters.month);
-    const monthStart = startOfMonth(date);
-    const monthEnd = endOfMonth(date);
-    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-    let cumulativeIncome = 0;
-    let cumulativeExpenses = 0;
-
-    return daysInMonth.map(day => {
-      const dailyIncome = transactions
-        .filter(t => t.type === 'income' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'))
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const dailyExpenses = transactions
-        .filter(t => t.type === 'expense' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'))
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      cumulativeIncome += dailyIncome;
-      cumulativeExpenses += dailyExpenses;
-      
-      return {
-        day: format(day, 'dd'),
-        income: cumulativeIncome,
-        expenses: cumulativeExpenses,
-      };
+  const { transactions, isLoading, filters, profiles } = useContext(DataContext);
+  
+  const chartConfig = useMemo(() => {
+    const config: any = {};
+    profiles.forEach(p => {
+        config[`income-${p.name}`] = { label: `Ingreso (${p.name})`, color: p.color };
+        config[`expenses-${p.name}`] = { label: `Egreso (${p.name})`, color: p.color };
     });
-  }, [transactions, filters]);
-
-
+    return config;
+  }, [profiles]);
+  
   const yearlyChartData = useMemo(() => {
     if (filters.month !== -1) return []; // Only for "All Year" view
 
     const months = Array.from({ length: 12 }, (_, i) => i);
     
     return months.map(month => {
-        const monthlyIncome = transactions
-            .filter(t => t.type === 'income' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year)
+      const dataPoint: { [key: string]: any } = {
+        month: format(new Date(filters.year, month), 'LLL', { locale: es }),
+      };
+
+      profiles.forEach(profile => {
+        const incomeKey = `income-${profile.name}`;
+        const expenseKey = `expenses-${profile.name}`;
+        
+        dataPoint[incomeKey] = transactions
+          .filter(t => t.type === 'income' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year && t.profile === profile.name)
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        dataPoint[expenseKey] = transactions
+          .filter(t => t.type === 'expense' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year && t.profile === profile.name)
+          .reduce((sum, t) => sum + t.amount, 0);
+      });
+      
+      return dataPoint;
+    });
+  }, [transactions, filters, profiles]);
+
+
+  const monthlyChartData = useMemo(() => {
+    if (filters.month === -1) return []; // Don't show month-based chart for "All Year" view
+
+    const date = new Date(filters.year, filters.month);
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    
+    const cumulativeTotals: { [key: string]: number } = {};
+
+    return daysInMonth.map(day => {
+       const dataPoint: { [key: string]: any } = {
+        day: format(day, 'dd'),
+      };
+      
+      profiles.forEach(profile => {
+          const incomeKey = `income-${profile.name}`;
+          const expenseKey = `expenses-${profile.name}`;
+
+          if (!cumulativeTotals[incomeKey]) cumulativeTotals[incomeKey] = 0;
+          if (!cumulativeTotals[expenseKey]) cumulativeTotals[expenseKey] = 0;
+
+          const dailyIncome = transactions
+            .filter(t => t.type === 'income' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
             .reduce((sum, t) => sum + t.amount, 0);
-            
-        const monthlyExpenses = transactions
-            .filter(t => t.type === 'expense' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year)
+        
+          const dailyExpenses = transactions
+            .filter(t => t.type === 'expense' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
             .reduce((sum, t) => sum + t.amount, 0);
 
-        return {
-            month: format(new Date(filters.year, month), 'LLL', { locale: es }),
-            income: monthlyIncome,
-            expenses: monthlyExpenses,
-        };
+           cumulativeTotals[incomeKey] += dailyIncome;
+           cumulativeTotals[expenseKey] += dailyExpenses;
+           
+           dataPoint[incomeKey] = cumulativeTotals[incomeKey];
+           dataPoint[expenseKey] = cumulativeTotals[expenseKey];
+      });
+
+      return dataPoint;
     });
-  }, [transactions, filters]);
-  
+  }, [transactions, filters, profiles]);
+
+
   const isYearlyView = filters.month === -1;
-  const currentChartData = isYearlyView ? yearlyChartData : chartData;
+  const currentChartData = isYearlyView ? yearlyChartData : monthlyChartData;
+
+  const incomeKeys = profiles.map(p => `income-${p.name}`);
+  const expenseKeys = profiles.map(p => `expenses-${p.name}`);
 
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
-        <CardTitle>Flujo de Caja del Período</CardTitle>
+        <CardTitle>Flujo de Caja por Perfil</CardTitle>
         <CardDescription>
-          {isYearlyView ? 'Ingresos vs. egresos a lo largo del año' : 'Ingresos acumulados vs. egresos acumulados a lo largo del mes'}
+           {isYearlyView ? 'Ingresos vs. egresos por perfil a lo largo del año' : 'Acumulado de ingresos vs. egresos por perfil a lo largo del mes'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,33 +146,41 @@ export function CashflowChart() {
                   tickMargin={8}
                   tickFormatter={(value) => `$${Number(value).toLocaleString('es-CL')}`}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value, name) => `${(name as string).charAt(0).toUpperCase() + (name as string).slice(1)}: $${Number(value).toLocaleString('es-CL')}`} />} />
-              <defs>
-                <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-expenses)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--color-expenses)" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <Area
-                dataKey="income"
-                type="natural"
-                fill="url(#fillIncome)"
-                fillOpacity={0.4}
-                stroke="var(--color-income)"
-                stackId="a"
-              />
-              <Area
-                dataKey="expenses"
-                type="natural"
-                fill="url(#fillExpenses)"
-                fillOpacity={0.4}
-                stroke="var(--color-expenses)"
-                stackId="b"
-              />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value, name, item) => {
+                  const configKey = item.dataKey;
+                  const itemConfig = chartConfig[configKey];
+                  return (
+                     <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: itemConfig.color }} />
+                        <div className="flex-1">
+                          <span>{itemConfig.label}:</span>
+                          <span className="font-bold ml-2">${Number(value).toLocaleString('es-CL')}</span>
+                        </div>
+                     </div>
+                  )
+              }} />} />
+              {incomeKeys.map((key) => (
+                  <Area
+                    key={key}
+                    dataKey={key}
+                    type="natural"
+                    fill={chartConfig[key]?.color}
+                    fillOpacity={0.4}
+                    stroke={chartConfig[key]?.color}
+                    stackId="income"
+                  />
+              ))}
+               {expenseKeys.map((key) => (
+                  <Area
+                    key={key}
+                    dataKey={key}
+                    type="natural"
+                    fill={chartConfig[key]?.color}
+                    fillOpacity={0.4}
+                    stroke={chartConfig[key]?.color}
+                    stackId="expense"
+                  />
+              ))}
             </AreaChart>
           </ChartContainer>
         )}

@@ -30,7 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "../ui/badge";
 
 export function TransactionsDataTable() {
-    const { transactions, deleteTransaction } = useContext(DataContext);
+    const { transactions, deleteTransaction, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -69,6 +69,16 @@ export function TransactionsDataTable() {
         {
             accessorKey: "profile",
             header: "Perfil",
+             cell: ({ row }) => {
+                const profileName = row.getValue("profile") as string;
+                const profile = profiles.find(p => p.name === profileName);
+                return (
+                    <div className="flex items-center gap-2">
+                        {profile && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: profile.color }} />}
+                        <span>{profileName}</span>
+                    </div>
+                )
+            }
         },
         {
             accessorKey: "category",

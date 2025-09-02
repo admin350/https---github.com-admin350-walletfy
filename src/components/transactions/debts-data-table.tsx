@@ -1,4 +1,5 @@
 
+
 'use client'
 import {
     ColumnDef,
@@ -37,7 +38,7 @@ interface DebtsDataTableProps {
 
 
 export function DebtsDataTable({ debts }: DebtsDataTableProps) {
-    const { deleteDebt } = useContext(DataContext);
+    const { deleteDebt, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [debtToEdit, setDebtToEdit] = useState<Debt | undefined>(undefined);
     const [debtToPay, setDebtToPay] = useState<Debt | undefined>(undefined);
@@ -76,10 +77,14 @@ export function DebtsDataTable({ debts }: DebtsDataTableProps) {
             header: "Nombre",
             cell: ({ row }) => {
                  const debt = row.original;
+                 const profile = profiles.find(p => p.name === debt.profile);
                  return (
-                    <Link href={`/dashboard/debts/${debt.id}`} className="font-medium text-primary hover:underline">
-                        {debt.name}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        {profile && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: profile.color }} />}
+                         <Link href={`/dashboard/debts/${debt.id}`} className="font-medium text-primary hover:underline">
+                            {debt.name}
+                        </Link>
+                    </div>
                  )
             }
         },
