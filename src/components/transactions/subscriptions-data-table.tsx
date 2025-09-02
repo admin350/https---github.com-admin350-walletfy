@@ -74,6 +74,10 @@ export function SubscriptionsDataTable() {
             header: "Nombre",
         },
         {
+            accessorKey: "profile",
+            header: "Perfil",
+        },
+        {
             accessorKey: "paymentMethod",
             header: "Método de Pago",
             cell: ({row}) => {

@@ -42,6 +42,7 @@ export type Subscription = {
   dueDate: Date;
   paymentMethod: string;
   bank: string;
+  profile: string;
 };
 
 

@@ -39,13 +39,14 @@ const formSchema = z.object({
   nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
   paymentMethod: z.string().min(1, { message: "Método de pago es requerido."}),
   bank: z.string().min(2, { message: "Banco es requerido." }),
+  profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
 export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addSubscription } = useContext(DataContext);
+    const { addSubscription, profiles } = useContext(DataContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -56,6 +57,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             nextDueDate: new Date(),
             paymentMethod: "",
             bank: "",
+            profile: "",
         },
     });
 
@@ -69,6 +71,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 dueDate: values.nextDueDate,
                 paymentMethod: values.paymentMethod,
                 bank: values.bank,
+                profile: values.profile,
             });
             toast({
                 title: "Suscripción añadida",
@@ -109,6 +112,28 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                         <Input placeholder="Ej: Netflix, Spotify" {...field} />
                                     </FormControl>
                                     <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="profile"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Perfil</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un perfil" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {profiles.map(p => (
+                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
                                 </FormItem>
                             )}
                         />

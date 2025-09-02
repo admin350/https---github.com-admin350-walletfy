@@ -27,8 +27,8 @@ const mockGoalContributions: GoalContribution[] = [
 ];
 
 const mockSubscriptions: Subscription[] = [
-    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado" },
-    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank" },
+    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal" },
+    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal" },
 ];
 
 const mockDebts: Debt[] = [
