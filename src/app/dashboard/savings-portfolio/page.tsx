@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsPortfolioDataTable } from "@/components/transactions/savings-portfolio-data-table";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { Landmark, ArrowRightLeft } from "lucide-react";
+import { Landmark, ArrowRightLeft, Wallet } from "lucide-react";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,8 @@ export default function SavingsPortfolioPage() {
     const totalSavings = savingsTransactions.reduce((acc, t) => acc + t.amount, 0);
 
     const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+
+    const availableSavings = totalSavings - totalContributedToGoals;
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -31,6 +33,7 @@ export default function SavingsPortfolioPage() {
                     <>
                     <KpiCard title="Ahorro Total Acumulado" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
                     <KpiCard title="Total Aportado a Metas" value={<KpiSkeleton />} icon={ArrowRightLeft} description="Cargando..." />
+                    <KpiCard title="Saldo Disponible para Aportar" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
                     </>
                 ) : (
                     <>
@@ -45,6 +48,12 @@ export default function SavingsPortfolioPage() {
                         value={`$${totalContributedToGoals.toLocaleString('es-CL')}`} 
                         icon={ArrowRightLeft} 
                         description="Dinero de tu cartera de ahorros asignado a metas." 
+                    />
+                    <KpiCard
+                        title="Saldo Disponible para Aportar"
+                        value={`$${availableSavings.toLocaleString('es-CL')}`}
+                        icon={Wallet}
+                        description="Ahorro total - Aportes a metas"
                     />
                     </>
                 )}
