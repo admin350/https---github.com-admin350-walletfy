@@ -6,9 +6,9 @@ export default function GoalsPage() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Metas de Ahorro</CardTitle>
+                    <CardTitle>Metas</CardTitle>
                     <CardDescription>
-                        Un módulo para crear metas de ahorro con un monto objetivo y seguir el progreso a través de transferencias de ahorro.
+                        Define tus metas financieras para dar un propósito a tus ahorros.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
