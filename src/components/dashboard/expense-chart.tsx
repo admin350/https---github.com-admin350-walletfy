@@ -20,10 +20,10 @@ import { Skeleton } from "../ui/skeleton"
 
 const COLORS = {
   expenses: [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-3))",
-    "hsl(20, 80%, 50%)",
-    "hsl(260, 80%, 60%)",
+    "hsl(190, 80%, 60%)",
+    "hsl(340, 80%, 60%)",
+    "hsl(20, 90%, 60%)",
+    "hsl(260, 80%, 70%)",
   ],
   savings: "hsl(var(--chart-2))",
   investments: "hsl(var(--chart-4))",
