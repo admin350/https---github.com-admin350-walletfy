@@ -39,6 +39,7 @@ export function FixedExpensesDataTable() {
             description: expense.name,
             amount: expense.amount,
             category: expense.category,
+            profile: expense.profile,
             date: new Date(),
         });
     };
@@ -71,6 +72,10 @@ export function FixedExpensesDataTable() {
         {
             accessorKey: "category",
             header: "Categoría",
+        },
+         {
+            accessorKey: "profile",
+            header: "Perfil",
         },
         {
             accessorKey: "amount",

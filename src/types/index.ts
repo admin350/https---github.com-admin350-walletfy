@@ -38,6 +38,7 @@ export type FixedExpense = {
   name: string;
   amount: number;
   category: string;
+  profile: string;
 }
 
 export type Profile = {

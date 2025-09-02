@@ -31,6 +31,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre del gasto es muy corto." }),
   amount: z.coerce.number().positive({ message: "El monto debe ser positivo." }),
   category: z.string().min(1, { message: "La categoría es requerida." }),
+  profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
 interface AddFixedExpenseDialogProps {
@@ -43,7 +44,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addFixedExpense, updateFixedExpense, categories } = useContext(DataContext);
+    const { addFixedExpense, updateFixedExpense, categories, profiles } = useContext(DataContext);
     
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
@@ -53,6 +54,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
             name: "",
             amount: undefined,
             category: "",
+            profile: "",
         },
     });
 
@@ -64,6 +66,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                 name: "",
                 amount: undefined,
                 category: "",
+                profile: "",
             });
         }
     }, [expenseToEdit, form, open]);
@@ -156,6 +159,28 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, onFinish }: Add
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="profile"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Perfil</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un perfil" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {profiles.map(p => (
+                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
                                 </FormItem>
                             )}
                         />
