@@ -37,7 +37,7 @@ export function FixedExpensesDataTable() {
         setExpenseToRegister({
             type: 'expense',
             description: expense.name,
-            amount: expense.amount,
+            amount: undefined, // Dejar el monto en blanco para que el usuario lo ingrese
             category: expense.category,
             profile: expense.profile,
             date: new Date(),
@@ -79,7 +79,7 @@ export function FixedExpensesDataTable() {
         },
         {
             accessorKey: "amount",
-            header: "Monto",
+            header: "Monto Base",
             cell: ({ row }) => {
                 const amount = parseFloat(row.getValue("amount"))
                 const formatted = new Intl.NumberFormat("es-CL", {

@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
@@ -50,7 +51,7 @@ const formSchema = z.object({
 
 interface AddTransactionDialogProps {
     children: ReactNode;
-    transactionToEdit?: Transaction;
+    transactionToEdit?: Partial<Transaction>;
     onFinish?: () => void;
 }
 
@@ -62,10 +63,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: transactionToEdit ? {
-            ...transactionToEdit,
-            date: new Date(transactionToEdit.date),
-        } : {
+        defaultValues: {
             type: "expense",
             amount: undefined,
             description: "",
@@ -76,13 +74,13 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
     });
 
     useEffect(() => {
-        if (transactionToEdit) {
+        if(transactionToEdit) {
             form.reset({
                 ...transactionToEdit,
-                date: new Date(transactionToEdit.date)
+                date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date()
             });
         } else {
-            form.reset({
+             form.reset({
                 type: "expense",
                 amount: undefined,
                 description: "",
@@ -91,7 +89,8 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                 date: new Date(),
             });
         }
-    }, [transactionToEdit, form]);
+    }, [transactionToEdit, form, open]);
+
 
     const transactionType = form.watch("type");
 
@@ -104,7 +103,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            if (transactionToEdit) {
+            if (transactionToEdit && transactionToEdit.id) {
                 await updateTransaction({
                     ...values,
                     id: transactionToEdit.id,
@@ -125,13 +124,20 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                 });
             }
            
-            form.reset();
+            form.reset({
+                type: "expense",
+                amount: undefined,
+                description: "",
+                category: "",
+                profile: "",
+                date: new Date(),
+            });
             setOpen(false);
             if(onFinish) onFinish();
         } catch (error) {
             toast({
                 title: "Error",
-                description: `No se pudo ${transactionToEdit ? 'actualizar' : 'añadir'} la transacción.`,
+                description: `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
                 variant: 'destructive'
             });
         } finally {
@@ -144,9 +150,9 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{transactionToEdit ? 'Editar' : 'Añadir'} Transacción</DialogTitle>
+          <DialogTitle>{transactionToEdit?.id ? 'Editar' : 'Añadir'} Transacción</DialogTitle>
           <DialogDescription>
-            {transactionToEdit ? 'Edita los detalles de tu transacción.' : 'Registra un nuevo ingreso, egreso o transferencia.'}
+            {transactionToEdit?.id ? 'Edita los detalles de tu transacción.' : 'Registra un nuevo ingreso, egreso o transferencia.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -157,7 +163,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona un tipo" />
@@ -180,7 +186,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                         <FormItem>
                         <FormLabel>Monto</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="$0" {...field} />
+                            <Input type="number" placeholder="$0" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -205,7 +211,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Perfil</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona un perfil" />
@@ -227,7 +233,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Categoría</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona una categoría" />
@@ -287,7 +293,7 @@ export function AddTransactionDialog({ children, transactionToEdit, onFinish }: 
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {transactionToEdit ? 'Guardar Cambios' : 'Guardar Transacción'}
+                    {transactionToEdit?.id ? 'Guardar Cambios' : 'Guardar Transacción'}
                 </Button>
             </form>
         </Form>
