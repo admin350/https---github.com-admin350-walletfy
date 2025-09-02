@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext } from 'react';
+import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { DataContext } from '@/context/data-context';
+import type { SavingsGoal } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la meta es muy corto." }),
@@ -40,37 +41,79 @@ const formSchema = z.object({
   category: z.string().min(2, { message: "La categoría es requerida." }),
 });
 
-export function AddGoalDialog({ children }: { children: ReactNode }) {
-    const [open, setOpen] = useState(false);
+interface AddGoalDialogProps {
+    children?: ReactNode;
+    goalToEdit?: SavingsGoal;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddGoalDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addGoal, profiles } = useContext(DataContext);
+    const { addGoal, updateGoal, profiles } = useContext(DataContext);
+    
+    const isControlled = open !== undefined && onOpenChange !== undefined;
+    const dialogOpen = isControlled ? open : internalOpen;
+    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             targetAmount: '' as any,
-            estimatedDate: new Date(),
             profile: "",
             category: "",
         },
     });
 
+    useEffect(() => {
+        if (dialogOpen && goalToEdit) {
+            form.reset({
+                name: goalToEdit.name,
+                targetAmount: goalToEdit.targetAmount,
+                estimatedDate: new Date(goalToEdit.estimatedDate),
+                profile: goalToEdit.profile,
+                category: goalToEdit.category,
+            });
+        } else if (dialogOpen && !goalToEdit) {
+            form.reset({
+                name: "",
+                targetAmount: '' as any,
+                estimatedDate: new Date(),
+                profile: "",
+                category: "",
+            });
+        }
+    }, [goalToEdit, form, dialogOpen]);
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            await addGoal(values);
-            toast({
-                title: "Meta añadida",
-                description: "Tu meta ha sido registrada exitosamente.",
-            });
+            if(goalToEdit) {
+                await updateGoal({
+                    ...values,
+                    id: goalToEdit.id,
+                    currentAmount: goalToEdit.currentAmount,
+                });
+                 toast({
+                    title: "Meta actualizada",
+                    description: "Tu meta ha sido actualizada exitosamente.",
+                });
+            } else {
+                await addGoal(values);
+                toast({
+                    title: "Meta añadida",
+                    description: "Tu meta ha sido registrada exitosamente.",
+                });
+            }
             form.reset();
-            setOpen(false);
+            setDialogOpen(false);
         } catch (error) {
              toast({
                 title: "Error",
-                description: "No se pudo añadir la meta.",
+                description: `No se pudo ${goalToEdit ? 'actualizar' : 'añadir'} la meta.`,
                 variant: "destructive"
             })
         } finally {
@@ -79,13 +122,13 @@ export function AddGoalDialog({ children }: { children: ReactNode }) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Añadir Nueva Meta</DialogTitle>
+                    <DialogTitle>{goalToEdit ? 'Editar' : 'Añadir Nueva'} Meta</DialogTitle>
                     <DialogDescription>
-                        Define una nueva meta de ahorro o inversión.
+                        {goalToEdit ? 'Actualiza los detalles de tu meta.' : 'Define una nueva meta de ahorro o inversión.'}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -192,7 +235,7 @@ export function AddGoalDialog({ children }: { children: ReactNode }) {
                         />
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Guardar Meta
+                            {goalToEdit ? 'Guardar Cambios' : 'Guardar Meta'}
                         </Button>
                     </form>
                 </Form>

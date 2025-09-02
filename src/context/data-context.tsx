@@ -84,6 +84,8 @@ interface DataContextType {
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
+    updateGoal: (goal: SavingsGoal) => Promise<void>;
+    deleteGoal: (id: string) => Promise<void>;
     addSubscription: (subscription: Omit<Subscription, 'id'>) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
@@ -110,6 +112,8 @@ export const DataContext = createContext<DataContextType>({
     updateTransaction: async () => {},
     deleteTransaction: async () => {},
     addGoal: async () => {},
+    updateGoal: async () => {},
+    deleteGoal: async () => {},
     addSubscription: async () => {},
     updateSubscription: async () => {},
     deleteSubscription: async () => {},
@@ -166,6 +170,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
         const newGoal = { ...goal, id: crypto.randomUUID(), currentAmount: 0 };
         setGoals(prev => [...prev, newGoal]);
+    }
+
+    const updateGoal = async (updatedGoal: SavingsGoal) => {
+        setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
+    }
+
+    const deleteGoal = async (id: string) => {
+        setGoals(prev => prev.filter(g => g.id !== id));
     }
     
     const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
@@ -235,6 +247,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             updateTransaction,
             deleteTransaction,
             addGoal,
+            updateGoal,
+            deleteGoal,
             addSubscription,
             updateSubscription,
             deleteSubscription,
