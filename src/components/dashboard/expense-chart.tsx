@@ -75,11 +75,6 @@ export function ExpenseChart() {
 
   return (
     <div className="flex flex-col h-full">
-      <CardHeader className="p-0 mb-4">
-        <CardDescription>
-            Total de ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
-        </CardDescription>
-      </CardHeader>
       <CardContent className="flex-1 pb-0 flex items-center justify-center p-0">
         {isLoading ? (
           <Skeleton className="h-[200px] w-full" />
@@ -115,16 +110,16 @@ export function ExpenseChart() {
                 </PieChart>
               </ChartContainer>
             </div>
-             <div className="flex flex-col justify-center space-y-1 text-xs">
+             <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
                 {chartData.map((item) => {
                     const percentage = totalIncome > 0 ? (item.value / totalIncome) * 100 : 0;
                     return (
                         <div key={item.name} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.fill }} />
-                                <span>{item.name}</span>
+                            <div className="flex items-center gap-2 truncate">
+                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
+                                <span className="truncate" title={item.name}>{item.name}</span>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex-shrink-0">
                                 <span className="font-medium">${item.value.toLocaleString('es-CL')}</span>
                                 <span className="ml-2 text-muted-foreground">({percentage.toFixed(1)}%)</span>
                             </div>

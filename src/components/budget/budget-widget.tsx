@@ -92,7 +92,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
 
                 return (
                 <Card key={budget.id} className="flex flex-col border-t-4 shadow-none border" style={{ borderTopColor: getProfileColor(budget.profile) }}>
-                    <CardHeader className="p-4">
+                    <CardHeader className="p-4 pb-0">
                         <div className="flex justify-between items-start">
                             <div>
                                 <CardTitle className="text-lg">{budget.name}</CardTitle>
@@ -133,7 +133,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                             </AlertDialog>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-1 p-4 pt-0">
+                    <CardContent className="flex-1 p-4">
                        <div className="grid grid-cols-2 gap-4">
                            <div className="h-[150px]">
                              <ChartContainer
@@ -145,7 +145,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                                         cursor={false}
                                         content={<ChartTooltipContent 
                                             hideLabel
-                                            formatter={(value) => `${value}%`}
+                                            formatter={(value, name) => `${name}: ${value}%`}
                                         />}
                                     />
                                     <Pie data={chartData} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={60} labelLine={false}>
@@ -157,23 +157,24 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                             </ChartContainer>
                            </div>
                             <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
-                                {chartData.map((item) => (
-                                    <div key={item.category} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
-                                            <span className="truncate" title={item.category}>{item.category}</span>
+                                {chartData.map((item) => {
+                                    const estimatedAmount = (totalIncome * item.percentage) / 100;
+                                    return (
+                                        <div key={item.category} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
+                                                <span className="truncate" title={item.category}>{item.category}</span>
+                                            </div>
+                                            <div className="text-right flex-shrink-0">
+                                                <span className="font-medium">${estimatedAmount.toLocaleString('es-CL')}</span>
+                                                <span className="ml-2 text-muted-foreground">({item.percentage}%)</span>
+                                            </div>
                                         </div>
-                                        <div className="text-right flex-shrink-0">
-                                            <span className="font-medium">{item.percentage}%</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                        </div>
                     </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                         <p className="text-xs text-muted-foreground">Monto estimado basado en ingresos del período: <strong className="text-foreground">${((totalIncome * budget.items.reduce((sum, item) => sum + item.percentage, 0)) / 100).toLocaleString('es-CL')}</strong></p>
-                    </CardFooter>
                 </Card>
             )})}
 
