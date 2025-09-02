@@ -19,6 +19,14 @@ export type SavingsGoal = {
   category: string;
 };
 
+export type GoalContribution = {
+  id: string;
+  goalId: string;
+  goalName: string;
+  amount: number;
+  date: Date;
+}
+
 export type Debt = {
   id: string;
   name: string;

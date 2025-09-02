@@ -8,14 +8,23 @@ import { Skeleton } from "../ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { PiggyBank } from "lucide-react";
+import { ContributeToGoalDialog } from "../goals/contribute-to-goal-dialog";
+import type { SavingsGoal } from "@/types";
 
 export function SavingsGoalsWidget() {
   const { goals, isLoading } = useContext(DataContext);
   const [isClient, setIsClient] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+  
+  const handleContributeClick = (goal: SavingsGoal) => {
+    setSelectedGoal(goal);
+  }
 
   return (
     <Card className="bg-card/50 border-border/50">
@@ -49,17 +58,34 @@ export function SavingsGoalsWidget() {
                     </p>
                   </div>
                   <Progress value={progress} className="h-2" />
-                  <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                     <Badge variant='secondary'>
-                        {goal.category}
-                    </Badge>
-                    <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant='secondary'>
+                            {goal.category}
+                        </Badge>
+                        <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>
+                        <PiggyBank className="mr-2 h-4 w-4" />
+                        Aportar
+                    </Button>
                   </div>
                 </div>
               );
             })
           )}
         </div>
+         {selectedGoal && (
+          <ContributeToGoalDialog
+            goal={selectedGoal}
+            open={!!selectedGoal}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setSelectedGoal(null);
+              }
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );

@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution } from "@/types";
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { addDays } from "date-fns";
 
@@ -12,12 +12,18 @@ const mockTransactions: Transaction[] = [
   { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString() },
   { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString() },
   { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString() },
+  { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString() },
 ];
 
 const mockGoals: SavingsGoal[] = [
   { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000, estimatedDate: new Date('2025-12-01'), profile: 'Personal', category: 'Viaje' },
   { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000, estimatedDate: new Date('2024-10-31'), profile: 'Negocio', category: 'Tecnología' },
   { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000, estimatedDate: new Date('2026-01-01'), profile: 'Personal', category: 'Inversión' },
+];
+
+const mockGoalContributions: GoalContribution[] = [
+    { id: '1', goalId: '1', goalName: 'Vacaciones a Japón', amount: 100000, date: new Date() },
+    { id: '2', goalId: '2', goalName: 'Nuevo Portátil', amount: 50000, date: new Date() },
 ];
 
 const mockSubscriptions: Subscription[] = [
@@ -72,6 +78,7 @@ interface DataContextType {
     fixedExpenses: FixedExpense[];
     profiles: Profile[];
     categories: Category[];
+    goalContributions: GoalContribution[];
     isLoading: boolean;
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
@@ -86,6 +93,7 @@ interface DataContextType {
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
     updateFixedExpense: (expense: FixedExpense) => Promise<void>;
     deleteFixedExpense: (id: string) => Promise<void>;
+    addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -96,6 +104,7 @@ export const DataContext = createContext<DataContextType>({
     fixedExpenses: [],
     profiles: [],
     categories: [],
+    goalContributions: [],
     isLoading: true,
     addTransaction: async () => {},
     updateTransaction: async () => {},
@@ -110,6 +119,7 @@ export const DataContext = createContext<DataContextType>({
     addFixedExpense: async () => {},
     updateFixedExpense: async () => {},
     deleteFixedExpense: async () => {},
+    addGoalContribution: async () => {},
 });
 
 // PROVIDER
@@ -121,6 +131,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [goalContributions, setGoalContributions] = useState<GoalContribution[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Simulate fetching data on mount
@@ -133,6 +144,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setFixedExpenses(mockFixedExpenses);
             setProfiles(mockProfiles);
             setCategories(mockCategories);
+            setGoalContributions(mockGoalContributions);
             setIsLoading(false);
         }, 1000);
         return () => clearTimeout(timer);
@@ -194,6 +206,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteFixedExpense = async (id: string) => {
         setFixedExpenses(prev => prev.filter(e => e.id !== id));
     }
+
+    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
+        const newContribution = { ...contribution, id: crypto.randomUUID() };
+        setGoalContributions(prev => [newContribution, ...prev]);
+
+        setGoals(prevGoals => prevGoals.map(goal => {
+            if (goal.id === contribution.goalId) {
+                return { ...goal, currentAmount: goal.currentAmount + contribution.amount };
+            }
+            return goal;
+        }));
+    }
     
 
     return (
@@ -205,6 +229,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             fixedExpenses,
             profiles,
             categories,
+            goalContributions,
             isLoading,
             addTransaction,
             updateTransaction,
@@ -218,7 +243,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteDebt,
             addFixedExpense,
             updateFixedExpense,
-            deleteFixedExpense
+            deleteFixedExpense,
+            addGoalContribution,
         }}>
             {children}
         </DataContext.Provider>
