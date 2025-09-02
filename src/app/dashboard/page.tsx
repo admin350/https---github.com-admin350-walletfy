@@ -2,7 +2,7 @@
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat, Wallet, Landmark } from "lucide-react";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ export default function DashboardPage() {
   const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
   const availableSavings = totalSavings - totalContributedToGoals;
 
+  const totalToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
+
   const KpiSkeleton = () => (
     <div className="space-y-2">
       <Skeleton className="h-6 w-3/4" />
@@ -56,7 +58,8 @@ export default function DashboardPage() {
             <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
             <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
             <KpiCard title="Tasa de Ahorro" value={<KpiSkeleton />} icon={PiggyBank} description="Cargando..." />
-            <KpiCard title="Saldo Disponible" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
+            <KpiCard title="Saldo Disponible para Aportar" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
+            <KpiCard title="Inversiones del Período" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
           </>
         ) : (
           <>
@@ -94,6 +97,13 @@ export default function DashboardPage() {
               icon={Wallet} 
               iconClassName="text-green-500"
               description="De tu cartera de ahorros." 
+            />
+             <KpiCard 
+              title="Inversiones del Período" 
+              value={<span className="text-blue-400">${totalToInvestment.toLocaleString('es-CL')}</span>} 
+              icon={Landmark} 
+              iconClassName="text-blue-400"
+              description="Total transferido a tu cartera de inversión." 
             />
           </>
         )}
