@@ -5,7 +5,7 @@ import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, Wallet } from "lucide-react";
+import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, Wallet, ClipboardPen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -17,6 +17,7 @@ import { es } from "date-fns/locale";
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
   { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
+  { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
   { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
   { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
   { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },

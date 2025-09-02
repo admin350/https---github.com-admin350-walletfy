@@ -2,7 +2,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BudgetItem } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
@@ -94,6 +94,23 @@ const mockCategories: Category[] = [
     { name: "Otros Ingresos", type: "Ingreso" },
 ];
 
+const mockBudgets: Budget[] = [
+    { 
+        id: '1',
+        name: 'Presupuesto Ideal Personal 2024',
+        profile: 'Personal',
+        items: [
+            { category: 'Vivienda', percentage: 30 },
+            { category: 'Alimentación', percentage: 15 },
+            { category: 'Transporte', percentage: 10 },
+            { category: 'Ahorro para Meta', percentage: 20 },
+            { category: 'Entretenimiento', percentage: 10 },
+            { category: 'Suscripciones', percentage: 5 },
+            { category: 'Otros', percentage: 10 },
+        ]
+    }
+];
+
 interface IFilters {
     profile: string;
     month: number; // -1 for all months
@@ -113,6 +130,7 @@ interface DataContextType {
     debtPayments: DebtPayment[];
     investments: Investment[];
     investmentContributions: InvestmentContribution[];
+    budgets: Budget[];
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -139,6 +157,9 @@ interface DataContextType {
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
     addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
+    addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
+    updateBudget: (budget: Budget) => Promise<void>;
+    deleteBudget: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -153,6 +174,7 @@ export const DataContext = createContext<DataContextType>({
     debtPayments: [],
     investments: [],
     investmentContributions: [],
+    budgets: [],
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
     setFilters: () => {},
@@ -179,6 +201,9 @@ export const DataContext = createContext<DataContextType>({
     updateInvestment: async () => {},
     deleteInvestment: async () => {},
     addInvestmentContribution: async () => {},
+    addBudget: async () => {},
+    updateBudget: async () => {},
+    deleteBudget: async () => {},
 });
 
 // PROVIDER
@@ -194,6 +219,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([]);
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [investmentContributions, setInvestmentContributions] = useState<InvestmentContribution[]>([]);
+    const [budgets, setBudgets] = useState<Budget[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -215,6 +241,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setGoalContributions(mockGoalContributions);
             setInvestments(mockInvestments);
             setInvestmentContributions(mockInvestmentContributions);
+            setBudgets(mockBudgets);
             setIsLoading(false);
         }, 1000);
         return () => clearTimeout(timer);
@@ -293,6 +320,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return profileMatch && monthMatch && yearMatch;
         });
     }, [investmentContributions, investments, filters]);
+    
+     const filteredBudgets = useMemo(() => {
+        return budgets.filter(b => filters.profile === 'all' || b.profile === filters.profile);
+    }, [budgets, filters]);
 
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         const newTransaction = { ...transaction, id: crypto.randomUUID() };
@@ -465,6 +496,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const addBudget = async (budget: Omit<Budget, 'id'>) => {
+        const newBudget = { ...budget, id: crypto.randomUUID() };
+        setBudgets(prev => [...prev, newBudget]);
+    };
+
+    const updateBudget = async (updatedBudget: Budget) => {
+        setBudgets(prev => prev.map(b => (b.id === updatedBudget.id ? updatedBudget : b)));
+    };
+
+    const deleteBudget = async (id: string) => {
+        setBudgets(prev => prev.filter(b => b.id !== id));
+    };
+
     return (
         <DataContext.Provider value={{ 
             transactions: filteredTransactions,
@@ -478,6 +522,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             debtPayments: filteredDebtPayments,
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
+            budgets: filteredBudgets,
             isLoading,
             filters,
             setFilters,
@@ -504,6 +549,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             updateInvestment,
             deleteInvestment,
             addInvestmentContribution,
+            addBudget,
+            updateBudget,
+            deleteBudget,
         }}>
             {children}
         </DataContext.Provider>

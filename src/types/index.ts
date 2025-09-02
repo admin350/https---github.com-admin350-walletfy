@@ -71,7 +71,7 @@ export type FixedExpense = {
 }
 
 export type Investment = {
-  id: string;
+  id:string;
   name: string; // e.g., 'Portafolio Acciones US'
   initialAmount: number;
   currentValue: number;
@@ -88,6 +88,17 @@ export type InvestmentContribution = {
   date: Date;
 }
 
+export type BudgetItem = {
+  category: string;
+  percentage: number;
+};
+
+export type Budget = {
+  id: string;
+  name: string;
+  profile: string;
+  items: BudgetItem[];
+};
 
 export type Profile = {
     name: string;
