@@ -72,7 +72,7 @@ export function SavingsPortfolioDataTable() {
                     style: "currency",
                     currency: "CLP",
                 }).format(amount)
-                return <div className={`font-medium text-blue-400`}>{formatted}</div>
+                return <div className={`font-medium text-green-400`}>{formatted}</div>
             },
         },
     ];

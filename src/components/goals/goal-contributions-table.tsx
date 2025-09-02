@@ -43,7 +43,7 @@ export function GoalContributionsTable() {
                     style: "currency",
                     currency: "CLP",
                 }).format(amount)
-                return <div className={`font-medium text-primary`}>{formatted}</div>
+                return <div className={`font-medium text-red-400`}>{formatted}</div>
             },
         },
     ];

@@ -28,7 +28,7 @@ export default function SavingsPortfolioPage() {
 
     return (
         <div className="space-y-6">
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+             <div className="grid gap-4 md:grid-cols-3">
                 {isLoading ? (
                     <>
                     <KpiCard title="Ahorro Total Acumulado" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
@@ -39,19 +39,19 @@ export default function SavingsPortfolioPage() {
                     <>
                     <KpiCard 
                         title="Ahorro Total Acumulado" 
-                        value={`$${totalSavings.toLocaleString('es-CL')}`} 
+                        value={<span className="text-green-400">${totalSavings.toLocaleString('es-CL')}</span>} 
                         icon={Landmark} 
                         description="Suma de todas tus transferencias de ahorro" 
                     />
                      <KpiCard 
                         title="Total Aportado a Metas" 
-                        value={`$${totalContributedToGoals.toLocaleString('es-CL')}`} 
+                        value={<span className="text-red-400">${totalContributedToGoals.toLocaleString('es-CL')}</span>} 
                         icon={ArrowRightLeft} 
                         description="Dinero de tu cartera de ahorros asignado a metas." 
                     />
                     <KpiCard
                         title="Saldo Disponible para Aportar"
-                        value={`$${availableSavings.toLocaleString('es-CL')}`}
+                        value={<span className="text-green-400">${availableSavings.toLocaleString('es-CL')}</span>}
                         icon={Wallet}
                         description="Ahorro total - Aportes a metas"
                     />
