@@ -1,4 +1,5 @@
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -30,11 +31,22 @@ export type GoalContribution = {
 export type Debt = {
   id: string;
   name: string;
-  amount: number;
-  dueDate: Date;
+  totalAmount: number;
+  paidAmount: number;
+  monthlyPayment: number;
+  installments: number; // total number of installments
+  dueDate: Date; // next payment due date
   financialInstitution: string;
   profile: string;
 };
+
+export type DebtPayment = {
+    id: string;
+    debtId: string;
+    debtName: string;
+    amount: number;
+    date: Date;
+}
 
 export type Subscription = {
   id: string;

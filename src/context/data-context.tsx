@@ -1,9 +1,9 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment } from "@/types";
 import { createContext, useState, useEffect, ReactNode } from "react";
-import { addDays } from "date-fns";
+import { addDays, addMonths } from "date-fns";
 
 // MOCK DATA
 const mockTransactions: Transaction[] = [
@@ -32,8 +32,14 @@ const mockSubscriptions: Subscription[] = [
 ];
 
 const mockDebts: Debt[] = [
-    { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
-    { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10), financialInstitution: "Inmobiliaria", profile: "Personal" },
+    { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
+    { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal" },
+];
+
+const mockDebtPayments: DebtPayment[] = [
+    { id: '1', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -1) },
+    { id: '2', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -2) },
+    { id: '3', debtId: '2', debtName: 'Crédito Hipotecario', amount: 800000, date: addMonths(new Date(), -1) },
 ];
 
 const mockFixedExpenses: FixedExpense[] = [
@@ -79,6 +85,7 @@ interface DataContextType {
     profiles: Profile[];
     categories: Category[];
     goalContributions: GoalContribution[];
+    debtPayments: DebtPayment[];
     isLoading: boolean;
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
@@ -89,13 +96,14 @@ interface DataContextType {
     addSubscription: (subscription: Subscription) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Debt) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
     updateFixedExpense: (expense: FixedExpense) => Promise<void>;
     deleteFixedExpense: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
+    addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -107,6 +115,7 @@ export const DataContext = createContext<DataContextType>({
     profiles: [],
     categories: [],
     goalContributions: [],
+    debtPayments: [],
     isLoading: true,
     addTransaction: async () => {},
     updateTransaction: async () => {},
@@ -124,6 +133,7 @@ export const DataContext = createContext<DataContextType>({
     updateFixedExpense: async () => {},
     deleteFixedExpense: async () => {},
     addGoalContribution: async () => {},
+    addDebtPayment: async () => {},
 });
 
 // PROVIDER
@@ -136,6 +146,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [goalContributions, setGoalContributions] = useState<GoalContribution[]>([]);
+    const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     // Simulate fetching data on mount
@@ -145,6 +156,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setGoals(mockGoals);
             setSubscriptions(mockSubscriptions);
             setDebts(mockDebts);
+            setDebtPayments(mockDebtPayments);
             setFixedExpenses(mockFixedExpenses);
             setProfiles(mockProfiles);
             setCategories(mockCategories);
@@ -180,7 +192,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.filter(g => g.id !== id));
     }
     
-    const addSubscription = async (subscription: Subscription) => {
+    const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
         const newSubscription = { ...subscription, id: crypto.randomUUID() };
         setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
@@ -193,9 +205,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => prev.filter(s => s.id !== id));
     }
 
-    const addDebt = async (debt: Debt) => {
-        const newDebt = { ...debt, id: crypto.randomUUID() };
-        setDebts(prev => [...prev, newDebt].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
+    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
+        const newDebt = { ...debt, id: crypto.randomUUID(), paidAmount: 0 };
+        setDebts(prev => [...prev, newDebt]);
     }
 
     const updateDebt = async (updatedDebt: Debt) => {
@@ -230,6 +242,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return goal;
         }));
     }
+
+    const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
+        const newPayment = { ...payment, id: crypto.randomUUID() };
+        setDebtPayments(prev => [newPayment, ...prev]);
+
+        setDebts(prevDebts => prevDebts.map(debt => {
+            if (debt.id === payment.debtId) {
+                return { ...debt, paidAmount: debt.paidAmount + payment.amount };
+            }
+            return debt;
+        }));
+
+        const debt = debts.find(d => d.id === payment.debtId);
+        if (debt) {
+            await addTransaction({
+                type: 'expense',
+                amount: payment.amount,
+                description: `Abono a: ${debt.name}`,
+                category: 'Pago de Deuda',
+                profile: debt.profile,
+                date: payment.date.toISOString(),
+            });
+        }
+    }
     
 
     return (
@@ -242,6 +278,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profiles,
             categories,
             goalContributions,
+            debtPayments,
             isLoading,
             addTransaction,
             updateTransaction,
@@ -259,6 +296,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             updateFixedExpense,
             deleteFixedExpense,
             addGoalContribution,
+            addDebtPayment,
         }}>
             {children}
         </DataContext.Provider>

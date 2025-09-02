@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext } from 'react';
+import { ReactNode, useState, useContext, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,58 +31,92 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { Debt } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
   totalAmount: z.coerce.number().positive({ message: "Monto total debe ser positivo." }),
-  interestRate: z.coerce.number().min(0, { message: "Tasa de interés no puede ser negativa." }),
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
-  nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
+  installments: z.coerce.number().positive({ message: "El número de cuotas debe ser positivo." }),
+  dueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
   financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
-export function AddDebtDialog({ children }: { children: ReactNode }) {
-    const [open, setOpen] = useState(false);
+interface AddDebtDialogProps {
+    children: ReactNode;
+    debtToEdit?: Debt;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddDebtDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebt, profiles } = useContext(DataContext);
+    const { addDebt, updateDebt, profiles } = useContext(DataContext);
+    
+    const isControlled = open !== undefined && onOpenChange !== undefined;
+    const dialogOpen = isControlled ? open : internalOpen;
+    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             totalAmount: '' as any,
-            interestRate: '' as any,
             monthlyPayment: '' as any,
-            nextDueDate: new Date(),
+            installments: '' as any,
+            dueDate: new Date(),
             financialInstitution: "",
             profile: "",
         },
     });
 
+     useEffect(() => {
+        if (dialogOpen && debtToEdit) {
+            form.reset({
+                ...debtToEdit,
+                dueDate: new Date(debtToEdit.dueDate),
+            });
+        } else if (dialogOpen && !debtToEdit) {
+            form.reset({
+                name: "",
+                totalAmount: '' as any,
+                monthlyPayment: '' as any,
+                installments: '' as any,
+                dueDate: new Date(),
+                financialInstitution: "",
+                profile: "",
+            });
+        }
+    }, [debtToEdit, form, dialogOpen]);
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            await addDebt({
-                id: crypto.randomUUID(),
-                name: values.name,
-                amount: values.monthlyPayment,
-                dueDate: values.nextDueDate,
-                financialInstitution: values.financialInstitution,
-                profile: values.profile,
-            });
-            
-            toast({
-                title: "Deuda añadida",
-                description: "Tu deuda ha sido registrada exitosamente.",
-            });
+            if(debtToEdit) {
+                 await updateDebt({
+                    ...debtToEdit,
+                    ...values
+                });
+                 toast({
+                    title: "Deuda actualizada",
+                    description: "Tu deuda ha sido actualizada exitosamente.",
+                });
+            } else {
+                 await addDebt(values);
+                toast({
+                    title: "Deuda añadida",
+                    description: "Tu deuda ha sido registrada exitosamente.",
+                });
+            }
             form.reset();
-            setOpen(false);
+            setDialogOpen(false);
         } catch (error) {
              toast({
                 title: "Error",
-                description: "No se pudo añadir la deuda.",
+                description: `No se pudo ${debtToEdit ? 'actualizar' : 'añadir'} la deuda.`,
                 variant: "destructive"
             })
         } finally {
@@ -91,13 +125,13 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Añadir Nueva Deuda</DialogTitle>
+                    <DialogTitle>{debtToEdit ? 'Editar' : 'Añadir Nueva'} Deuda</DialogTitle>
                     <DialogDescription>
-                        Registra una nueva deuda para darle seguimiento.
+                        {debtToEdit ? 'Actualiza los detalles de tu deuda.' : 'Registra una nueva deuda para darle seguimiento.'}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -150,48 +184,50 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                 </FormItem>
                             )}
                         />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="totalAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Monto Total</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="$10M" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="monthlyPayment"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Pago Mensual</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="$350k" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <FormField
                             control={form.control}
-                            name="totalAmount"
+                            name="installments"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Monto Total</FormLabel>
+                                    <FormLabel>Número de Cuotas</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$10.000.000" {...field} value={field.value ?? ''} />
+                                        <Input type="number" placeholder="48" {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                         <FormField
-                            control={form.control}
-                            name="interestRate"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tasa de Interés (%)</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="1.5" {...field} value={field.value ?? ''} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         <FormField
                             control={form.control}
-                            name="monthlyPayment"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Pago Mensual</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="$350.000" {...field} value={field.value ?? ''} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="nextDueDate"
+                            name="dueDate"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>Fecha Próximo Pago</FormLabel>
@@ -230,7 +266,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                         />
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Guardar Deuda
+                             {debtToEdit ? 'Guardar Cambios' : 'Guardar Deuda'}
                         </Button>
                     </form>
                 </Form>

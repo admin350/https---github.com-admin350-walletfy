@@ -4,7 +4,6 @@ import {
     ColumnDef,
     flexRender,
     getCoreRowModel,
-    getFilteredRowModel,
     getPaginationRowModel,
     useReactTable,
 } from "@tanstack/react-table";
@@ -17,46 +16,35 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState, useMemo } from "react";
+import { useContext, useState } from "react";
 import type { Debt } from "@/types";
 import { DataContext } from "@/context/data-context";
-import { format, getMonth, getYear } from "date-fns";
-import { es } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { AddDebtDialog } from "./add-debt-dialog";
+import { Progress } from "../ui/progress";
+import Link from "next/link";
+import { PayDebtDialog } from "./pay-debt-dialog";
 
 export function DebtsDataTable() {
     const { debts, deleteDebt } = useContext(DataContext);
     const { toast } = useToast();
-    const [itemToEdit, setItemToEdit] = useState<Debt | undefined>(undefined);
+    const [debtToEdit, setDebtToEdit] = useState<Debt | undefined>(undefined);
+    const [debtToPay, setDebtToPay] = useState<Debt | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-    const [date, setDate] = useState({
-        month: getMonth(new Date()),
-        year: getYear(new Date()),
-    });
-
-    const filteredData = useMemo(() => {
-        return debts.filter(d => {
-            const itemDate = new Date(d.dueDate);
-            return getMonth(itemDate) === date.month && getYear(itemDate) === date.year;
-        });
-    }, [debts, date]);
+    const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
     const handleEdit = (item: Debt) => {
-        // Since we don't have a full edit form for debts yet,
-        // we'll just log this for now and prepare the state.
-        // The AddDebtDialog would need to be enhanced to support editing.
-        console.log("Editing debt:", item);
-        toast({
-            title: "Función no implementada",
-            description: "La edición de deudas se añadirá en una futura actualización."
-        })
+        setDebtToEdit(item);
+        setIsEditModalOpen(true);
     };
+
+    const handlePay = (item: Debt) => {
+        setDebtToPay(item);
+        setIsPayModalOpen(true);
+    }
 
     const handleDelete = async (id: string) => {
         try {
@@ -78,71 +66,85 @@ export function DebtsDataTable() {
         {
             accessorKey: "name",
             header: "Nombre",
-        },
-        {
-            accessorKey: "profile",
-            header: "Perfil",
-        },
-        {
-            accessorKey: "financialInstitution",
-            header: "Entidad Financiera",
-        },
-        {
-            accessorKey: "amount",
-            header: "Monto",
             cell: ({ row }) => {
-                const amount = parseFloat(row.getValue("amount"))
-                const formatted = new Intl.NumberFormat("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                }).format(amount)
-                return <div className="font-medium">{formatted}</div>
-            },
+                 const debt = row.original;
+                 return (
+                    <Link href={`/dashboard/debts/${debt.id}`} className="font-medium text-primary hover:underline">
+                        {debt.name}
+                    </Link>
+                 )
+            }
         },
         {
-            accessorKey: "dueDate",
-            header: "Vencimiento",
-            cell: ({ row }) => format(new Date(row.getValue("dueDate")), "dd/MM/yyyy")
+            accessorKey: "progress",
+            header: "Progreso",
+            cell: ({ row }) => {
+                const debt = row.original;
+                const progress = (debt.paidAmount / debt.totalAmount) * 100;
+                return (
+                    <div className="flex flex-col gap-2">
+                        <Progress value={progress} className="h-2" />
+                        <span className="text-xs text-muted-foreground">
+                            {`$${debt.paidAmount.toLocaleString('es-CL')} / $${debt.totalAmount.toLocaleString('es-CL')}`}
+                        </span>
+                    </div>
+                )
+            }
+        },
+        {
+            accessorKey: "installments",
+            header: "Cuotas Pagadas",
+            cell: ({row}) => {
+                const debt = row.original;
+                const paidInstallments = Math.floor(debt.paidAmount / debt.monthlyPayment);
+                return `${paidInstallments} de ${debt.installments}`
+            }
         },
         {
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
                 return (
-                     <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Abrir menú</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEdit(item)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                </DropdownMenuItem>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar
+                     <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePay(item)}>
+                            <HandCoins className="mr-2 h-4 w-4" />
+                            Abonar
+                        </Button>
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Editar
                                     </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el registro.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el registro.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(item.id)}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                     </div>
                 )
             },
         },
@@ -150,47 +152,26 @@ export function DebtsDataTable() {
 
 
     const table = useReactTable({
-        data: filteredData,
+        data: debts,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
     });
-
-    const months = Array.from({ length: 12 }, (_, i) => ({
-        value: i,
-        label: format(new Date(2000, i), 'LLLL', { locale: es }),
-    }));
-    
-    const currentYear = getYear(new Date());
-    const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
     return (
         <div className="w-full">
-            <div className="flex items-center py-4 gap-4">
-                <Select
-                    value={date.month.toString()}
-                    onValueChange={(value) => setDate(prev => ({...prev, month: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Mes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select
-                     value={date.year.toString()}
-                     onValueChange={(value) => setDate(prev => ({...prev, year: parseInt(value)}))}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Año" />
-                    </SelectTrigger>
-                    <SelectContent>
-                       {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
+             <AddDebtDialog
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                debtToEdit={debtToEdit}
+            />
+            {debtToPay && (
+                <PayDebtDialog
+                    open={isPayModalOpen}
+                    onOpenChange={setIsPayModalOpen}
+                    debt={debtToPay}
+                />
+            )}
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -228,7 +209,7 @@ export function DebtsDataTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay resultados.
+                                    No hay deudas registradas.
                                 </TableCell>
                             </TableRow>
                         )}
