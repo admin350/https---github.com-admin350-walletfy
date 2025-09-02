@@ -97,7 +97,7 @@ export default function DashboardPage() {
               value={<span className="text-green-500">${availableSavings.toLocaleString('es-CL')}</span>} 
               icon={Wallet} 
               iconClassName="text-green-500"
-              description="De tu cartera de ahorros." 
+              description={`Ahorrado este mes: $${totalSavings.toLocaleString('es-CL')}`} 
             />
              <KpiCard 
               title="Inversiones del Período" 
