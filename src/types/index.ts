@@ -13,6 +13,9 @@ export type SavingsGoal = {
   name: string;
   targetAmount: number;
   currentAmount: number;
+  estimatedDate: Date;
+  profile: string;
+  type: 'Ahorro' | 'Inversión';
 };
 
 export type Debt = {

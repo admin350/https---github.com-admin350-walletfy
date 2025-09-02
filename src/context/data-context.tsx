@@ -15,9 +15,9 @@ const mockTransactions: Transaction[] = [
 ];
 
 const mockGoals: SavingsGoal[] = [
-  { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000 },
-  { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000 },
-  { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000 },
+  { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000, estimatedDate: new Date('2025-12-01'), profile: 'Personal', type: 'Ahorro' },
+  { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000, estimatedDate: new Date('2024-10-31'), profile: 'Negocio', type: 'Ahorro' },
+  { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000, estimatedDate: new Date('2026-01-01'), profile: 'Personal', type: 'Inversión' },
 ];
 
 const mockSubscriptions: Subscription[] = [
@@ -76,7 +76,7 @@ interface DataContextType {
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
-    addGoal: (goal: SavingsGoal) => Promise<void>;
+    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
     addSubscription: (subscription: Omit<Subscription, 'id'>) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
@@ -151,8 +151,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setTransactions(prev => prev.filter(t => t.id !== id));
     };
 
-    const addGoal = async (goal: SavingsGoal) => {
-        setGoals(prev => [...prev, goal]);
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
+        const newGoal = { ...goal, id: crypto.randomUUID(), currentAmount: 0 };
+        setGoals(prev => [...prev, newGoal]);
     }
     
     const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
