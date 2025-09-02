@@ -33,6 +33,7 @@ export type Debt = {
   amount: number;
   dueDate: Date;
   financialInstitution: string;
+  profile: string;
 };
 
 export type Subscription = {

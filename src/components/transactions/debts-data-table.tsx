@@ -80,6 +80,10 @@ export function DebtsDataTable() {
             header: "Nombre",
         },
         {
+            accessorKey: "profile",
+            header: "Perfil",
+        },
+        {
             accessorKey: "financialInstitution",
             header: "Entidad Financiera",
         },

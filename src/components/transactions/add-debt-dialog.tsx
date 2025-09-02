@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
@@ -38,13 +39,14 @@ const formSchema = z.object({
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
   nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
   financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
+  profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
 export function AddDebtDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebt } = useContext(DataContext);
+    const { addDebt, profiles } = useContext(DataContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -55,6 +57,7 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
             monthlyPayment: '' as any,
             nextDueDate: new Date(),
             financialInstitution: "",
+            profile: "",
         },
     });
 
@@ -66,7 +69,8 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                 name: values.name,
                 amount: values.monthlyPayment,
                 dueDate: values.nextDueDate,
-                financialInstitution: values.financialInstitution
+                financialInstitution: values.financialInstitution,
+                profile: values.profile,
             });
             
             toast({
@@ -108,6 +112,28 @@ export function AddDebtDialog({ children }: { children: ReactNode }) {
                                         <Input placeholder="Ej: Préstamo de auto" {...field} />
                                     </FormControl>
                                     <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="profile"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Perfil</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un perfil" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {profiles.map(p => (
+                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
                                 </FormItem>
                             )}
                         />

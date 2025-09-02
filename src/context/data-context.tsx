@@ -32,8 +32,8 @@ const mockSubscriptions: Subscription[] = [
 ];
 
 const mockDebts: Debt[] = [
-    { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7), financialInstitution: "Santander" },
-    { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10), financialInstitution: "Inmobiliaria" },
+    { id: '2', name: "Cuota Préstamo Auto", amount: 350000, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal" },
+    { id: '3', name: "Alquiler", amount: 800000, dueDate: addDays(new Date(), 10), financialInstitution: "Inmobiliaria", profile: "Personal" },
 ];
 
 const mockFixedExpenses: FixedExpense[] = [
@@ -86,10 +86,10 @@ interface DataContextType {
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
-    addSubscription: (subscription: Omit<Subscription, 'id'>) => Promise<void>;
+    addSubscription: (subscription: Subscription) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<Debt, 'id'>) => Promise<void>;
+    addDebt: (debt: Debt) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
@@ -180,7 +180,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.filter(g => g.id !== id));
     }
     
-    const addSubscription = async (subscription: Omit<Subscription, 'id'>) => {
+    const addSubscription = async (subscription: Subscription) => {
         const newSubscription = { ...subscription, id: crypto.randomUUID() };
         setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
@@ -193,7 +193,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => prev.filter(s => s.id !== id));
     }
 
-    const addDebt = async (debt: Omit<Debt, 'id'>) => {
+    const addDebt = async (debt: Debt) => {
         const newDebt = { ...debt, id: crypto.randomUUID() };
         setDebts(prev => [...prev, newDebt].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
     }
