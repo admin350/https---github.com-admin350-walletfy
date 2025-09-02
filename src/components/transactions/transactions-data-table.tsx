@@ -175,7 +175,7 @@ export function TransactionsDataTable() {
 
     const months = Array.from({ length: 12 }, (_, i) => ({
         value: i,
-        label: format(new Date(0, i), 'LLLL', { locale: es }),
+        label: format(new Date(2000, i), 'LLLL', { locale: es }),
     }));
     
     const currentYear = getYear(new Date());
@@ -183,9 +183,12 @@ export function TransactionsDataTable() {
 
     return (
         <div className="w-full">
-             <AddTransactionDialog transactionToEdit={transactionToEdit} onFinish={() => setTransactionToEdit(undefined)}>
-                 {isEditModalOpen && <button className="hidden" onClick={() => setIsEditModalOpen(false)}></button>}
-            </AddTransactionDialog>
+             <AddTransactionDialog 
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                transactionToEdit={transactionToEdit} 
+                onFinish={() => setTransactionToEdit(undefined)}
+            />
             <div className="flex items-center py-4 gap-4">
                 <Select
                     value={date.month.toString()}
@@ -195,7 +198,7 @@ export function TransactionsDataTable() {
                         <SelectValue placeholder="Mes" />
                     </SelectTrigger>
                     <SelectContent>
-                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>)}
+                        {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 <Select
@@ -272,19 +275,6 @@ export function TransactionsDataTable() {
                     Siguiente
                 </Button>
             </div>
-             {isEditModalOpen && <AddTransactionDialog transactionToEdit={transactionToEdit} onFinish={() => {
-                setTransactionToEdit(undefined)
-                setIsEditModalOpen(false);
-             }}>
-                 <button id="edit-dialog-trigger" className="hidden"></button>
-            </AddTransactionDialog>}
-            {isEditModalOpen && (
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `document.getElementById('edit-dialog-trigger')?.click()`,
-                    }}
-                />
-            )}
         </div>
     )
 }
