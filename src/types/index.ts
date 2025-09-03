@@ -1,5 +1,6 @@
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer' | 'transfer-investment';
@@ -146,4 +147,8 @@ export type MonthlyReport = {
     year: number;
     generatedAt: Date;
     content: string; // Markdown content
+}
+
+export type AppSettings = {
+    currency: 'CLP' | 'USD' | 'EUR';
 }

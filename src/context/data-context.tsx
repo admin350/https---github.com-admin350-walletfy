@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
@@ -123,6 +123,7 @@ const mockBudgets: Budget[] = [
 ];
 
 const mockReports: MonthlyReport[] = [];
+const mockSettings: AppSettings = { currency: 'CLP' };
 
 interface IFilters {
     profile: string;
@@ -147,6 +148,7 @@ interface DataContextType {
     bankAccounts: BankAccount[];
     bankCards: BankCard[];
     reports: MonthlyReport[];
+    settings: AppSettings;
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -187,6 +189,7 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     addReport: (report: MonthlyReport) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
+    updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
 }
 
@@ -206,6 +209,7 @@ export const DataContext = createContext<DataContextType>({
     bankAccounts: [],
     bankCards: [],
     reports: [],
+    settings: { currency: 'CLP' },
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
     setFilters: () => {},
@@ -246,6 +250,7 @@ export const DataContext = createContext<DataContextType>({
     deleteBankCard: async () => {},
     addReport: async () => {},
     deleteReport: async () => {},
+    updateSettings: async () => {},
     getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
 });
 
@@ -266,6 +271,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [bankCards, setBankCards] = useState<BankCard[]>([]);
     const [reports, setReports] = useState<MonthlyReport[]>([]);
+    const [settings, setSettings] = useState<AppSettings>(mockSettings);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -687,6 +693,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteReport = async (id: string) => {
         setReports(prev => prev.filter(r => r.id !== id));
     };
+    
+    const updateSettings = async (newSettings: Partial<AppSettings>) => {
+        setSettings(prev => ({ ...prev, ...newSettings }));
+    };
 
     const getAllDataForMonth = (month: number, year: number) => {
         const monthTransactions = transactions.filter(t => {
@@ -719,6 +729,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             bankAccounts: filteredBankAccounts,
             bankCards: filteredBankCards,
             reports,
+            settings,
             isLoading,
             filters,
             setFilters,
@@ -759,6 +770,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteBankCard,
             addReport,
             deleteReport,
+            updateSettings,
             getAllDataForMonth
         }}>
             {children}
