@@ -74,9 +74,8 @@ export default function DebtsPage() {
                         </CardDescription>
                     </div>
                     <AddDebtDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-red-400" />
-                            Añadir Deuda
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddDebtDialog>
                 </CardHeader>
