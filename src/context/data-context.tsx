@@ -1,129 +1,12 @@
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
-import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
+import { getYear, getMonth, isPast } from "date-fns";
+import { useAuth } from "./auth-context";
+import { db } from "@/lib/firebase";
+import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 
-// MOCK DATA
-const mockBankAccounts: BankAccount[] = [
-    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', accountNumber: '123456789', balance: 1850000, profile: 'Personal', color: '#00509D' },
-    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', accountNumber: '987654321', balance: 3200000, profile: 'Negocio', color: '#e60000' },
-    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', accountNumber: '112233445', balance: 250000, profile: 'Personal', color: '#7b4397' },
-];
-
-const mockBankCards: BankCard[] = [
-    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1', creditLimit: 2000000, usedAmount: 450000, cardLevel: 'Signature', cardColor: '#1a1a1a'},
-    { id: 'card2', name: 'Mastercard Negocios', bank: 'Santander', cardType: 'debit', last4Digits: '5678', profile: 'Negocio', accountId: 'acc2', cardLevel: 'Business', cardColor: '#d62828' },
-    { id: 'card3', name: 'Prepago Tenpo', bank: 'Tenpo', cardType: 'prepaid', last4Digits: '9988', profile: 'Personal', accountId: 'acc3', cardLevel: 'Standard', cardColor: '#764abc' },
-];
-
-const mockTransactions: Transaction[] = [
-  { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
-  { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
-  { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString(), accountId: 'acc3' },
-  { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString(), accountId: 'acc3', cardId: 'card1' },
-  { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString(), accountId: 'acc2' },
-  { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString(), accountId: 'acc1' },
-  { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString(), accountId: 'acc1' },
-  { id: '7', type: "expense", description: "Compra Amazon", amount: 80000, category: "Compras", profile: 'Negocio', date: addMonths(new Date(), -1).toISOString(), accountId: 'acc2'},
-];
-
-const mockGoals: SavingsGoal[] = [
-  { id: '1', name: "Vacaciones a Japón", currentAmount: 3500000, targetAmount: 5000000, estimatedDate: new Date('2025-12-01'), profile: 'Personal', category: 'Viaje' },
-  { id: '2', name: "Nuevo Portátil", currentAmount: 800000, targetAmount: 2000000, estimatedDate: new Date('2024-10-31'), profile: 'Negocio', category: 'Tecnología' },
-  { id: '3', name: "Fondo de Emergencia", currentAmount: 4500000, targetAmount: 10000000, estimatedDate: new Date('2026-01-01'), profile: 'Personal', category: 'Inversión' },
-];
-
-const mockGoalContributions: GoalContribution[] = [
-    { id: '1', goalId: '1', goalName: 'Vacaciones a Japón', amount: 100000, date: new Date() },
-    { id: '2', goalId: '2', goalName: 'Nuevo Portátil', amount: 50000, date: new Date() },
-];
-
-const mockInvestments: Investment[] = [
-    { id: '1', name: "Portafolio Acciones US", initialAmount: 5000000, currentValue: 6200000, investmentType: 'Acciones', platform: 'Interactive Brokers', profile: 'Personal'},
-    { id: '2', name: "Bitcoin Hold", initialAmount: 1000000, currentValue: 1800000, investmentType: 'Criptomonedas', platform: 'Binance', profile: 'Personal'},
-    { id: '3', name: "Trading Forex", initialAmount: 2000000, currentValue: 2150000, investmentType: 'Forex', platform: 'Admirals', profile: 'Negocio'},
-];
-
-const mockInvestmentContributions: InvestmentContribution[] = [
-    { id: '1', investmentId: '1', investmentName: 'Portafolio Acciones US', amount: 500000, date: new Date() },
-    { id: '2', investmentId: '2', investmentName: 'Bitcoin Hold', amount: 200000, date: new Date() },
-];
-
-
-const mockSubscriptions: Subscription[] = [
-    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), cardId: "card1", profile: "Personal", status: 'active' },
-    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), cardId: "card1", profile: "Personal", status: 'active' },
-    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), cardId: "card2", profile: "Negocio", status: 'active' },
-    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), cardId: "card1", profile: "Personal", status: 'cancelled', cancellationDate: new Date() },
-];
-
-const mockDebts: Debt[] = [
-    { id: '1', name: "Préstamo Auto", totalAmount: 12000000, paidAmount: 4200000, monthlyPayment: 350000, installments: 48, dueDate: addDays(new Date(), 7), financialInstitution: "Santander", profile: "Personal", accountId: 'acc1' },
-    { id: '2', name: "Crédito Hipotecario", totalAmount: 80000000, paidAmount: 15000000, monthlyPayment: 800000, installments: 240, dueDate: addDays(new Date(), 10), financialInstitution: "Banco BCI", profile: "Personal", accountId: 'acc1' },
-    { id: '3', name: "Tarjeta de Crédito", totalAmount: 500000, paidAmount: 150000, monthlyPayment: 50000, installments: 10, dueDate: addDays(new Date(), -5), financialInstitution: "Falabella", profile: "Personal", accountId: 'acc3' },
-    { id: '4', name: "Línea de Crédito", totalAmount: 2000000, paidAmount: 500000, monthlyPayment: 100000, installments: 20, dueDate: addDays(new Date(), 20), financialInstitution: "Banco de Chile", profile: "Negocio", accountId: 'acc2' },
-];
-
-const mockDebtPayments: DebtPayment[] = [
-    { id: '1', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -1), accountId: 'acc1' },
-    { id: '2', debtId: '1', debtName: 'Préstamo Auto', amount: 350000, date: addMonths(new Date(), -2), accountId: 'acc1' },
-    { id: '3', debtId: '2', debtName: 'Crédito Hipotecario', amount: 800000, date: addMonths(new Date(), -1), accountId: 'acc1' },
-];
-
-const mockFixedExpenses: FixedExpense[] = [
-    { id: '1', name: "Gimnasio", amount: 50000, category: "Salud", profile: "Personal", type: 'expense' },
-    { id: '2', name: "Plan Celular", amount: 45000, category: "Servicios", profile: "Personal", type: 'expense' },
-    { id: '3', name: "Internet", amount: 60000, category: "Servicios", profile: "Negocio", type: 'expense' },
-];
-
-const mockProfiles: Profile[] = [
-    { name: "Personal", color: "#3b82f6" },
-    { name: "Esposa", color: "#ec4899" },
-    { name: "Hijo/a", color: "#f97316" },
-    { name: "Negocio", color: "#14b8a6" },
-    { name: "Trabajo Fijo", color: "#8b5cf6" },
-];
-
-const mockCategories: Category[] = [
-    { id: '1', name: "Alimentación", type: "Gasto", color: "#f97316" },
-    { id: '2', name: "Transporte", type: "Gasto", color: "#3b82f6" },
-    { id: '3', name: "Vivienda", type: "Gasto", color: "#84cc16" },
-    { id: '4', name: "Entretenimiento", type: "Gasto", color: "#a855f7" },
-    { id: '5', name: "Suscripciones", type: "Gasto", color: "#6366f1" },
-    { id: '6', name: "Servicios", type: "Gasto", color: "#0ea5e9" },
-    { id: '7', name: "Salud", type: "Gasto", color: "#ef4444" },
-    { id: '8', name: "Compras", type: "Gasto", color: "#d946ef" },
-    { id: '9', name: "Inversiones", type: "Gasto", color: "#14b8a6" },
-    { id: '10', name: "Fondo de Emergencia", type: "Gasto", color: "#f59e0b" },
-    { id: '11', name: "Otros", type: "Gasto", color: "#6b7280" },
-    { id: '12', name: "Pago de Deuda", type: "Gasto", color: "#ec4899" },
-    { id: '13', name: "Ahorro para Meta", type: "Gasto", color: "#facc15" },
-    { id: '14', name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-    { id: '15', name: "Negocio", type: "Ingreso", color: "#06b6d4" },
-    { id: '16', name: "Otros Ingresos", type: "Ingreso", color: "#10b981" },
-];
-
-const mockBudgets: Budget[] = [
-    { 
-        id: '1',
-        name: 'Presupuesto Ideal Personal 2024',
-        profile: 'Personal',
-        items: [
-            { category: 'Vivienda', percentage: 30 },
-            { category: 'Alimentación', percentage: 15 },
-            { category: 'Transporte', percentage: 10 },
-            { category: 'Ahorro para Meta', percentage: 20 },
-            { category: 'Entretenimiento', percentage: 10 },
-            { category: 'Suscripciones', percentage: 5 },
-            { category: 'Otros', percentage: 10 },
-        ]
-    }
-];
-
-const mockReports: MonthlyReport[] = [];
-const mockSettings: AppSettings = { currency: 'CLP' };
 
 interface IFilters {
     profile: string;
@@ -258,6 +141,9 @@ export const DataContext = createContext<DataContextType>({
 
 // PROVIDER
 export const DataProvider = ({ children }: { children: ReactNode }) => {
+    const { user } = useAuth();
+    const uid = user?.uid;
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -273,7 +159,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [bankCards, setBankCards] = useState<BankCard[]>([]);
     const [reports, setReports] = useState<MonthlyReport[]>([]);
-    const [settings, setSettings] = useState<AppSettings>(mockSettings);
+    const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP' });
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -303,29 +189,300 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return new Intl.NumberFormat(locale, options).format(value);
     }, [settings.currency]);
     
-    // Simulate fetching data on mount
+    
+    // Subscribe to all data collections for the logged-in user
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setTransactions(mockTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-            setSubscriptions(mockSubscriptions.sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
-            setGoals(mockGoals);
-            setDebts(mockDebts);
-            setDebtPayments(mockDebtPayments);
-            setFixedExpenses(mockFixedExpenses);
-            setProfiles(mockProfiles);
-            setCategories(mockCategories);
-            setGoalContributions(mockGoalContributions);
-            setInvestments(mockInvestments);
-            setInvestmentContributions(mockInvestmentContributions);
-            setBudgets(mockBudgets);
-            setBankAccounts(mockBankAccounts);
-            setBankCards(mockBankCards);
-            setReports(mockReports);
+        if (!uid) {
             setIsLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, []);
+            // Clear all data when user logs out
+            setTransactions([]);
+            setGoals([]);
+            setSubscriptions([]);
+            setDebts([]);
+            setFixedExpenses([]);
+            setProfiles([]);
+            setCategories([]);
+            setGoalContributions([]);
+            setDebtPayments([]);
+            setInvestments([]);
+            setInvestmentContributions([]);
+            setBudgets([]);
+            setBankAccounts([]);
+            setBankCards([]);
+            setReports([]);
+            setSettings({ currency: 'CLP' });
+            return;
+        }
 
+        setIsLoading(true);
+
+        const collections = [
+            'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
+            'categories', 'goalContributions', 'debtPayments', 'investments', 
+            'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports'
+        ];
+
+        const unsubscribers: Unsubscribe[] = [];
+
+        const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
+            transactions: setTransactions,
+            goals: setGoals,
+            subscriptions: setSubscriptions,
+            debts: setDebts,
+            fixedExpenses: setFixedExpenses,
+            profiles: setProfiles,
+            categories: setCategories,
+            goalContributions: setGoalContributions,
+            debtPayments: setDebtPayments,
+            investments: setInvestments,
+            investmentContributions: setInvestmentContributions,
+            budgets: setBudgets,
+            bankAccounts: setBankAccounts,
+            bankCards: setBankCards,
+            reports: setReports,
+        };
+
+        const fetchData = async () => {
+            // Check if user has data, if not, create default data
+            const userDocRef = doc(db, 'users', uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (!userDocSnap.exists()) {
+                const batch = writeBatch(db);
+                
+                const defaultProfiles: Profile[] = [
+                    { name: "Personal", color: "#3b82f6" },
+                    { name: "Negocio", color: "#14b8a6" },
+                ];
+                defaultProfiles.forEach(p => {
+                    const profileRef = doc(db, 'users', uid, 'profiles', p.name);
+                    batch.set(profileRef, p);
+                });
+
+                const defaultCategories: Category[] = [
+                    { id: '1', name: "Alimentación", type: "Gasto", color: "#f97316" },
+                    { id: '2', name: "Transporte", type: "Gasto", color: "#3b82f6" },
+                    { id: '3', name: "Vivienda", type: "Gasto", color: "#84cc16" },
+                    { id: '4', name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+                ];
+
+                defaultCategories.forEach(c => {
+                    const categoryRef = doc(collection(db, 'users', uid, 'categories'));
+                    batch.set(categoryRef, c);
+                });
+                
+                const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
+                batch.set(settingsRef, { currency: 'CLP' });
+
+                await batch.commit();
+            }
+
+            // Set up listeners
+            collections.forEach(collectionName => {
+                const collRef = collection(db, 'users', uid, collectionName);
+                const unsubscribe = onSnapshot(collRef, (snapshot) => {
+                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // Firestore timestamps need to be converted to JS Dates
+                    const processedData = data.map(item => {
+                        const newItem: DocumentData = { ...item };
+                        for (const key in newItem) {
+                            if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                                newItem[key] = newItem[key].toDate();
+                            }
+                        }
+                        return newItem;
+                    });
+                    
+                    if (dataSetters[collectionName]) {
+                        dataSetters[collectionName](processedData as any);
+                    }
+                });
+                unsubscribers.push(unsubscribe);
+            });
+            
+             const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
+             const unsubSettings = onSnapshot(settingsRef, (doc) => {
+                if(doc.exists()){
+                    setSettings(doc.data() as AppSettings);
+                }
+             });
+             unsubscribers.push(unsubSettings);
+        };
+
+        fetchData().finally(() => setIsLoading(false));
+
+        // Cleanup subscriptions on unmount
+        return () => unsubscribers.forEach(unsub => unsub());
+
+    }, [uid]);
+
+
+    const addDoc = async <T extends { id?: string }>(collectionName: string, data: T) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const docRef = doc(collection(db, 'users', uid, collectionName));
+        await setDoc(docRef, { ...data, id: docRef.id });
+        return { ...data, id: docRef.id };
+    };
+
+    const setDocWithId = async <T>(collectionName: string, id: string, data: T) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const docRef = doc(db, 'users', uid, collectionName, id);
+        await setDoc(docRef, data);
+    };
+
+    const deleteDocById = async (collectionName: string, id: string) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        await deleteDoc(doc(db, 'users', uid, collectionName, id));
+    };
+
+
+    const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+        await addDoc('transactions', transaction);
+        // Balance updates are now handled via a cloud function or need to be triggered here.
+        // For simplicity, let's update balance here.
+        const card = bankCards.find(c => c.id === transaction.cardId);
+        if (transaction.type === 'expense' && card && card.cardType === 'credit') {
+            await updateBankCard({ ...card, usedAmount: (card.usedAmount || 0) + transaction.amount });
+        } else {
+            const account = bankAccounts.find(a => a.id === transaction.accountId);
+            if (account) {
+                const newBalance = transaction.type === 'income' ? account.balance + transaction.amount : account.balance - transaction.amount;
+                await updateBankAccount({ ...account, balance: newBalance });
+            }
+        }
+    };
+
+    const updateTransaction = async (updatedTransaction: Transaction) => {
+        const originalTransaction = transactions.find(t => t.id === updatedTransaction.id);
+        if (originalTransaction) {
+            // Revert old balance change
+            const originalAccount = bankAccounts.find(a => a.id === originalTransaction.accountId);
+            if(originalAccount) {
+                 const revertedBalance = originalTransaction.type === 'income' ? originalAccount.balance - originalTransaction.amount : originalAccount.balance + originalTransaction.amount;
+                 await updateBankAccount({...originalAccount, balance: revertedBalance});
+            }
+            // Apply new balance change
+            const newAccount = bankAccounts.find(a => a.id === updatedTransaction.accountId);
+            if (newAccount) {
+                const newBalance = updatedTransaction.type === 'income' ? newAccount.balance + updatedTransaction.amount : newAccount.balance - updatedTransaction.amount;
+                await updateBankAccount({...newAccount, balance: newBalance});
+            }
+        }
+        await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
+    };
+
+    const deleteTransaction = async (id: string) => {
+         const transactionToDelete = transactions.find(t => t.id === id);
+         if (transactionToDelete) {
+            const account = bankAccounts.find(a => a.id === transactionToDelete.accountId);
+            if (account) {
+                 const newBalance = transactionToDelete.type === 'income' ? account.balance - transactionToDelete.amount : account.balance + transactionToDelete.amount;
+                 await updateBankAccount({...account, balance: newBalance});
+            }
+            const card = bankCards.find(c => c.id === transactionToDelete.cardId);
+            if(card && card.cardType === 'credit') {
+                await updateBankCard({...card, usedAmount: (card.usedAmount || 0) - transactionToDelete.amount});
+            }
+         }
+         await deleteDocById('transactions', id);
+    };
+    
+    // GOAL FUNCTIONS
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => await addDoc('goals', { ...goal, currentAmount: 0 });
+    const updateGoal = async (goal: SavingsGoal) => await setDocWithId('goals', goal.id, goal);
+    const deleteGoal = async (id: string) => await deleteDocById('goals', id);
+    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
+        await addDoc('goalContributions', contribution);
+        const goal = goals.find(g => g.id === contribution.goalId);
+        if (goal) {
+            await updateGoal({ ...goal, currentAmount: goal.currentAmount + contribution.amount });
+        }
+    };
+    
+    // DEBT FUNCTIONS
+    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => await addDoc('debts', { ...debt, paidAmount: 0 });
+    const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
+    const deleteDebt = async (id: string) => await deleteDocById('debts', id);
+    const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
+        await addDoc('debtPayments', payment);
+        const debt = debts.find(d => d.id === payment.debtId);
+        if (debt) {
+            await updateDebt({ ...debt, paidAmount: debt.paidAmount + payment.amount });
+            await addTransaction({
+                type: 'expense',
+                amount: payment.amount,
+                description: `Abono a: ${debt.name}`,
+                category: 'Pago de Deuda',
+                profile: debt.profile,
+                date: new Date().toISOString(),
+                accountId: payment.accountId,
+            });
+        }
+    };
+    
+    // INVESTMENT FUNCTIONS
+    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => await addDoc('investments', { ...investment, currentValue: investment.initialAmount });
+    const updateInvestment = async (investment: Investment) => await setDocWithId('investments', investment.id, investment);
+    const deleteInvestment = async (id: string) => await deleteDocById('investments', id);
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
+        await addDoc('investmentContributions', contribution);
+        const investment = investments.find(i => i.id === contribution.investmentId);
+        if(investment) {
+            await updateInvestment({
+                ...investment,
+                initialAmount: investment.initialAmount + contribution.amount,
+                currentValue: investment.currentValue + contribution.amount,
+            });
+        }
+    };
+
+    // BANK ACCOUNT/CARD FUNCTIONS
+    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => await addDoc('bankAccounts', account);
+    const updateBankAccount = async (account: BankAccount) => await setDocWithId('bankAccounts', account.id, account);
+    const deleteBankAccount = async (id: string) => await deleteDocById('bankAccounts', id);
+    const addBankCard = async (card: Omit<BankCard, 'id'|'usedAmount'>) => await addDoc('bankCards', {...card, usedAmount: 0});
+    const updateBankCard = async (card: BankCard) => await setDocWithId('bankCards', card.id, card);
+    const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);
+
+    // SUBSCRIPTION FUNCTIONS
+    const addSubscription = async (sub: Omit<Subscription, 'id'|'status'>) => await addDoc('subscriptions', {...sub, status: 'active'});
+    const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
+    const cancelSubscription = async (id: string) => {
+        const sub = subscriptions.find(s => s.id === id);
+        if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
+    };
+    const paySubscription = async (sub: Subscription) => {
+        await addTransaction({
+            type: 'expense',
+            amount: sub.amount,
+            description: `Suscripción: ${sub.name}`,
+            category: 'Suscripciones',
+            profile: sub.profile,
+            date: new Date().toISOString(),
+            accountId: bankCards.find(c => c.id === sub.cardId)?.accountId || '',
+            cardId: sub.cardId,
+        });
+    };
+    
+    // OTHER ENTITIES
+    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => await addDoc('fixedExpenses', expense);
+    const updateFixedExpense = async (expense: FixedExpense) => await setDocWithId('fixedExpenses', expense.id, expense);
+    const deleteFixedExpense = async (id: string) => await deleteDocById('fixedExpenses', id);
+
+    const addBudget = async (budget: Omit<Budget, 'id'>) => await addDoc('budgets', budget);
+    const updateBudget = async (budget: Budget) => await setDocWithId('budgets', budget.id, budget);
+    const deleteBudget = async (id: string) => await deleteDocById('budgets', id);
+    
+    const addCategory = async (category: Omit<Category, 'id'>) => await addDoc('categories', category);
+    const updateCategory = async (category: Category) => await setDocWithId('categories', category.id, category);
+    const deleteCategory = async (id: string) => await deleteDocById('categories', id);
+    
+    const addReport = async (report: MonthlyReport) => await setDocWithId('reports', report.id, report);
+    const deleteReport = async (id: string) => await deleteDocById('reports', id);
+    
+    const updateSettings = async (newSettings: Partial<AppSettings>) => await setDocWithId('settings', 'appSettings', newSettings);
+    
     const availableYears = useMemo(() => {
         const years = new Set(transactions.map(t => getYear(new Date(t.date))));
         years.add(getYear(new Date())); // Ensure current year is always available
@@ -413,336 +570,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return budgets.filter(b => filters.profile === 'all' || b.profile === filters.profile);
     }, [budgets, filters]);
 
-
-    const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-        const newTransaction = { ...transaction, id: crypto.randomUUID() };
-        setTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-        
-        const card = bankCards.find(c => c.id === newTransaction.cardId);
-
-        if (newTransaction.type === 'expense' && card && card.cardType === 'credit') {
-            // It's a credit card transaction, so update the usedAmount on the card
-            setBankCards(prev => prev.map(c => 
-                c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) + newTransaction.amount } : c
-            ));
-        } else {
-            // It's a debit/prepaid card transaction or a non-card transaction, so update the bank account balance
-            setBankAccounts(prev => prev.map(acc => {
-                if (acc.id === newTransaction.accountId) {
-                    if (newTransaction.type === 'income') {
-                        return { ...acc, balance: acc.balance + newTransaction.amount };
-                    } else {
-                        return { ...acc, balance: acc.balance - newTransaction.amount };
-                    }
-                }
-                return acc;
-            }));
-        }
-    };
-
-    const updateTransaction = async (updatedTransaction: Transaction) => {
-        let originalTransaction: Transaction | undefined;
-        setTransactions(prev => {
-            originalTransaction = prev.find(t => t.id === updatedTransaction.id);
-            return prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        });
-        
-        if (originalTransaction) {
-            // Revert original transaction effect
-            setBankAccounts(prev => prev.map(acc => {
-                let balance = acc.balance;
-                if (acc.id === originalTransaction!.accountId) {
-                    if (originalTransaction!.type === 'income') {
-                        balance -= originalTransaction!.amount;
-                    } else {
-                        balance += originalTransaction!.amount;
-                    }
-                }
-                return { ...acc, balance };
-            }));
-
-             setBankCards(prev => prev.map(card => {
-                let used = card.usedAmount || 0;
-                if(card.cardType === 'credit' && card.id === originalTransaction!.cardId) {
-                    used -= originalTransaction!.amount;
-                }
-                return { ...card, usedAmount: used };
-            }));
-
-            // Apply new transaction effect
-            const card = bankCards.find(c => c.id === updatedTransaction.cardId);
-            if (updatedTransaction.type === 'expense' && card && card.cardType === 'credit') {
-                setBankCards(prev => prev.map(c => 
-                    c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) + updatedTransaction.amount } : c
-                ));
-            } else {
-                setBankAccounts(prev => prev.map(acc => {
-                    let balance = acc.balance;
-                     if (acc.id === updatedTransaction.accountId) {
-                        if (updatedTransaction.type === 'income') {
-                            balance += updatedTransaction.amount;
-                        } else {
-                            balance -= updatedTransaction.amount;
-                        }
-                    }
-                    return { ...acc, balance };
-                }));
-            }
-        }
-    };
-
-    const deleteTransaction = async (id: string) => {
-        const transactionToDelete = transactions.find(t => t.id === id);
-        if (transactionToDelete) {
-             setTransactions(prev => prev.filter(t => t.id !== id));
-
-             const card = bankCards.find(c => c.id === transactionToDelete.cardId);
-             if (transactionToDelete.type === 'expense' && card && card.cardType === 'credit') {
-                 setBankCards(prev => prev.map(c => 
-                     c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) - transactionToDelete.amount } : c
-                 ));
-             } else {
-                setBankAccounts(prev => prev.map(acc => {
-                    if (acc.id === transactionToDelete.accountId) {
-                        if (transactionToDelete.type === 'income') {
-                            return { ...acc, balance: acc.balance - transactionToDelete.amount };
-                        } else {
-                            return { ...acc, balance: acc.balance + transactionToDelete.amount };
-                        }
-                    }
-                    return acc;
-                }));
-             }
-        }
-    };
-
-    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
-        const newGoal = { ...goal, id: crypto.randomUUID(), currentAmount: 0 };
-        setGoals(prev => [...prev, newGoal]);
-    }
-
-    const updateGoal = async (updatedGoal: SavingsGoal) => {
-        setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
-    }
-
-    const deleteGoal = async (id: string) => {
-        setGoals(prev => prev.filter(g => g.id !== id));
-        // Also delete associated contributions
-        setGoalContributions(prev => prev.filter(c => c.goalId !== id));
-    }
-    
-    const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
-        const newSubscription = { ...subscription, id: crypto.randomUUID(), status: 'active' as const };
-        setSubscriptions(prev => [...prev, newSubscription].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
-    }
-
-    const updateSubscription = async (updatedSubscription: Subscription) => {
-        setSubscriptions(prev => prev.map(s => s.id === updatedSubscription.id ? updatedSubscription : s));
-    }
-
-    const cancelSubscription = async (id: string) => {
-        setSubscriptions(prev => prev.map(s => s.id === id ? { ...s, status: 'cancelled', cancellationDate: new Date() } : s));
-    }
-
-    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
-        const newDebt = { ...debt, id: crypto.randomUUID(), paidAmount: 0 };
-        setDebts(prev => [...prev, newDebt]);
-    }
-
-    const updateDebt = async (updatedDebt: Debt) => {
-        setDebts(prev => prev.map(d => d.id === updatedDebt.id ? updatedDebt : d));
-    }
-
-    const deleteDebt = async (id: string) => {
-        setDebts(prev => prev.filter(d => d.id !== id));
-        // Also delete associated payments
-        setDebtPayments(prev => prev.filter(p => p.debtId !== id));
-    }
-
-    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => {
-        const newExpense = { ...expense, id: crypto.randomUUID() };
-        setFixedExpenses(prev => [...prev, newExpense]);
-    }
-
-    const updateFixedExpense = async (expense: FixedExpense) => {
-        setFixedExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
-    }
-
-    const deleteFixedExpense = async (id: string) => {
-        setFixedExpenses(prev => prev.filter(e => e.id !== id));
-    }
-
-    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
-        const newContribution = { ...contribution, id: crypto.randomUUID() };
-        setGoalContributions(prev => [newContribution, ...prev]);
-
-        setGoals(prevGoals => prevGoals.map(goal => {
-            if (goal.id === contribution.goalId) {
-                return { ...goal, currentAmount: goal.currentAmount + contribution.amount };
-            }
-            return goal;
-        }));
-    }
-
-    const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
-        const newPayment = { ...payment, id: crypto.randomUUID() };
-        
-        let debtToUpdate: Debt | undefined;
-        
-        setDebts(prevDebts => prevDebts.map(debt => {
-            if (debt.id === payment.debtId) {
-                debtToUpdate = debt;
-                const originalDueDateDay = new Date(debt.dueDate).getDate();
-                const newDueDate = addMonths(new Date(debt.dueDate), 1);
-                const finalDueDate = setDate(newDueDate, originalDueDateDay);
-
-                return { 
-                    ...debt, 
-                    paidAmount: debt.paidAmount + payment.amount,
-                    dueDate: finalDueDate,
-                };
-            }
-            return debt;
-        }));
-
-        setDebtPayments(prev => [newPayment, ...prev]);
-
-        if (debtToUpdate) {
-            await addTransaction({
-                type: 'expense',
-                amount: payment.amount,
-                description: `Abono a: ${debtToUpdate.name}`,
-                category: 'Pago de Deuda',
-                profile: debtToUpdate.profile,
-                date: payment.date.toISOString(),
-                accountId: payment.accountId,
-            });
-        }
-    }
-    
-    const paySubscription = async (subscription: Subscription) => {
-        const originalDueDateDay = new Date(subscription.dueDate).getDate();
-        const newDueDate = addMonths(new Date(subscription.dueDate), 1);
-        const finalDueDate = setDate(newDueDate, originalDueDateDay);
-
-        setSubscriptions(prev => prev.map(s => 
-            s.id === subscription.id 
-            ? { ...s, dueDate: finalDueDate }
-            : s
-        ).sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
-
-        const card = bankCards.find(c => c.id === subscription.cardId);
-
-        await addTransaction({
-            type: 'expense',
-            amount: subscription.amount,
-            description: `Suscripción: ${subscription.name}`,
-            category: 'Suscripciones',
-            profile: subscription.profile,
-            date: new Date().toISOString(),
-            accountId: card?.accountId || '',
-            cardId: card?.id
-        });
-    }
-
-    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
-        const newInvestment = { ...investment, id: crypto.randomUUID(), currentValue: investment.initialAmount };
-        setInvestments(prev => [...prev, newInvestment]);
-    };
-
-    const updateInvestment = async (updatedInvestment: Investment) => {
-        setInvestments(prev => prev.map(i => (i.id === updatedInvestment.id ? updatedInvestment : i)));
-    };
-
-    const deleteInvestment = async (id: string) => {
-        setInvestments(prev => prev.filter(i => i.id !== id));
-        // Also delete associated contributions
-        setInvestmentContributions(prev => prev.filter(c => c.investmentId !== id));
-    };
-
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
-        const newContribution = { ...contribution, id: crypto.randomUUID() };
-        setInvestmentContributions(prev => [newContribution, ...prev]);
-
-        setInvestments(prevInvestments =>
-            prevInvestments.map(inv => {
-                if (inv.id === contribution.investmentId) {
-                    // When adding a contribution, it increases both the initial amount (cost basis) and current value.
-                    return { 
-                        ...inv, 
-                        initialAmount: inv.initialAmount + contribution.amount,
-                        currentValue: inv.currentValue + contribution.amount 
-                    };
-                }
-                return inv;
-            })
-        );
-    };
-
-    const addBudget = async (budget: Omit<Budget, 'id'>) => {
-        const newBudget = { ...budget, id: crypto.randomUUID() };
-        setBudgets(prev => [...prev, newBudget]);
-    };
-
-    const updateBudget = async (updatedBudget: Budget) => {
-        setBudgets(prev => prev.map(b => (b.id === updatedBudget.id ? updatedBudget : b)));
-    };
-
-    const deleteBudget = async (id: string) => {
-        setBudgets(prev => prev.filter(b => b.id !== id));
-    };
-
-    const addCategory = async (category: Omit<Category, 'id'>) => {
-        const newCategory = { ...category, id: crypto.randomUUID() };
-        setCategories(prev => [...prev, newCategory]);
-    };
-
-    const updateCategory = async (updatedCategory: Category) => {
-        setCategories(prev => prev.map(c => (c.id === updatedCategory.id ? updatedCategory : c)));
-    };
-
-    const deleteCategory = async (id: string) => {
-        setCategories(prev => prev.filter(c => c.id !== id));
-    };
-    
-    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
-        const newAccount = { ...account, id: crypto.randomUUID() };
-        setBankAccounts(prev => [...prev, newAccount]);
-    };
-
-    const updateBankAccount = async (updatedAccount: BankAccount) => {
-        setBankAccounts(prev => prev.map(a => (a.id === updatedAccount.id ? updatedAccount : a)));
-    };
-
-    const deleteBankAccount = async (id: string) => {
-        setBankAccounts(prev => prev.filter(a => a.id !== id));
-    };
-
-    const addBankCard = async (card: Omit<BankCard, 'id' | 'usedAmount'>) => {
-        const newCard = { ...card, id: crypto.randomUUID(), usedAmount: 0 };
-        setBankCards(prev => [...prev, newCard]);
-    };
-
-    const updateBankCard = async (updatedCard: BankCard) => {
-        setBankCards(prev => prev.map(c => (c.id === updatedCard.id ? updatedCard : c)));
-    };
-
-    const deleteBankCard = async (id: string) => {
-        setBankCards(prev => prev.filter(c => c.id !== id));
-    };
-    
-    const addReport = async (report: MonthlyReport) => {
-        setReports(prev => [...prev, report].sort((a,b) => b.generatedAt.getTime() - a.generatedAt.getTime()));
-    }
-    
-    const deleteReport = async (id: string) => {
-        setReports(prev => prev.filter(r => r.id !== id));
-    };
-    
-    const updateSettings = async (newSettings: Partial<AppSettings>) => {
-        setSettings(prev => ({ ...prev, ...newSettings }));
-    };
-
     const getAllDataForMonth = (month: number, year: number) => {
         const monthTransactions = transactions.filter(t => {
             const date = new Date(t.date);
@@ -750,10 +577,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
         return {
             transactions: monthTransactions,
-            goals, // These are not time-bound in the same way
-            debts, // These are not time-bound in the same way
-            investments, // These are not time-bound in the same way
-            budgets, // These are not time-bound in the same way
+            goals,
+            debts,
+            investments,
+            budgets,
         }
     }
 
@@ -787,7 +614,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteGoal,
             addSubscription,
             updateSubscription,
-            cancelSubscription,
+cancelSubscription,
             addDebt,
             updateDebt,
             deleteDebt,
@@ -823,4 +650,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
