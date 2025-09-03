@@ -72,9 +72,9 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
 
     return (
         <>
-        <Link href={`/dashboard/bank-cards/${card.id}`} className="block">
+        <Link href={`/dashboard/bank-cards/${card.id}`} className="block group">
             <div className={cn(
-                "relative aspect-[1.586] rounded-xl shadow-lg text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-transform hover:scale-105",
+                "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20",
                 isCredit ? "bg-gradient-to-br from-gray-700 via-gray-900 to-black" : "bg-gradient-to-br from-blue-700 via-blue-900 to-black"
             )}>
                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
