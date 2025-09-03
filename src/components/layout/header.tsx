@@ -20,9 +20,9 @@ const navSections = [
             { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
             { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
             { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
+            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
             { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
-            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
             { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
             { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
         ]
