@@ -66,7 +66,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
     );
 }
 
-const CopyableKpiCard = ({ title, value, copyValue, icon: Icon, iconClassName }: { title: string, value: string, copyValue: string, icon: any, iconClassName?: string }) => {
+const CopyableKpiCard = ({ title, value, copyValue, description, icon: Icon, iconClassName }: { title: string, value: string, copyValue: string, description: string, icon: any, iconClassName?: string }) => {
     const [isCopied, setIsCopied] = useState(false);
     const { toast } = useToast();
 
@@ -99,6 +99,7 @@ const CopyableKpiCard = ({ title, value, copyValue, icon: Icon, iconClassName }:
                         </Tooltip>
                     </TooltipProvider>
                 </div>
+                 <p className="text-xs text-muted-foreground">{description}</p>
             </CardContent>
         </Card>
     );
@@ -144,9 +145,9 @@ export default function BankAccountDetailPage() {
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <KpiCard title="Saldo Actual" value={<span className="text-primary">${account.balance.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
-                <CopyableKpiCard title="Banco" value={account.bank} copyValue={account.accountNumber} icon={Building} iconClassName="text-blue-400" />
-                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" />
-                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" />
+                <CopyableKpiCard title="Número de Cuenta" value={account.accountNumber} copyValue={account.accountNumber} description={account.bank} icon={Building} iconClassName="text-blue-400" />
+                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" description="Tipo de producto bancario" />
+                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" description="Perfil financiero al que pertenece"/>
              </div>
 
             <Card>
