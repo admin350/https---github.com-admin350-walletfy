@@ -126,13 +126,9 @@ export function Header() {
                     </Select>
                  </div>
             )}
-           <Button variant="ghost" className="hidden sm:inline-flex">
-            <LogOut className="mr-2 h-4 w-4" />
-            Cerrar Sesión
+           <Button variant="ghost" size="icon">
+            <LogOut className="h-4 w-4" />
            </Button>
-            <Button variant="ghost" size="icon" className="sm:hidden">
-                <LogOut className="h-4 w-4" />
-            </Button>
         </div>
       </div>
     </header>
