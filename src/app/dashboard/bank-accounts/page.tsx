@@ -40,21 +40,21 @@ export default function BankAccountsPage() {
                             value={<span className="text-primary">${totalBalance.toLocaleString('es-CL')}</span>}
                             icon={Wallet} 
                             iconClassName="text-primary"
-                            description="Suma de todas tus cuentas bancarias."
+                            description="Balance consolidado de tus cuentas para el período seleccionado."
                         />
                         <KpiCard 
                             title="Balance Personal" 
                             value={<span className="text-blue-400">${personalBalance.toLocaleString('es-CL')}</span>} 
                             icon={Banknote}
                             iconClassName="text-blue-400"
-                            description="Suma de tus cuentas de perfil 'Personal'."
+                            description="Balance de tus cuentas 'Personal' para el período seleccionado."
                         />
                         <KpiCard
                             title="Balance Negocio"
                             value={<span className="text-teal-400">${businessBalance.toLocaleString('es-CL')}</span>}
                             icon={Landmark}
                             iconClassName="text-teal-400"
-                            description="Suma de tus cuentas de perfil 'Negocio'."
+                            description="Balance de tus cuentas 'Negocio' para el período seleccionado."
                         />
                     </>
                 )}
