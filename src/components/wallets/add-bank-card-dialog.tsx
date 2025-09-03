@@ -139,163 +139,165 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                         {cardToEdit ? 'Actualiza los detalles de tu tarjeta.' : 'Define una nueva tarjeta para gestionar gastos.'}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Alias de la Tarjeta</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Visa Gold Personal" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="bank"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Banco Emisor</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="Ej: Banco de Chile" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="cardLevel"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nivel de la Tarjeta (Opcional)</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="Ej: Black, Signature, Premium" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="last4Digits"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Últimos 4 Dígitos</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="1234" {...field} maxLength={4} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="cardColor"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Color de la Tarjeta</FormLabel>
-                                    <FormControl>
-                                        <div className='flex items-center gap-2'>
-                                             <Input type="color" className='w-12 h-10 p-1' {...field} />
-                                             <Input type="text" className='flex-1' {...field} />
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="cardType"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Tipo de Tarjeta</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un tipo" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="credit">Crédito</SelectItem>
-                                        <SelectItem value="debit">Débito</SelectItem>
-                                        <SelectItem value="prepaid">Crédito Prepago</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        {cardType === 'credit' && (
+                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
-                                name="creditLimit"
+                                name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Límite de Crédito</FormLabel>
+                                        <FormLabel>Alias de la Tarjeta</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$2.000.000" {...field} value={field.value ?? ''} />
+                                            <Input placeholder="Ej: Visa Gold Personal" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                        )}
-                         <FormField
-                            control={form.control}
-                            name="profile"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Perfil Asociado</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un perfil" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {profiles.map(p => (
-                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
+                            <FormField
+                                control={form.control}
+                                name="bank"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Banco Emisor</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Banco de Chile" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="cardLevel"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nivel de la Tarjeta (Opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Black, Signature, Premium" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="last4Digits"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Últimos 4 Dígitos</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="1234" {...field} maxLength={4} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="cardColor"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de la Tarjeta</FormLabel>
+                                        <FormControl>
+                                            <div className='flex items-center gap-2'>
+                                                <Input type="color" className='w-12 h-10 p-1' {...field} />
+                                                <Input type="text" className='flex-1' {...field} />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="cardType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Tipo de Tarjeta</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un tipo" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="credit">Crédito</SelectItem>
+                                            <SelectItem value="debit">Débito</SelectItem>
+                                            <SelectItem value="prepaid">Crédito Prepago</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {cardType === 'credit' && (
+                                <FormField
+                                    control={form.control}
+                                    name="creditLimit"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Límite de Crédito</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="$2.000.000" {...field} value={field.value ?? ''} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="accountId"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Cuenta Bancaria Vinculada</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProfile}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={selectedProfile ? "Selecciona una cuenta" : "Primero elige un perfil"} />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {filteredAccounts.map(acc => (
-                                            <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.bank})</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {cardToEdit ? 'Guardar Cambios' : 'Guardar Tarjeta'}
-                        </Button>
-                    </form>
-                </Form>
+                            <FormField
+                                control={form.control}
+                                name="profile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Perfil Asociado</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un perfil" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {profiles.map(p => (
+                                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="accountId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Cuenta Bancaria Vinculada</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProfile}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={selectedProfile ? "Selecciona una cuenta" : "Primero elige un perfil"} />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {filteredAccounts.map(acc => (
+                                                <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.bank})</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {cardToEdit ? 'Guardar Cambios' : 'Guardar Tarjeta'}
+                            </Button>
+                        </form>
+                    </Form>
+                 </div>
             </DialogContent>
         </Dialog>
     );
