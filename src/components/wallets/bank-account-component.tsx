@@ -3,7 +3,7 @@
 
 import type { BankAccount } from "@/types";
 import { cn } from "@/lib/utils";
-import { Landmark, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useContext, useState } from "react";
@@ -22,6 +22,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const { deleteBankAccount, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
+    const [isCopied, setIsCopied] = useState(false);
     const profile = profiles.find(p => p.name === account.profile);
 
     const handleEdit = (e: React.MouseEvent) => {
@@ -48,6 +49,16 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
         }
     };
     
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const accountInfo = `Banco: ${account.bank}\nAlias: ${account.name}\nTipo de Cuenta: ${account.accountType}\nNúmero de Cuenta: ${account.accountNumber}`;
+        navigator.clipboard.writeText(accountInfo);
+        setIsCopied(true);
+        toast({ title: '¡Información Copiada!', description: 'Los detalles de la cuenta se han copiado.' });
+        setTimeout(() => setIsCopied(false), 2000);
+    };
+    
     const accountStyle = {
       '--tw-gradient-from': account.color || '#374151',
       '--tw-gradient-to': 'rgb(0 0 0 / 1)',
@@ -61,7 +72,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative aspect-video rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
+                    "relative aspect-video rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
                 )}
             >
                  <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
@@ -72,37 +83,42 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                         </div>
                         <p className="text-sm font-light opacity-80">{account.name}</p>
                     </div>
-                    <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={handleEdit}>
-                                    <Pencil className="mr-2 h-4 w-4" /> Editar
-                                </DropdownMenuItem>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                        <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                     <div className="flex items-center">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={handleCopy}>
+                            {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={handleEdit}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Editar
                                     </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la cuenta.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente la cuenta.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 </div>
 
                 <div className="relative z-10 space-y-2">

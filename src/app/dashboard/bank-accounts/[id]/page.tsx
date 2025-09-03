@@ -1,11 +1,11 @@
 
 'use client';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { useParams } from 'next/navigation';
 import { DataContext } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Banknote, Building, Landmark, User, Copy, Check } from 'lucide-react';
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Banknote, Building, Landmark, User } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import type { Transaction } from '@/types';
-import { useToast } from '@/hooks/use-toast';
 
 
 function AccountTransactionsTable({ accountId }: { accountId: string }) {
@@ -66,46 +65,6 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
     );
 }
 
-const CopyableKpiCard = ({ title, value, copyValue, description, icon: Icon, iconClassName }: { title: string, value: string, copyValue: string, description: string, icon: any, iconClassName?: string }) => {
-    const [isCopied, setIsCopied] = useState(false);
-    const { toast } = useToast();
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(copyValue);
-        setIsCopied(true);
-        toast({ title: '¡Copiado!', description: 'Número de cuenta copiado al portapapeles.' });
-        setTimeout(() => setIsCopied(false), 2000);
-    };
-
-    return (
-        <Card className="bg-card/50 border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle as="h3" className="text-sm font-medium">{title}</CardTitle>
-                <Icon className={iconClassName} />
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold">{value}</div>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8">
-                                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Copiar número de cuenta</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-                 <p className="text-xs text-muted-foreground">{description}</p>
-            </CardContent>
-        </Card>
-    );
-};
-
-
 export default function BankAccountDetailPage() {
     const { id } = useParams();
     const { bankAccounts, isLoading } = useContext(DataContext);
@@ -145,7 +104,7 @@ export default function BankAccountDetailPage() {
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <KpiCard title="Saldo Actual" value={<span className="text-primary">${account.balance.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
-                <CopyableKpiCard title="Número de Cuenta" value={account.accountNumber} copyValue={account.accountNumber} description={account.bank} icon={Building} iconClassName="text-blue-400" />
+                <KpiCard title="Número de Cuenta" value={account.accountNumber} icon={Building} iconClassName="text-blue-400" description={account.bank} />
                 <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" description="Tipo de producto bancario" />
                 <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" description="Perfil financiero al que pertenece"/>
              </div>
