@@ -48,132 +48,134 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6">
-       <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Panel Principal</h1>
-            <CloseMonthButton />
-        </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid gap-4 md:grid-cols-3">
-              {isLoading || !isClient ? (
-              <>
-                  <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
-                  <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
-                  <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
-              </>
-              ) : (
-              <>
-                  <KpiCard 
-                      title="Ingresos del Período" 
-                      value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
-                      icon={TrendingUp} 
-                      iconClassName="text-green-500"
-                      description="Suma de ingresos en el período." 
-                  />
-                  <KpiCard 
-                      title="Egresos del Período" 
-                      value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
-                      icon={TrendingDown}
-                      iconClassName="text-red-500"
-                      description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
-                  />
-                  <KpiCard 
-                      title="Balance Neto" 
-                      value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
-                      icon={DollarSign}
-                      iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
-                      description="Ingresos - Egresos" 
-                  />
-              </>
-              )}
+    <>
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold">Panel Principal</h1>
+              <CloseMonthButton />
           </div>
-          
-            <Card className="bg-card/80 border-border/80">
-                <CardHeader>
-                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid gap-4 md:grid-cols-3">
+                {isLoading || !isClient ? (
+                <>
+                    <KpiCard title="Ingresos del Período" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
+                    <KpiCard title="Egresos del Período" value={<KpiSkeleton />} icon={TrendingDown} description="Cargando..." />
+                    <KpiCard title="Balance Neto" value={<KpiSkeleton />} icon={DollarSign} description="Cargando..." />
+                </>
+                ) : (
+                <>
+                    <KpiCard 
+                        title="Ingresos del Período" 
+                        value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
+                        icon={TrendingUp} 
+                        iconClassName="text-green-500"
+                        description="Suma de ingresos en el período." 
+                    />
+                    <KpiCard 
+                        title="Egresos del Período" 
+                        value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
+                        icon={TrendingDown}
+                        iconClassName="text-red-500"
+                        description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
+                    />
+                    <KpiCard 
+                        title="Balance Neto" 
+                        value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
+                        icon={DollarSign}
+                        iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
+                        description="Ingresos - Egresos" 
+                    />
+                </>
+                )}
+            </div>
+            
+              <Card className="bg-card/80 border-border/80">
+                  <CardHeader>
+                      <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                      <CardDescription>
+                          Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <ExpenseChart />
+                  </CardContent>
+              </Card>
+
+            <CashflowChart />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                  <CardHeader>
+                    <CardTitle>Resumen de Deudas</CardTitle>
                     <CardDescription>
-                        Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                      Visualización del monto total de tus deudas activas.
                     </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ExpenseChart />
-                </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <DebtsOverviewChart />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Resumen de Metas</CardTitle>
+                    <CardDescription>
+                      Visualización del progreso de tus metas de ahorro activas.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <GoalsSummaryChart />
+                  </CardContent>
+                </Card>
+            </div>
+              <FinancialAnalysisIA />
 
-          <CashflowChart />
+          </div>
 
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-             <Card>
-                <CardHeader>
-                  <CardTitle>Resumen de Deudas</CardTitle>
-                  <CardDescription>
-                    Visualización del monto total de tus deudas activas.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <DebtsOverviewChart />
-                </CardContent>
-              </Card>
-               <Card>
-                <CardHeader>
-                  <CardTitle>Resumen de Metas</CardTitle>
-                  <CardDescription>
-                    Visualización del progreso de tus metas de ahorro activas.
-                  </CardDescription>
-                </Header>
-                <CardContent>
-                  <GoalsSummaryChart />
-                </CardContent>
-              </Card>
-           </div>
-            <FinancialAnalysisIA />
-
+          <div className="lg:col-span-1 space-y-6">
+              <FinancialSummary />
+              <RecentTransactions />
+          </div>
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
-            <FinancialSummary />
-            <RecentTransactions />
+
+        <div className="fixed bottom-6 right-6">
+          <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button size="lg" className="rounded-full shadow-lg h-16 w-16">
+                      <PlusCircle className="h-8 w-8" />
+                  </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="mb-2">
+                  <AddTransactionDialog>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Receipt className="mr-2 h-4 w-4" />
+                          Añadir Transacción
+                      </DropdownMenuItem>
+                  </AddTransactionDialog>
+                  <AddDebtDialog>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Añadir Deuda
+                      </DropdownMenuItem>
+                  </AddDebtDialog>
+                  <AddSubscriptionDialog>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <PiggyBank className="mr-2 h-4 w-4" />
+                          Añadir Suscripción
+                      </DropdownMenuItem>
+                  </AddSubscriptionDialog>
+                  <AddFixedExpenseDialog>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Repeat className="mr-2 h-4 w-4" />
+                          Añadir Gasto Fijo
+                      </DropdownMenuItem>
+                  </AddFixedExpenseDialog>
+              </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-
-      <div className="fixed bottom-6 right-6">
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button size="lg" className="rounded-full shadow-lg h-16 w-16">
-                    <PlusCircle className="h-8 w-8" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="mb-2">
-                <AddTransactionDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Receipt className="mr-2 h-4 w-4" />
-                        Añadir Transacción
-                    </DropdownMenuItem>
-                </AddTransactionDialog>
-                 <AddDebtDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Añadir Deuda
-                    </DropdownMenuItem>
-                </AddDebtDialog>
-                <AddSubscriptionDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <PiggyBank className="mr-2 h-4 w-4" />
-                        Añadir Suscripción
-                    </DropdownMenuItem>
-                </AddSubscriptionDialog>
-                 <AddFixedExpenseDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Repeat className="mr-2 h-4 w-4" />
-                        Añadir Gasto Fijo
-                    </DropdownMenuItem>
-                </AddFixedExpenseDialog>
-            </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+    </>
   );
 }
