@@ -15,7 +15,13 @@ import {z} from 'genkit';
 const GenerateMonthlyReportInputSchema = z.object({
   month: z.number().describe('The month for the report (0-11).'),
   year: z.number().describe('The year for the report.'),
-  reportData: z.string().describe('A summary of the financial data for the month.'),
+  totalIncome: z.number().describe('Total income for the month.'),
+  totalExpenses: z.number().describe('Total expenses for the month.'),
+  netBalance: z.number().describe('Net balance for the month.'),
+  expensesByCategory: z.record(z.number()).describe('A record of expenses by category.'),
+  activeDebts: z.number().describe('Number of active debts.'),
+  activeGoals: z.number().describe('Number of active goals.'),
+  activeInvestments: z.number().describe('Number of active investments.'),
 });
 export type GenerateMonthlyReportInput = z.infer<typeof GenerateMonthlyReportInputSchema>;
 
@@ -36,9 +42,15 @@ Analyze the user's financial data for the specified month and year.
 
 **Input Data:**
 *   **Month/Year:** {{{month}}}/{{{year}}}
-*   **Financial Summary:** {{{reportData}}}
+*   **Total Income:** {{{totalIncome}}}
+*   **Total Expenses:** {{{totalExpenses}}}
+*   **Net Balance:** {{{netBalance}}}
+*   **Expenses by Category:** {{jsonStringify expensesByCategory}}
+*   **Active Debts:** {{{activeDebts}}}
+*   **Active Goals:** {{{activeGoals}}}
+*   **Active Investments:** {{{activeInvestments}}}
 
-Provide a clear and well-structured financial analysis based on the data summary provided.
+Provide a clear and well-structured financial analysis based on the data provided.
 Ensure your entire response is a single, valid Markdown string.
 If you cannot generate a report for any reason, respond with a simple error message in Markdown, like '# Error\\n\\nNo se pudo generar el informe.' but never return a null or non-string response.
 `,

@@ -43,7 +43,6 @@ export function GenerateReportForm() {
                 return;
             }
 
-            // Create a summarized version of the data
             const totalIncome = dataForMonth.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
             const totalExpenses = dataForMonth.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
             const expensesByCategory = dataForMonth.transactions
@@ -54,21 +53,16 @@ export function GenerateReportForm() {
                     return acc;
                 }, {} as Record<string, number>);
 
-            const reportDataSummary = `
-                - Total Ingresos: $${totalIncome.toLocaleString('es-CL')}
-                - Total Egresos: $${totalExpenses.toLocaleString('es-CL')}
-                - Balance Neto: $${(totalIncome - totalExpenses).toLocaleString('es-CL')}
-                - Desglose de Gastos por Categoría: ${JSON.stringify(expensesByCategory, null, 2)}
-                - Deudas Activas: ${dataForMonth.debts.length}
-                - Metas Activas: ${dataForMonth.goals.length}
-                - Inversiones: ${dataForMonth.investments.length}
-                - Presupuestos: ${JSON.stringify(dataForMonth.budgets.map(b => ({ name: b.name, items: b.items })), null, 2)}
-            `;
-
             const reportContent = await generateMonthlyReport({
                 month: selectedMonth,
                 year: selectedYear,
-                reportData: reportDataSummary,
+                totalIncome,
+                totalExpenses,
+                netBalance: totalIncome - totalExpenses,
+                expensesByCategory,
+                activeDebts: dataForMonth.debts.filter(d => d.paidAmount < d.totalAmount).length,
+                activeGoals: dataForMonth.goals.filter(g => g.currentAmount < g.targetAmount).length,
+                activeInvestments: dataForMonth.investments.length,
             });
             
             const newReport: MonthlyReport = {
