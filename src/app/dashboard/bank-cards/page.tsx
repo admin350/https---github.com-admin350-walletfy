@@ -44,7 +44,7 @@ export default function BankCardsPage() {
                         </div>
                     ) : (
                         <div className="text-center py-10 text-muted-foreground">
-                            <p>No tienes tarjetas registradas.</p>
+                            <p>No tienes tarjetas registradas para el perfil seleccionado.</p>
                             <AddBankCardDialog>
                                 <Button variant="link" className="mt-2">Añade tu primera tarjeta</Button>
                             </AddBankCardDialog>

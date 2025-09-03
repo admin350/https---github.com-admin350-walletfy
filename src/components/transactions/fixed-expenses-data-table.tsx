@@ -231,7 +231,7 @@ export function FixedExpensesDataTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay plantillas de gastos fijos. Añade una para empezar.
+                                    No hay plantillas de gastos fijos para el perfil seleccionado.
                                 </TableCell>
                             </TableRow>
                         )}

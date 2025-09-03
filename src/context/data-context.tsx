@@ -298,6 +298,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return profileMatch && monthMatch && yearMatch;
         });
     }, [transactions, filters]);
+    
+    const filteredBankAccounts = useMemo(() => {
+        return bankAccounts.filter(acc => filters.profile === 'all' || acc.profile === filters.profile);
+    }, [bankAccounts, filters]);
+
+    const filteredBankCards = useMemo(() => {
+        return bankCards.filter(card => filters.profile === 'all' || card.profile === filters.profile);
+    }, [bankCards, filters]);
 
     const filteredDebts = useMemo(() => {
         return debts.filter(d => filters.profile === 'all' || d.profile === filters.profile);
@@ -674,8 +682,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
             budgets: filteredBudgets,
-            bankAccounts,
-            bankCards,
+            bankAccounts: filteredBankAccounts,
+            bankCards: filteredBankCards,
             isLoading,
             filters,
             setFilters,

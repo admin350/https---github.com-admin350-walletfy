@@ -11,16 +11,11 @@ import { BankAccountsDataTable } from "@/components/wallets/bank-accounts-data-t
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 
 export default function BankAccountsPage() {
-    const { bankAccounts, isLoading, filters } = useContext(DataContext);
+    const { bankAccounts, isLoading } = useContext(DataContext);
     
-    // Filter accounts by profile, but use the live balance, not the historical one.
-    const filteredAccounts = bankAccounts.filter(account => 
-        filters.profile === 'all' || account.profile === filters.profile
-    );
-
-    const totalBalance = filteredAccounts.reduce((acc, account) => acc + account.balance, 0);
-    const personalBalance = filteredAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
-    const businessBalance = filteredAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
+    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.balance, 0);
+    const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
+    const businessBalance = bankAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
     
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -81,7 +76,7 @@ export default function BankAccountsPage() {
                     </AddBankAccountDialog>
                 </CardHeader>
                 <CardContent>
-                    <BankAccountsDataTable data={filteredAccounts} />
+                    <BankAccountsDataTable />
                 </CardContent>
             </Card>
         </div>

@@ -26,12 +26,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
-interface BankAccountsDataTableProps {
-    data: BankAccount[];
-}
-
-export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
-    const { deleteBankAccount, profiles } = useContext(DataContext);
+export function BankAccountsDataTable() {
+    const { bankAccounts, deleteBankAccount, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -171,7 +167,7 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
 
 
     const table = useReactTable({
-        data,
+        data: bankAccounts,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -221,7 +217,7 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay cuentas bancarias registradas.
+                                    No hay cuentas bancarias para el perfil seleccionado.
                                 </TableCell>
                             </TableRow>
                         )}
