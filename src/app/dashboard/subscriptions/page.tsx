@@ -89,9 +89,8 @@ export default function SubscriptionsPage() {
                         </CardDescription>
                     </div>
                     <AddSubscriptionDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-purple-400" />
-                            Añadir Suscripción
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddSubscriptionDialog>
                 </CardHeader>
