@@ -35,22 +35,15 @@ interface PaySubscriptionDialogProps {
 export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PaySubscriptionDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { paySubscription, transactions } = useContext(DataContext);
+    const { paySubscription, bankAccounts, bankCards } = useContext(DataContext);
 
-    const netBalance = useMemo(() => {
-        const totalIncome = transactions
-            .filter(t => t.type === 'income')
-            .reduce((acc, t) => acc + t.amount, 0);
-        const totalExpenses = transactions
-            .filter(t => t.type === 'expense')
-            .reduce((acc, t) => acc + t.amount, 0);
-        return totalIncome - totalExpenses;
-    }, [transactions]);
+    const card = useMemo(() => bankCards.find(c => c.id === subscription.cardId), [bankCards, subscription]);
+    const account = useMemo(() => bankAccounts.find(a => a.id === card?.accountId), [bankAccounts, card]);
 
     const formSchema = z.object({
         amount: z.coerce.number()
           .positive({ message: "El monto debe ser positivo." })
-          .max(netBalance, { message: `No puedes pagar más de tu balance disponible ($${netBalance.toLocaleString('es-CL')}).` }),
+          .max(account?.balance ?? 0, { message: `No puedes pagar más de tu balance disponible ($${account?.balance.toLocaleString('es-CL')}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -90,7 +83,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
                 <DialogHeader>
                     <DialogTitle>Pagar Suscripción: {subscription.name}</DialogTitle>
                     <DialogDescription>
-                       Balance disponible para pagar: <span className="font-bold text-primary">${netBalance.toLocaleString('es-CL')}</span>
+                       Pagando desde la cuenta: <span className="font-bold text-primary">{account?.name} (${account?.balance.toLocaleString('es-CL')})</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -118,4 +111,3 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
         </Dialog>
     );
 }
-

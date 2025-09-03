@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
@@ -10,6 +10,11 @@ const mockBankAccounts: BankAccount[] = [
     { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', balance: 1850000, profile: 'Personal' },
     { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', balance: 3200000, profile: 'Negocio' },
     { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', balance: 250000, profile: 'Personal' },
+];
+
+const mockBankCards: BankCard[] = [
+    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1' },
+    { id: 'card2', name: 'Mastercard Negocios', bank: 'Santander', cardType: 'debit', last4Digits: '5678', profile: 'Negocio', accountId: 'acc2' },
 ];
 
 const mockTransactions: Transaction[] = [
@@ -47,10 +52,10 @@ const mockInvestmentContributions: InvestmentContribution[] = [
 
 
 const mockSubscriptions: Subscription[] = [
-    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), paymentMethod: "Tarjeta de Crédito", bank: "Banco Estado", profile: "Personal", status: 'active' },
-    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), paymentMethod: "Tarjeta de Débito", bank: "Scotiabank", profile: "Personal", status: 'active' },
-    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Negocio", status: 'active' },
-    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), paymentMethod: "Tarjeta de Crédito", bank: "Scotiabank", profile: "Personal", status: 'cancelled', cancellationDate: new Date() },
+    { id: '1', name: "Suscripción Netflix", amount: 15990, dueDate: addDays(new Date(), 3), cardId: "card1", profile: "Personal", status: 'active' },
+    { id: '4', name: "Spotify", amount: 9990, dueDate: addDays(new Date(), 12), cardId: "card1", profile: "Personal", status: 'active' },
+    { id: '3', name: "Hosting Sitio Web", amount: 25000, dueDate: addDays(new Date(), 15), cardId: "card2", profile: "Negocio", status: 'active' },
+    { id: '5', name: "HBO Max", amount: 7990, dueDate: addMonths(new Date(), -2), cardId: "card1", profile: "Personal", status: 'cancelled', cancellationDate: new Date() },
 ];
 
 const mockDebts: Debt[] = [
@@ -137,6 +142,7 @@ interface DataContextType {
     investmentContributions: InvestmentContribution[];
     budgets: Budget[];
     bankAccounts: BankAccount[];
+    bankCards: BankCard[];
     filteredBankAccounts: BankAccount[];
     isLoading: boolean;
     filters: IFilters;
@@ -173,6 +179,9 @@ interface DataContextType {
     addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
     updateBankAccount: (account: BankAccount) => Promise<void>;
     deleteBankAccount: (id: string) => Promise<void>;
+    addBankCard: (card: Omit<BankCard, 'id'>) => Promise<void>;
+    updateBankCard: (card: BankCard) => Promise<void>;
+    deleteBankCard: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -189,6 +198,7 @@ export const DataContext = createContext<DataContextType>({
     investmentContributions: [],
     budgets: [],
     bankAccounts: [],
+    bankCards: [],
     filteredBankAccounts: [],
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
@@ -225,6 +235,9 @@ export const DataContext = createContext<DataContextType>({
     addBankAccount: async () => {},
     updateBankAccount: async () => {},
     deleteBankAccount: async () => {},
+    addBankCard: async () => {},
+    updateBankCard: async () => {},
+    deleteBankCard: async () => {},
 });
 
 // PROVIDER
@@ -242,6 +255,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [investmentContributions, setInvestmentContributions] = useState<InvestmentContribution[]>([]);
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+    const [bankCards, setBankCards] = useState<BankCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -265,6 +279,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setInvestmentContributions(mockInvestmentContributions);
             setBudgets(mockBudgets);
             setBankAccounts(mockBankAccounts);
+            setBankCards(mockBankCards);
             setIsLoading(false);
         }, 1000);
         return () => clearTimeout(timer);
@@ -559,6 +574,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             : s
         ).sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime()));
 
+        const card = bankCards.find(c => c.id === subscription.cardId);
+
         await addTransaction({
             type: 'expense',
             amount: subscription.amount,
@@ -566,7 +583,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             category: 'Suscripciones',
             profile: subscription.profile,
             date: new Date().toISOString(),
-            accountId: '' // Subscriptions are often auto-paid, maybe from a default account? Or this needs to be specified.
+            accountId: card?.accountId || ''
         });
     }
 
@@ -643,6 +660,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setBankAccounts(prev => prev.filter(a => a.id !== id));
     };
 
+    const addBankCard = async (card: Omit<BankCard, 'id'>) => {
+        const newCard = { ...card, id: crypto.randomUUID() };
+        setBankCards(prev => [...prev, newCard]);
+    };
+
+    const updateBankCard = async (updatedCard: BankCard) => {
+        setBankCards(prev => prev.map(c => (c.id === updatedCard.id ? updatedCard : c)));
+    };
+
+    const deleteBankCard = async (id: string) => {
+        setBankCards(prev => prev.filter(c => c.id !== id));
+    };
+
     return (
         <DataContext.Provider value={{ 
             transactions: filteredTransactions,
@@ -657,7 +687,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
             budgets: filteredBudgets,
-            bankAccounts: bankAccounts,
+            bankAccounts,
+            bankCards,
             filteredBankAccounts: filteredBankAccounts,
             isLoading,
             filters,
@@ -694,6 +725,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addBankAccount,
             updateBankAccount,
             deleteBankAccount,
+            addBankCard,
+            updateBankCard,
+            deleteBankCard,
         }}>
             {children}
         </DataContext.Provider>

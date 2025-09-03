@@ -35,10 +35,8 @@ import { DataContext } from '@/context/data-context';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
-  billingCycle: z.enum(["monthly", "yearly"], { required_error: "Ciclo de facturación es requerido." }),
   nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
-  paymentMethod: z.string().min(1, { message: "Método de pago es requerido."}),
-  bank: z.string().min(2, { message: "Banco es requerido." }),
+  cardId: z.string().min(1, { message: "La tarjeta es requerida."}),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
@@ -46,20 +44,21 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addSubscription, profiles } = useContext(DataContext);
+    const { addSubscription, profiles, bankCards } = useContext(DataContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             amount: '' as any,
-            billingCycle: "monthly",
             nextDueDate: new Date(),
-            paymentMethod: "",
-            bank: "",
+            cardId: "",
             profile: "",
         },
     });
+    
+    const selectedProfile = form.watch("profile");
+    const filteredCards = bankCards.filter(card => card.profile === selectedProfile);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
@@ -68,8 +67,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 name: values.name,
                 amount: values.amount,
                 dueDate: values.nextDueDate,
-                paymentMethod: values.paymentMethod,
-                bank: values.bank,
+                cardId: values.cardId,
                 profile: values.profile,
             });
             toast({
@@ -151,59 +149,29 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                         />
                          <FormField
                             control={form.control}
-                            name="paymentMethod"
+                            name="cardId"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Método de Pago</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProfile}>
                                         <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona un método" />
+                                            <SelectValue placeholder={selectedProfile ? "Selecciona una tarjeta" : "Primero elige un perfil"} />
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="Tarjeta de Crédito">Tarjeta de Crédito</SelectItem>
-                                            <SelectItem value="Tarjeta de Débito">Tarjeta de Débito</SelectItem>
+                                            {filteredCards.map(card => (
+                                                <SelectItem key={card.id} value={card.id}>
+                                                   {card.name} (**** {card.last4Digits})
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="bank"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Banco</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Banco Estado" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="billingCycle"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Ciclo de Facturación</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona un ciclo" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="monthly">Mensual</SelectItem>
-                                            <SelectItem value="yearly">Anual</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
                         <FormField
                             control={form.control}
                             name="nextDueDate"

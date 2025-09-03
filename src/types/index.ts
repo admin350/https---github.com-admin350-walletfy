@@ -20,6 +20,16 @@ export type BankAccount = {
   profile: string;
 }
 
+export type BankCard = {
+    id: string;
+    name: string;
+    bank: string;
+    cardType: 'credit' | 'debit';
+    last4Digits: string;
+    profile: string;
+    accountId: string; // Link to a BankAccount
+};
+
 export type SavingsGoal = {
   id: string;
   name: string;
@@ -65,8 +75,7 @@ export type Subscription = {
   name: string;
   amount: number;
   dueDate: Date;
-  paymentMethod: string;
-  bank: string;
+  cardId: string;
   profile: string;
   status: 'active' | 'cancelled';
   cancellationDate?: Date;
