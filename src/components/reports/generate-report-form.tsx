@@ -59,7 +59,7 @@ export function GenerateReportForm() {
                 totalIncome,
                 totalExpenses,
                 netBalance: totalIncome - totalExpenses,
-                expensesByCategory,
+                expensesByCategory: JSON.stringify(expensesByCategory),
                 activeDebts: dataForMonth.debts.filter(d => d.paidAmount < d.totalAmount).length,
                 activeGoals: dataForMonth.goals.filter(g => g.currentAmount < g.targetAmount).length,
                 activeInvestments: dataForMonth.investments.length,
