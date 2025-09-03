@@ -1,9 +1,9 @@
 
 'use client'
 
-import { BankCard, BankAccount } from "@/types";
+import { BankCard, BankAccount, Transaction } from "@/types";
 import { cn } from "@/lib/utils";
-import { Cpu, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Cpu, MoreVertical, Pencil, Trash2, History } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useContext, useState } from "react";
@@ -12,6 +12,7 @@ import { AddBankCardDialog } from "./add-bank-card-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Progress } from "../ui/progress";
+import { CardTransactionHistoryDialog } from "./card-transaction-history-dialog";
 
 interface BankCardComponentProps {
     card: BankCard;
@@ -35,6 +36,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
     const { bankAccounts, deleteBankCard } = useContext(DataContext);
     const { toast } = useToast();
     const [cardToEdit, setCardToEdit] = useState<BankCard | null>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     const isCredit = card.cardType === 'credit';
     const associatedAccount = bankAccounts.find(acc => acc.id === card.accountId);
@@ -139,7 +141,17 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                 )}
                
                 <div className="flex justify-between items-end pt-2">
-                    <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
+                    <div className='flex flex-col gap-1'>
+                        <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
+                         <Button
+                            variant="link"
+                            className="text-xs text-white p-0 h-auto justify-start"
+                            onClick={() => setIsHistoryOpen(true)}
+                        >
+                            <History className="mr-1 h-3 w-3" />
+                            Ver historial
+                        </Button>
+                    </div>
                     {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
                 </div>
             </div>
@@ -152,6 +164,11 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                 cardToEdit={cardToEdit}
             />
         )}
+        <CardTransactionHistoryDialog
+            open={isHistoryOpen}
+            onOpenChange={setIsHistoryOpen}
+            card={card}
+        />
         </>
     )
 }
