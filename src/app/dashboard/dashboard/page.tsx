@@ -17,6 +17,7 @@ import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
+import { DebtsSummaryChart } from "@/components/dashboard/debts-summary-chart";
 
 
 export default function DashboardPage() {
@@ -83,17 +84,30 @@ export default function DashboardPage() {
               )}
           </div>
           
-           <Card>
-              <CardHeader>
-                  <CardTitle>Destino Real de tus Ingresos</CardTitle>
-                  <CardDescription>
-                      Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <ExpenseChart />
-              </CardContent>
-          </Card>
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                        <CardDescription>
+                            Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ExpenseChart />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Composición de Deudas</CardTitle>
+                        <CardDescription>
+                            Cómo se distribuye tu deuda total restante.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DebtsSummaryChart />
+                    </CardContent>
+                </Card>
+           </div>
 
           <CashflowChart />
 
