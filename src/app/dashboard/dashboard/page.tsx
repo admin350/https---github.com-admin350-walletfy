@@ -17,6 +17,7 @@ import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
+import { DebtsOverviewChart } from "@/components/dashboard/debts-overview-chart";
 
 
 export default function DashboardPage() {
@@ -96,6 +97,18 @@ export default function DashboardPage() {
             </Card>
 
           <CashflowChart />
+
+           <Card>
+              <CardHeader>
+                <CardTitle>Resumen de Deudas</CardTitle>
+                <CardDescription>
+                  Visualización del monto total de tus deudas activas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DebtsOverviewChart />
+              </CardContent>
+            </Card>
 
           <FinancialAnalysisIA />
 
