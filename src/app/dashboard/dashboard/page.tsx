@@ -84,30 +84,28 @@ export default function DashboardPage() {
               )}
           </div>
           
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Destino Real de tus Ingresos</CardTitle>
-                        <CardDescription>
-                            Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ExpenseChart />
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Composición de Deudas</CardTitle>
-                        <CardDescription>
-                            Cómo se distribuye tu deuda total restante.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DebtsSummaryChart />
-                    </CardContent>
-                </Card>
-           </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                    <CardDescription>
+                        Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ExpenseChart />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Composición de Deudas</CardTitle>
+                    <CardDescription>
+                        Cómo se distribuye tu deuda total restante.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DebtsSummaryChart />
+                </CardContent>
+            </Card>
 
           <CashflowChart />
 
