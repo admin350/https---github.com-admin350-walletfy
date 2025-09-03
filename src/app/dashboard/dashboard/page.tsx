@@ -48,8 +48,6 @@ export default function DashboardPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <OverdueDebtsWidget />
-
           <div className="grid gap-4 md:grid-cols-3">
               {isLoading || !isClient ? (
               <>
@@ -92,6 +90,7 @@ export default function DashboardPage() {
 
         <div className="lg:col-span-1 space-y-6">
             <FinancialSummary />
+            <OverdueDebtsWidget />
             <RecentTransactions />
         </div>
       </div>
