@@ -24,6 +24,7 @@ const navSections = [
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
             { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
             { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
+            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
         ]
     },
     {
@@ -32,7 +33,6 @@ const navSections = [
             { href: "/dashboard/bank-accounts", icon: Banknote, label: "Cuentas Bancarias", color: "text-primary" },
             { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas Bancarias", color: "text-orange-400" },
             { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400" },
-            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
         ]
     }
