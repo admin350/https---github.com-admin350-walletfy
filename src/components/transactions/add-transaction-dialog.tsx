@@ -48,6 +48,7 @@ const formSchema = z.object({
   category: z.string().min(1, { message: "Categoría es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido."}),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
+  cardId: z.string().optional(),
   date: z.date({ required_error: "Fecha es requerida." }),
 });
 
@@ -63,7 +64,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, updateTransaction, categories, profiles, bankAccounts } = useContext(DataContext);
+    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards } = useContext(DataContext);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -78,6 +79,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             category: "",
             profile: "",
             accountId: "",
+            cardId: undefined,
             date: new Date(),
         },
     });
@@ -97,6 +99,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 category: "",
                 profile: "",
                 accountId: "",
+                cardId: undefined,
                 date: new Date(),
             });
         }
@@ -104,12 +107,16 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
 
 
     const transactionType = form.watch("type");
+    const selectedProfile = form.watch("profile");
 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
         if (transactionType === 'expense' || transactionType === 'transfer' || transactionType === 'transfer-investment') return c.type === 'Gasto';
         return true;
     });
+
+    const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
+    const availableCards = bankCards.filter(card => !selectedProfile || card.profile === selectedProfile);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
@@ -240,12 +247,12 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                         </FormItem>
                     )}
                 />
-                <FormField
+                 <FormField
                     control={form.control}
                     name="accountId"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Cuenta de Origen</FormLabel>
+                        <FormLabel>Cuenta de Origen / Afectada</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
@@ -253,7 +260,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                               {bankAccounts.map(a => (
+                               {availableAccounts.map(a => (
                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
                                ))}
                             </SelectContent>
@@ -262,6 +269,31 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                         </FormItem>
                     )}
                 />
+                 {transactionType === 'expense' && (
+                     <FormField
+                        control={form.control}
+                        name="cardId"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Tarjeta Utilizada (Opcional)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} >
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una tarjeta si aplica" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="ninguna">Ninguna (Transferencia/Efectivo)</SelectItem>
+                                    {availableCards.map(c => (
+                                        <SelectItem key={c.id} value={c.id}>{c.name} (**** {c.last4Digits})</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="category"

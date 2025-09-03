@@ -13,15 +13,16 @@ const mockBankAccounts: BankAccount[] = [
 ];
 
 const mockBankCards: BankCard[] = [
-    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1' },
+    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1', creditLimit: 2000000, usedAmount: 450000 },
     { id: 'card2', name: 'Mastercard Negocios', bank: 'Santander', cardType: 'debit', last4Digits: '5678', profile: 'Negocio', accountId: 'acc2' },
+    { id: 'card3', name: 'Prepago Tenpo', bank: 'Tenpo', cardType: 'prepaid', last4Digits: '9988', profile: 'Personal', accountId: 'acc3' },
 ];
 
 const mockTransactions: Transaction[] = [
   { id: '1', type: "income", description: "Salario Mensual", amount: 2500000, category: "Sueldo", profile: 'Trabajo Fijo', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
   { id: '2', type: "expense", description: "Alquiler", amount: 800000, category: "Vivienda", profile: 'Personal', date: new Date(new Date().setDate(5)).toISOString(), accountId: 'acc1' },
   { id: '3', type: "expense", description: "Compra Semanal", amount: 150750, category: "Alimentación", profile: 'Personal', date: new Date(new Date().setDate(10)).toISOString(), accountId: 'acc3' },
-  { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString(), accountId: 'acc3' },
+  { id: '4', type: "expense", description: "Suscripción Netflix", amount: 15990, category: "Suscripciones", profile: 'Personal', date: new Date(new Date().setDate(3)).toISOString(), accountId: 'acc3', cardId: 'card1' },
   { id: '5', type: "income", description: "Proyecto Freelance", amount: 750000, category: "Negocio", profile: 'Negocio', date: new Date(new Date().setDate(15)).toISOString(), accountId: 'acc2' },
   { id: '6', type: "transfer", description: "Ahorro para vacaciones", amount: 200000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(6)).toISOString(), accountId: 'acc1' },
   { id: '8', type: "transfer-investment", description: "Aporte a cartera de inversión", amount: 300000, category: "Sueldo", profile: 'Personal', date: new Date(new Date().setDate(7)).toISOString(), accountId: 'acc1' },
@@ -178,7 +179,7 @@ interface DataContextType {
     addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
     updateBankAccount: (account: BankAccount) => Promise<void>;
     deleteBankAccount: (id: string) => Promise<void>;
-    addBankCard: (card: Omit<BankCard, 'id'>) => Promise<void>;
+    addBankCard: (card: Omit<BankCard, 'id' | 'usedAmount'>) => Promise<void>;
     updateBankCard: (card: BankCard) => Promise<void>;
     deleteBankCard: (id: string) => Promise<void>;
 }
@@ -365,17 +366,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         const newTransaction = { ...transaction, id: crypto.randomUUID() };
         setTransactions(prev => [newTransaction, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-        // Update bank account balance
-        setBankAccounts(prev => prev.map(acc => {
-            if (acc.id === newTransaction.accountId) {
-                if (newTransaction.type === 'income') {
-                    return { ...acc, balance: acc.balance + newTransaction.amount };
-                } else {
-                    return { ...acc, balance: acc.balance - newTransaction.amount };
+        
+        const card = bankCards.find(c => c.id === newTransaction.cardId);
+
+        if (card && card.cardType === 'credit') {
+            // It's a credit card transaction, so update the usedAmount on the card
+            setBankCards(prev => prev.map(c => 
+                c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) + newTransaction.amount } : c
+            ));
+        } else {
+            // It's a debit/prepaid card transaction or a non-card transaction, so update the bank account balance
+            setBankAccounts(prev => prev.map(acc => {
+                if (acc.id === newTransaction.accountId) {
+                    if (newTransaction.type === 'income') {
+                        return { ...acc, balance: acc.balance + newTransaction.amount };
+                    } else {
+                        return { ...acc, balance: acc.balance - newTransaction.amount };
+                    }
                 }
-            }
-            return acc;
-        }));
+                return acc;
+            }));
+        }
     };
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
@@ -385,9 +396,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         });
         
+        // This logic gets complex with credit cards. For now, we simplify it by assuming
+        // updates don't change card type vs non-card, which is a reasonable assumption for an MVP.
         if (originalTransaction) {
             setBankAccounts(prev => prev.map(acc => {
-                // Revert original transaction
                 let balance = acc.balance;
                 if (acc.id === originalTransaction!.accountId) {
                     if (originalTransaction!.type === 'income') {
@@ -396,7 +408,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         balance += originalTransaction!.amount;
                     }
                 }
-                // Apply new transaction
                 if (acc.id === updatedTransaction.accountId) {
                      if (updatedTransaction.type === 'income') {
                         balance += updatedTransaction.amount;
@@ -413,16 +424,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const transactionToDelete = transactions.find(t => t.id === id);
         if (transactionToDelete) {
              setTransactions(prev => prev.filter(t => t.id !== id));
-             setBankAccounts(prev => prev.map(acc => {
-                if (acc.id === transactionToDelete.accountId) {
-                     if (transactionToDelete.type === 'income') {
-                        return { ...acc, balance: acc.balance - transactionToDelete.amount };
-                    } else {
-                        return { ...acc, balance: acc.balance + transactionToDelete.amount };
+
+             const card = bankCards.find(c => c.id === transactionToDelete.cardId);
+             if (card && card.cardType === 'credit') {
+                 setBankCards(prev => prev.map(c => 
+                     c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) - transactionToDelete.amount } : c
+                 ));
+             } else {
+                setBankAccounts(prev => prev.map(acc => {
+                    if (acc.id === transactionToDelete.accountId) {
+                        if (transactionToDelete.type === 'income') {
+                            return { ...acc, balance: acc.balance - transactionToDelete.amount };
+                        } else {
+                            return { ...acc, balance: acc.balance + transactionToDelete.amount };
+                        }
                     }
-                }
-                return acc;
-             }));
+                    return acc;
+                }));
+             }
         }
     };
 
@@ -550,7 +569,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             category: 'Suscripciones',
             profile: subscription.profile,
             date: new Date().toISOString(),
-            accountId: card?.accountId || ''
+            accountId: card?.accountId || '',
+            cardId: card?.id
         });
     }
 
@@ -627,8 +647,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setBankAccounts(prev => prev.filter(a => a.id !== id));
     };
 
-    const addBankCard = async (card: Omit<BankCard, 'id'>) => {
-        const newCard = { ...card, id: crypto.randomUUID() };
+    const addBankCard = async (card: Omit<BankCard, 'id' | 'usedAmount'>) => {
+        const newCard = { ...card, id: crypto.randomUUID(), usedAmount: 0 };
         setBankCards(prev => [...prev, newCard]);
     };
 

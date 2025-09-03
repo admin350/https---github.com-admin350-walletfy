@@ -31,10 +31,11 @@ import type { BankCard } from '@/types';
 const formSchema = z.object({
   name: z.string().min(2, { message: "El alias es muy corto." }),
   bank: z.string().min(2, { message: "El banco es requerido." }),
-  cardType: z.enum(["credit", "debit"], { required_error: "El tipo es requerido."}),
+  cardType: z.enum(["credit", "debit", "prepaid"], { required_error: "El tipo es requerido."}),
   last4Digits: z.string().length(4, { message: "Debe contener 4 dígitos." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta asociada es requerida." }),
+  creditLimit: z.coerce.number().optional(),
 });
 
 interface AddBankCardDialogProps {
@@ -63,12 +64,18 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             last4Digits: "",
             profile: "",
             accountId: "",
+            creditLimit: undefined,
         },
     });
+    
+    const cardType = form.watch("cardType");
 
     useEffect(() => {
         if (dialogOpen && cardToEdit) {
-            form.reset(cardToEdit);
+            form.reset({
+                ...cardToEdit,
+                creditLimit: cardToEdit.creditLimit ?? undefined,
+            });
         } else if (dialogOpen && !cardToEdit) {
             form.reset({
                 name: "",
@@ -77,6 +84,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                 last4Digits: "",
                 profile: "",
                 accountId: "",
+                creditLimit: undefined,
             });
         }
     }, [cardToEdit, form, dialogOpen]);
@@ -85,7 +93,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
         setIsLoading(true);
         try {
             if(cardToEdit) {
-                await updateBankCard({ ...values, id: cardToEdit.id });
+                await updateBankCard({ ...cardToEdit, ...values });
                  toast({
                     title: "Tarjeta actualizada",
                     description: "Tu tarjeta ha sido actualizada exitosamente.",
@@ -179,12 +187,28 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                     <SelectContent>
                                         <SelectItem value="credit">Crédito</SelectItem>
                                         <SelectItem value="debit">Débito</SelectItem>
+                                        <SelectItem value="prepaid">Crédito Prepago</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
                                 </FormItem>
                             )}
                         />
+                        {cardType === 'credit' && (
+                            <FormField
+                                control={form.control}
+                                name="creditLimit"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Límite de Crédito</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="$2.000.000" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                          <FormField
                             control={form.control}
                             name="profile"

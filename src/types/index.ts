@@ -9,6 +9,7 @@ export type Transaction = {
   profile: string;
   date: string; // ISO 8601 format
   accountId: string;
+  cardId?: string; // Optional: link to a BankCard for expenses
 };
 
 export type BankAccount = {
@@ -25,10 +26,12 @@ export type BankCard = {
     id: string;
     name: string;
     bank: string;
-    cardType: 'credit' | 'debit';
+    cardType: 'credit' | 'debit' | 'prepaid';
     last4Digits: string;
     profile: string;
     accountId: string; // Link to a BankAccount
+    creditLimit?: number; // Only for credit cards
+    usedAmount?: number; // Only for credit cards
 };
 
 export type SavingsGoal = {
