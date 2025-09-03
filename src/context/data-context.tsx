@@ -389,7 +389,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         const card = bankCards.find(c => c.id === newTransaction.cardId);
 
-        if (card && card.cardType === 'credit') {
+        if (newTransaction.type === 'expense' && card && card.cardType === 'credit') {
             // It's a credit card transaction, so update the usedAmount on the card
             setBankCards(prev => prev.map(c => 
                 c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) + newTransaction.amount } : c
@@ -446,7 +446,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
              setTransactions(prev => prev.filter(t => t.id !== id));
 
              const card = bankCards.find(c => c.id === transactionToDelete.cardId);
-             if (card && card.cardType === 'credit') {
+             if (transactionToDelete.type === 'expense' && card && card.cardType === 'credit') {
                  setBankCards(prev => prev.map(c => 
                      c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) - transactionToDelete.amount } : c
                  ));
@@ -513,8 +513,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setFixedExpenses(prev => [...prev, newExpense]);
     }
 
-    const updateFixedExpense = async (updatedExpense: FixedExpense) => {
-        setFixedExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
+    const updateFixedExpense = async (expense: FixedExpense) => {
+        setFixedExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
     }
 
     const deleteFixedExpense = async (id: string) => {
