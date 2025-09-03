@@ -13,7 +13,6 @@ import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expen
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
-import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,7 +103,6 @@ export default function DashboardPage() {
 
         <div className="lg:col-span-1 space-y-6">
             <FinancialSummary />
-            <OverdueDebtsWidget />
             <RecentTransactions />
         </div>
       </div>
