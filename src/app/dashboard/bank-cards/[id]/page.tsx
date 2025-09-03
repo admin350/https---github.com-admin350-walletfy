@@ -114,11 +114,11 @@ export default function BankCardDetailPage() {
                 <KpiCard title="Perfil Asociado" value={card.profile} icon={WalletCards} description={`Cuenta: ${account?.name || 'N/A'}`}/>
                 {isCredit ? (
                     <>
-                        <KpiCard title="Cupo Utilizado" value={`$${usedAmount.toLocaleString('es-CL')}`} icon={Banknote} iconClassName="text-red-400" description={`de $${creditLimit.toLocaleString('es-CL')}`}/>
-                        <KpiCard title="Cupo Disponible" value={`$${availableAmount.toLocaleString('es-CL')}`} icon={Landmark} iconClassName="text-green-400" description="Cupo restante para compras"/>
+                        <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">${usedAmount.toLocaleString('es-CL')}</span>} icon={Banknote} iconClassName="text-red-400" description={`de $${creditLimit.toLocaleString('es-CL')}`}/>
+                        <KpiCard title="Cupo Disponible" value={<span className="text-green-400">${availableAmount.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-green-400" description="Cupo restante para compras"/>
                     </>
                 ) : (
-                    <KpiCard title="Saldo de Cuenta" value={`$${account?.balance.toLocaleString('es-CL') || '0'}`} icon={Landmark} description="Saldo de la cuenta de débito asociada."/>
+                    <KpiCard title="Saldo de Cuenta" value={<span className="text-green-400">${account?.balance.toLocaleString('es-CL') || '0'}</span>} icon={Landmark} iconClassName="text-green-400" description="Saldo de la cuenta de débito asociada."/>
                 )}
              </div>
 
