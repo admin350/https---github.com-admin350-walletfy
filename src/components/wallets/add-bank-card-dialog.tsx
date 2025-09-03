@@ -36,6 +36,8 @@ const formSchema = z.object({
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta asociada es requerida." }),
   creditLimit: z.coerce.number().optional(),
+  cardLevel: z.string().optional(),
+  cardColor: z.string().optional(),
 });
 
 interface AddBankCardDialogProps {
@@ -65,6 +67,8 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             profile: "",
             accountId: "",
             creditLimit: undefined,
+            cardLevel: "",
+            cardColor: "#374151"
         },
     });
     
@@ -75,6 +79,8 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             form.reset({
                 ...cardToEdit,
                 creditLimit: cardToEdit.creditLimit ?? undefined,
+                cardLevel: cardToEdit.cardLevel ?? "",
+                cardColor: cardToEdit.cardColor ?? "#374151"
             });
         } else if (dialogOpen && !cardToEdit) {
             form.reset({
@@ -85,6 +91,8 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                 profile: "",
                 accountId: "",
                 creditLimit: undefined,
+                cardLevel: "",
+                cardColor: "#374151"
             });
         }
     }, [cardToEdit, form, dialogOpen]);
@@ -161,12 +169,41 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                         />
                          <FormField
                             control={form.control}
+                            name="cardLevel"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nivel de la Tarjeta (Opcional)</FormLabel>
+                                     <FormControl>
+                                        <Input placeholder="Ej: Black, Signature, Premium" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
                             name="last4Digits"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Últimos 4 Dígitos</FormLabel>
                                      <FormControl>
                                         <Input placeholder="1234" {...field} maxLength={4} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="cardColor"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Color de la Tarjeta</FormLabel>
+                                    <FormControl>
+                                        <div className='flex items-center gap-2'>
+                                             <Input type="color" className='w-12 h-10 p-1' {...field} />
+                                             <Input type="text" className='flex-1' {...field} />
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

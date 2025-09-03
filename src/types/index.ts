@@ -32,6 +32,8 @@ export type BankCard = {
     accountId: string; // Link to a BankAccount
     creditLimit?: number; // Only for credit cards
     usedAmount?: number; // Only for credit cards
+    cardLevel?: string; // e.g., 'Gold', 'Black', 'Premium'
+    cardColor?: string; // hex color code
 };
 
 export type SavingsGoal = {

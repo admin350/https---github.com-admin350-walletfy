@@ -69,20 +69,32 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
         debit: "Débito",
         prepaid: "Prepago"
     }
+    
+    const cardStyle = {
+      '--tw-gradient-from': card.cardColor || '#374151',
+      '--tw-gradient-to': 'rgb(0 0 0 / 1)',
+      '--tw-shadow-color': card.cardColor || '#06b6d4', // Use card color for shadow
+    } as React.CSSProperties;
+
 
     return (
         <>
         <Link href={`/dashboard/bank-cards/${card.id}`} className="block group">
-            <div className={cn(
-                "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20",
-                isCredit ? "bg-gradient-to-br from-gray-700 via-gray-900 to-black" : "bg-gradient-to-br from-blue-700 via-blue-900 to-black"
-            )}>
+            <div 
+                 style={cardStyle}
+                 className={cn(
+                    "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 bg-gradient-to-br from-[--tw-gradient-from] via-gray-900 to-[--tw-gradient-to]"
+                )}
+            >
                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
 
                 <div className="relative z-10 flex justify-between items-start">
                     <div>
-                        <p className="text-sm font-light opacity-80">{card.bank}</p>
-                        <p className="font-semibold text-lg">{card.name}</p>
+                        <div className="flex items-center gap-2">
+                             <p className="font-semibold text-lg">{card.bank}</p>
+                             {card.cardLevel && <span className="text-xs uppercase font-bold opacity-80">{card.cardLevel}</span>}
+                        </div>
+                        <p className="text-sm font-light opacity-80">{card.name}</p>
                     </div>
                     <AlertDialog>
                         <DropdownMenu>
