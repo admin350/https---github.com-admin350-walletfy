@@ -1,11 +1,17 @@
 
 'use client';
-import { useContext } from 'react';
+import { useContext, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { DataContext } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft, Download, Loader2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useState } from 'react';
 
 // This is a simple markdown parser, we can replace it with a more robust library if needed.
 const MarkdownRenderer = ({ content }: { content: string }) => {
@@ -50,7 +56,10 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
                     return <br key={index} />;
                 }
                 
-                inList = false;
+                if (inList) {
+                     return <li key={index}>{trimmedLine}</li>;
+                }
+
                 return <p key={index} className="my-1">{trimmedLine}</p>;
             })}
         </div>
@@ -61,8 +70,33 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 export default function ReportDetailPage() {
     const { id } = useParams();
     const { reports, isLoading } = useContext(DataContext);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const reportRef = useRef<HTMLDivElement>(null);
 
     const report = reports.find(r => r.id === id);
+
+    const handleDownload = async () => {
+        if (!reportRef.current || !report) return;
+        setIsDownloading(true);
+
+        const canvas = await html2canvas(reportRef.current, {
+            scale: 2,
+            backgroundColor: '#28282B' // Match your dark background
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`informe-${report.year}-${report.month + 1}.pdf`);
+
+        setIsDownloading(false);
+    };
+
 
     if (isLoading) {
         return <div>Cargando...</div>;
@@ -76,7 +110,23 @@ export default function ReportDetailPage() {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <div className="flex justify-between items-center">
+                <Button asChild variant="outline">
+                    <Link href="/dashboard/reports">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Volver a Informes
+                    </Link>
+                </Button>
+                <Button onClick={handleDownload} disabled={isDownloading}>
+                    {isDownloading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Descargar PDF
+                </Button>
+            </div>
+            <Card ref={reportRef}>
                 <CardHeader>
                     <CardTitle className="text-3xl">Informe Financiero - {format(reportDate, "MMMM yyyy", { locale: es })}</CardTitle>
                     <CardDescription>Generado el: {format(report.generatedAt, "dd 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}</CardDescription>
