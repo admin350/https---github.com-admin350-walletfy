@@ -116,6 +116,10 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
                 const item = row.original;
                 return (
                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleCopy(item)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copiar Datos
+                        </Button>
                         <AlertDialog>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -125,10 +129,6 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleCopy(item)}>
-                                        <Copy className="mr-2 h-4 w-4" />
-                                        Copiar Datos
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleEdit(item)}>
                                         <Pencil className="mr-2 h-4 w-4" />
                                         Editar
