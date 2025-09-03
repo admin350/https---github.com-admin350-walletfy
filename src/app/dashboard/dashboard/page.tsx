@@ -18,6 +18,7 @@ import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { DebtsOverviewChart } from "@/components/dashboard/debts-overview-chart";
+import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
 
 
 export default function DashboardPage() {
@@ -98,17 +99,30 @@ export default function DashboardPage() {
 
           <CashflowChart />
 
-           <Card>
-              <CardHeader>
-                <CardTitle>Resumen de Deudas</CardTitle>
-                <CardDescription>
-                  Visualización del monto total de tus deudas activas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DebtsOverviewChart />
-              </CardContent>
-            </Card>
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+             <Card>
+                <CardHeader>
+                  <CardTitle>Resumen de Deudas</CardTitle>
+                  <CardDescription>
+                    Visualización del monto total de tus deudas activas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DebtsOverviewChart />
+                </CardContent>
+              </Card>
+               <Card>
+                <CardHeader>
+                  <CardTitle>Resumen de Metas</CardTitle>
+                  <CardDescription>
+                    Visualización del progreso de tus metas de ahorro activas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GoalsSummaryChart />
+                </CardContent>
+              </Card>
+           </div>
 
           <FinancialAnalysisIA />
 
