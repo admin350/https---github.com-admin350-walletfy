@@ -7,9 +7,9 @@ import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMont
 
 // MOCK DATA
 const mockBankAccounts: BankAccount[] = [
-    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', balance: 1850000, profile: 'Personal' },
-    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', balance: 3200000, profile: 'Negocio' },
-    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', balance: 250000, profile: 'Personal' },
+    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', accountNumber: '123456789', balance: 1850000, profile: 'Personal' },
+    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', accountNumber: '987654321', balance: 3200000, profile: 'Negocio' },
+    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', accountNumber: '112233445', balance: 250000, profile: 'Personal' },
 ];
 
 const mockBankCards: BankCard[] = [

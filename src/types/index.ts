@@ -16,6 +16,7 @@ export type BankAccount = {
   name: string;
   bank: string;
   accountType: string;
+  accountNumber: string;
   balance: number;
   profile: string;
 }

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useContext, useState } from "react";
 import type { BankAccount } from "@/types";
 import { DataContext } from "@/context/data-context";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
@@ -56,6 +56,21 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
         }
     };
     
+    const handleCopy = (account: BankAccount) => {
+        const textToCopy = `
+            Titular: ${account.name}
+            Banco: ${account.bank}
+            Tipo de Cuenta: ${account.accountType}
+            Número de Cuenta: ${account.accountNumber}
+        `.trim().replace(/    /g, '');
+
+        navigator.clipboard.writeText(textToCopy);
+        toast({
+            title: "Datos Copiados",
+            description: "Los datos de la cuenta han sido copiados al portapapeles."
+        })
+    }
+    
     const columns: ColumnDef<BankAccount>[] = [
         {
             accessorKey: "name",
@@ -76,8 +91,8 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
             header: "Banco",
         },
         {
-            accessorKey: "accountType",
-            header: "Tipo",
+            accessorKey: "accountNumber",
+            header: "Nº de Cuenta",
         },
         {
             accessorKey: "profile",
@@ -110,6 +125,10 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleCopy(item)}>
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        Copiar Datos
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleEdit(item)}>
                                         <Pencil className="mr-2 h-4 w-4" />
                                         Editar

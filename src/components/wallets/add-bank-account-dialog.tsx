@@ -32,6 +32,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre es muy corto." }),
   bank: z.string().min(2, { message: "El banco es requerido." }),
   accountType: z.string().min(1, { message: "El tipo de cuenta es requerido." }),
+  accountNumber: z.string().min(1, { message: "El número de cuenta es requerido." }),
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
@@ -59,6 +60,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             name: "",
             bank: "",
             accountType: "Cuenta Corriente",
+            accountNumber: "",
             balance: 0,
             profile: "",
         },
@@ -72,6 +74,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 name: "",
                 bank: "",
                 accountType: "Cuenta Corriente",
+                accountNumber: "",
                 balance: 0,
                 profile: "",
             });
@@ -167,6 +170,19 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="accountNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Número de Cuenta</FormLabel>
+                                     <FormControl>
+                                        <Input placeholder="00-123-45678-9" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
