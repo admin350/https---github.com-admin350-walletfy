@@ -22,7 +22,7 @@ interface InvestmentsWidgetProps {
 
 export function InvestmentsWidget({ investments: investmentsFromProps, isLoading: isLoadingFromProps }: InvestmentsWidgetProps) {
   const context = useContext(DataContext);
-  const { deleteInvestment } = context;
+  const { deleteInvestment, formatCurrency } = context;
 
   const investments = investmentsFromProps !== undefined ? investmentsFromProps : context.investments;
   const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : context.isLoading;
@@ -78,14 +78,14 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
       ) : (
         investments.map((investment) => {
           const profit = investment.currentValue - investment.initialAmount;
-          const profitPercentage = (profit / investment.initialAmount) * 100;
+          const profitPercentage = investment.initialAmount > 0 ? (profit / investment.initialAmount) * 100 : 0;
           return (
             <div key={investment.id}>
               <div className="flex justify-between mb-1 items-start">
                 <div>
                     <p className="text-base font-medium">{investment.name}</p>
                     <p className="text-sm text-muted-foreground">
-                        {`Valor Actual: $${investment.currentValue.toLocaleString('es-CL')}`}
+                        {`Valor Actual: ${formatCurrency(investment.currentValue)}`}
                     </p>
                 </div>
                  <AlertDialog>
@@ -129,13 +129,13 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                         <div className="w-full">
                              <div className={`flex justify-between text-sm ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                 <span className="font-medium">Ganancia / Pérdida</span>
-                                <span>{profit.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} ({profitPercentage.toFixed(2)}%)</span>
+                                <span>{formatCurrency(profit)} ({profitPercentage.toFixed(2)}%)</span>
                              </div>
                              <Progress value={profitPercentage > 0 ? (profitPercentage > 100 ? 100 : profitPercentage) : 0} className={`h-2 [&>div]:${profit >= 0 ? 'bg-green-400' : 'bg-red-400'}`} />
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Inversión Inicial: ${investment.initialAmount.toLocaleString('es-CL')}</p>
+                        <p>Inversión Inicial: {formatCurrency(investment.initialAmount)}</p>
                     </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

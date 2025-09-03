@@ -24,7 +24,7 @@ import type { Transaction } from '@/types';
 
 
 function AccountTransactionsTable({ accountId }: { accountId: string }) {
-    const { transactions } = useContext(DataContext);
+    const { transactions, formatCurrency } = useContext(DataContext);
     const accountTransactions = transactions.filter(t => t.accountId === accountId);
 
     return (
@@ -49,7 +49,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
                                 {t.type === 'income' ? <ArrowUpRight className="h-5 w-5 text-green-500" /> : <ArrowDownLeft className="h-5 w-5 text-red-500" />}
                             </TableCell>
                             <TableCell className={`text-right font-medium ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                                {t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString('es-CL')}
+                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, false)}
                             </TableCell>
                         </TableRow>
                     ))
@@ -67,7 +67,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
 
 export default function BankAccountDetailPage() {
     const { id } = useParams();
-    const { bankAccounts, isLoading } = useContext(DataContext);
+    const { bankAccounts, isLoading, formatCurrency } = useContext(DataContext);
 
     const account = bankAccounts.find(c => c.id === id);
 
@@ -103,7 +103,7 @@ export default function BankAccountDetailPage() {
              </div>
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <KpiCard title="Saldo Actual" value={<span className="text-primary">${account.balance.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
+                <KpiCard title="Saldo Actual" value={<span className="text-primary">{formatCurrency(account.balance)}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
                 <KpiCard title="Número de Cuenta" value={account.accountNumber} icon={Building} iconClassName="text-blue-400" description={account.bank} />
                 <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" description="Tipo de producto bancario" />
                 <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" description="Perfil financiero al que pertenece"/>

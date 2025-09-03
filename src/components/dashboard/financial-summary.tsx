@@ -11,23 +11,21 @@ export function FinancialSummary() {
         transactions, 
         goalContributions, 
         investmentContributions,
-        investments,
         debts,
         subscriptions,
-        isLoading 
+        isLoading,
+        formatCurrency
     } = useContext(DataContext);
 
-    // Savings Portfolio Calculations
+    // Calculations now respect filters as they use filtered data from context
     const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
     const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
     const availableSavings = totalSavings - totalContributedToGoals;
 
-    // Investment Portfolio Calculations
     const totalTransferredToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
     const totalContributedToAssets = investmentContributions.reduce((acc, c) => acc + c.amount, 0);
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 
-    // Debt and Subscription Summary Calculations
     const remainingDebt = debts.reduce((acc, debt) => acc + (debt.totalAmount - debt.paidAmount), 0);
     const totalMonthlySubscriptionCost = subscriptions
         .filter(s => s.status === 'active')
@@ -81,11 +79,11 @@ export function FinancialSummary() {
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Disponible:</span>
-                        <span className="font-medium text-foreground">${availableSavings.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(availableSavings)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Destinado a Metas:</span>
-                        <span className="font-medium text-foreground">${totalContributedToGoals.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalContributedToGoals)}</span>
                     </div>
                 </div>
 
@@ -97,11 +95,11 @@ export function FinancialSummary() {
                     </div>
                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Disponible:</span>
-                        <span className="font-medium text-foreground">${availableToInvest.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(availableToInvest)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Invertido en Activos:</span>
-                        <span className="font-medium text-foreground">${totalContributedToAssets.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalContributedToAssets)}</span>
                     </div>
                 </div>
 
@@ -113,11 +111,11 @@ export function FinancialSummary() {
                     </div>
                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Deuda Restante:</span>
-                        <span className="font-medium text-foreground">${remainingDebt.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(remainingDebt)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Gasto Mensual en Suscripciones:</span>
-                        <span className="font-medium text-foreground">${totalMonthlySubscriptionCost.toLocaleString('es-CL')}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalMonthlySubscriptionCost)}</span>
                     </div>
                 </div>
             </CardContent>

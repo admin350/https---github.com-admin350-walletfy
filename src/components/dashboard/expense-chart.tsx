@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
@@ -16,7 +17,7 @@ const COLORS = {
 
 
 export function ExpenseChart() {
-  const { transactions, categories, isLoading } = useContext(DataContext);
+  const { transactions, categories, isLoading, formatCurrency } = useContext(DataContext);
   
   const { chartData, totalIncome } = useMemo(() => {
     const totalIncome = transactions
@@ -88,7 +89,7 @@ export function ExpenseChart() {
                 cursor={false}
                 content={<ChartTooltipContent 
                     hideLabel 
-                    formatter={(value, name) => `${name}: $${Number(value).toLocaleString('es-CL')}`}
+                    formatter={(value, name) => `${name}: ${formatCurrency(Number(value))}`}
                  />}
               />
               <Pie
@@ -116,7 +117,7 @@ export function ExpenseChart() {
                             <span className="truncate" title={item.name}>{item.name}</span>
                         </div>
                         <div className="text-right flex-shrink-0">
-                            <span className="font-medium">${item.value.toLocaleString('es-CL')}</span>
+                            <span className="font-medium">{formatCurrency(item.value)}</span>
                             <span className="ml-2 text-muted-foreground">({percentage.toFixed(1)}%)</span>
                         </div>
                     </div>

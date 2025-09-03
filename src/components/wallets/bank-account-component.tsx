@@ -19,7 +19,7 @@ interface BankAccountComponentProps {
 }
 
 export function BankAccountComponent({ account }: BankAccountComponentProps) {
-    const { deleteBankAccount, profiles } = useContext(DataContext);
+    const { deleteBankAccount, profiles, formatCurrency } = useContext(DataContext);
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
     const [isCopied, setIsCopied] = useState(false);
@@ -123,7 +123,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
 
                 <div className="relative z-10 space-y-2">
                      <div className="flex justify-between items-end">
-                        <span className="text-2xl font-bold">${account.balance.toLocaleString('es-CL')}</span>
+                        <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
                         <Landmark className="h-8 w-8 text-white/50" />
                      </div>
                     <div className="font-mono tracking-wider text-sm opacity-80">

@@ -22,7 +22,7 @@ import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
 export function CashflowChart() {
-  const { transactions, isLoading, filters, profiles } = useContext(DataContext);
+  const { transactions, isLoading, filters, profiles, formatCurrency } = useContext(DataContext);
   
   const chartConfig = useMemo(() => {
     const config: any = {};
@@ -144,7 +144,7 @@ export function CashflowChart() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(value) => `$${Number(value).toLocaleString('es-CL')}`}
+                  tickFormatter={(value) => formatCurrency(Number(value), false, true)}
               />
               <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value, name, item) => {
                   const configKey = item.dataKey;
@@ -154,7 +154,7 @@ export function CashflowChart() {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: itemConfig.color }} />
                         <div className="flex-1">
                           <span>{itemConfig.label}:</span>
-                          <span className="font-bold ml-2">${Number(value).toLocaleString('es-CL')}</span>
+                          <span className="font-bold ml-2">{formatCurrency(Number(value))}</span>
                         </div>
                      </div>
                   )

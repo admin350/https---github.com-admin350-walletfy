@@ -8,7 +8,7 @@ import { DataContext } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function RecentTransactions() {
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, isLoading, formatCurrency } = useContext(DataContext);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function RecentTransactions() {
                   <Badge variant="outline">{t.category}</Badge>
                 </div>
                 <div className={`font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                  {`${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString('es-CL')}`}
+                  {`${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount, false)}`}
                 </div>
               </div>
             ))

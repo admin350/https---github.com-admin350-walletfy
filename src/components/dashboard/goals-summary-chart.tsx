@@ -17,7 +17,7 @@ const Cell = (_props: { fill: string; key: string, opacity?: number }) => null;
 
 
 export function GoalsSummaryChart() {
-  const { goals, profiles, isLoading } = useContext(DataContext);
+  const { goals, profiles, isLoading, formatCurrency } = useContext(DataContext);
   
   const chartData = useMemo(() => {
     return goals
@@ -80,13 +80,12 @@ export function GoalsSummaryChart() {
                 content={<ChartTooltipContent 
                     formatter={(value, name, props) => {
                         const { payload } = props;
-                        const currency = (v: number) => v.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
                         return (
                             <div className="flex flex-col gap-1 text-sm">
                                 <span className="font-bold" style={{ color: payload.fill }}>{payload.name}</span>
-                                <span>Ahorrado: {currency(payload.current)}</span>
-                                <span>Restante: {currency(payload.remaining)}</span>
-                                <span className="font-semibold">Meta: {currency(payload.target)}</span>
+                                <span>Ahorrado: {formatCurrency(payload.current)}</span>
+                                <span>Restante: {formatCurrency(payload.remaining)}</span>
+                                <span className="font-semibold">Meta: {formatCurrency(payload.target)}</span>
                             </div>
                         )
                     }}

@@ -1,5 +1,4 @@
 
-
 'use client'
 import {
     ColumnDef,
@@ -30,7 +29,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "../ui/badge";
 
 export function TransactionsDataTable() {
-    const { transactions, deleteTransaction, profiles, bankAccounts } = useContext(DataContext);
+    const { transactions, deleteTransaction, profiles, bankAccounts, formatCurrency } = useContext(DataContext);
     const { toast } = useToast();
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -137,10 +136,7 @@ export function TransactionsDataTable() {
             cell: ({ row }) => {
                 const amount = parseFloat(row.getValue("amount"))
                 const type = row.getValue("type");
-                const formatted = new Intl.NumberFormat("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                }).format(amount)
+                const formatted = formatCurrency(amount);
                  const className = type === 'income' ? 'text-green-500' : type === 'expense' ? 'text-red-500' : '';
                 return <div className={`font-medium ${className}`}>{formatted}</div>
             },

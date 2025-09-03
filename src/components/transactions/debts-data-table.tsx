@@ -1,5 +1,4 @@
 
-
 'use client'
 import {
     ColumnDef,
@@ -38,7 +37,7 @@ interface DebtsDataTableProps {
 
 
 export function DebtsDataTable({ debts }: DebtsDataTableProps) {
-    const { deleteDebt, profiles } = useContext(DataContext);
+    const { deleteDebt, profiles, formatCurrency } = useContext(DataContext);
     const { toast } = useToast();
     const [debtToEdit, setDebtToEdit] = useState<Debt | undefined>(undefined);
     const [debtToPay, setDebtToPay] = useState<Debt | undefined>(undefined);
@@ -96,9 +95,9 @@ export function DebtsDataTable({ debts }: DebtsDataTableProps) {
                 const progress = (debt.paidAmount / debt.totalAmount) * 100;
                 return (
                     <div className="flex flex-col gap-2">
-                        <Progress value={progress} className="h-2" />
+                        <Progress value={progress > 100 ? 100 : progress} className="h-2" />
                         <span className="text-xs text-muted-foreground">
-                            {`$${debt.paidAmount.toLocaleString('es-CL')} / $${debt.totalAmount.toLocaleString('es-CL')}`}
+                            {`${formatCurrency(debt.paidAmount)} / ${formatCurrency(debt.totalAmount)}`}
                         </span>
                     </div>
                 )

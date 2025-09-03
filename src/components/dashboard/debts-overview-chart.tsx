@@ -12,7 +12,7 @@ import { DataContext } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 export function DebtsOverviewChart() {
-  const { debts, profiles, isLoading } = useContext(DataContext);
+  const { debts, profiles, isLoading, formatCurrency } = useContext(DataContext);
   
   const chartData = useMemo(() => {
     return debts
@@ -75,13 +75,12 @@ export function DebtsOverviewChart() {
                 content={<ChartTooltipContent 
                     formatter={(value, name, props) => {
                         const { payload } = props;
-                        const currency = (v: number) => v.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
                         return (
                             <div className="flex flex-col gap-1 text-sm">
                                 <span className="font-bold" style={{ color: payload.fill }}>{payload.name}</span>
-                                <span>Pagado: {currency(payload.paid)}</span>
-                                <span>Restante: {currency(payload.remaining)}</span>
-                                <span className="font-semibold">Total: {currency(payload.total)}</span>
+                                <span>Pagado: {formatCurrency(payload.paid)}</span>
+                                <span>Restante: {formatCurrency(payload.remaining)}</span>
+                                <span className="font-semibold">Total: {formatCurrency(payload.total)}</span>
                             </div>
                         )
                     }}
