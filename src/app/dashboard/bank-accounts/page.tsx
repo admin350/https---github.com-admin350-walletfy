@@ -7,8 +7,8 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BankAccountsDataTable } from "@/components/wallets/bank-accounts-data-table";
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
+import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 
 export default function BankAccountsPage() {
     const { bankAccounts, isLoading } = useContext(DataContext);
@@ -75,7 +75,26 @@ export default function BankAccountsPage() {
                     </AddBankAccountDialog>
                 </CardHeader>
                 <CardContent>
-                    <BankAccountsDataTable />
+                   {isLoading ? (
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                                <Skeleton key={i} className="h-48 rounded-xl" />
+                            ))}
+                         </div>
+                    ) : bankAccounts.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {bankAccounts.map(account => (
+                                <BankAccountComponent key={account.id} account={account} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10 text-muted-foreground">
+                            <p>No tienes cuentas registradas para el perfil seleccionado.</p>
+                            <AddBankAccountDialog>
+                                <Button variant="link" className="mt-2">Añade tu primera cuenta</Button>
+                            </AddBankAccountDialog>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
