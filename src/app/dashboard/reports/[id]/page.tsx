@@ -12,6 +12,7 @@ import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // This is a simple markdown parser, we can replace it with a more robust library if needed.
 const MarkdownRenderer = ({ content }: { content: string }) => {
@@ -111,12 +112,20 @@ export default function ReportDetailPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <Button asChild variant="outline">
-                    <Link href="/dashboard/reports">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Volver a Informes
-                    </Link>
-                </Button>
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Button asChild variant="outline" size="icon">
+                                <Link href="/dashboard/reports">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Volver a Informes</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <Button onClick={handleDownload} disabled={isDownloading}>
                     {isDownloading ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
