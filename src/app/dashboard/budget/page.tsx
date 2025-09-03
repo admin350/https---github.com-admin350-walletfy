@@ -25,7 +25,7 @@ export default function BudgetPage() {
                  <PreviousMonthExpenseChart />
                  <Card>
                     <CardHeader>
-                        <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                        <CardTitle>Destino Real de tus Ingresos (Período Actual)</CardTitle>
                         <CardDescription>
                             Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
                         </CardDescription>

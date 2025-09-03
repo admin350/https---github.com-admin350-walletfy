@@ -16,6 +16,8 @@ import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-i
 import { OverdueDebtsWidget } from "@/components/dashboard/overdue-debts-widget";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExpenseChart } from "@/components/dashboard/expense-chart";
 
 
 export default function DashboardPage() {
@@ -82,6 +84,18 @@ export default function DashboardPage() {
               )}
           </div>
           
+           <Card>
+              <CardHeader>
+                  <CardTitle>Destino Real de tus Ingresos</CardTitle>
+                  <CardDescription>
+                      Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <ExpenseChart />
+              </CardContent>
+          </Card>
+
           <CashflowChart />
 
           <FinancialAnalysisIA />
