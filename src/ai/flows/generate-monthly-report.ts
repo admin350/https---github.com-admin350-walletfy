@@ -70,3 +70,4 @@ const generateMonthlyReportFlow = ai.defineFlow(
     return output;
   }
 );
+
