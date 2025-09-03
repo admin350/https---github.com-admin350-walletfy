@@ -17,9 +17,8 @@ export default function FixedExpensesPage() {
                         </CardDescription>
                     </div>
                     <AddFixedExpenseDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-indigo-400" />
-                            Añadir Plantilla
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddFixedExpenseDialog>
                 </CardHeader>
