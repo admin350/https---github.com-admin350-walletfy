@@ -3,7 +3,7 @@
 
 import { BankCard, BankAccount, Transaction } from "@/types";
 import { cn } from "@/lib/utils";
-import { Cpu, MoreVertical, Pencil, Trash2, History } from "lucide-react";
+import { Cpu, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useContext, useState } from "react";
@@ -12,7 +12,8 @@ import { AddBankCardDialog } from "./add-bank-card-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Progress } from "../ui/progress";
-import { CardTransactionHistoryDialog } from "./card-transaction-history-dialog";
+import Link from "next/link";
+
 
 interface BankCardComponentProps {
     card: BankCard;
@@ -33,19 +34,21 @@ const MastercardLogo = () => (
 
 
 export function BankCardComponent({ card }: BankCardComponentProps) {
-    const { bankAccounts, deleteBankCard } = useContext(DataContext);
+    const { deleteBankCard } = useContext(DataContext);
     const { toast } = useToast();
     const [cardToEdit, setCardToEdit] = useState<BankCard | null>(null);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
     const isCredit = card.cardType === 'credit';
-    const associatedAccount = bankAccounts.find(acc => acc.id === card.accountId);
-
-    const handleEdit = () => {
+   
+    const handleEdit = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         setCardToEdit(card);
     };
 
-    const handleDelete = async () => {
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         try {
             await deleteBankCard(card.id);
             toast({
@@ -66,96 +69,67 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
         debit: "Débito",
         prepaid: "Prepago"
     }
-    
-    const available = card.creditLimit ? card.creditLimit - (card.usedAmount || 0) : 0;
-    const progress = card.creditLimit ? ((card.usedAmount || 0) / card.creditLimit) * 100 : 0;
 
     return (
         <>
-        <div className={cn(
-            "relative aspect-[1.586] rounded-xl shadow-lg text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden",
-            isCredit ? "bg-gradient-to-br from-gray-700 via-gray-900 to-black" : "bg-gradient-to-br from-blue-700 via-blue-900 to-black"
-        )}>
-             <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
+        <Link href={`/dashboard/bank-cards/${card.id}`} className="block">
+            <div className={cn(
+                "relative aspect-[1.586] rounded-xl shadow-lg text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-transform hover:scale-105",
+                isCredit ? "bg-gradient-to-br from-gray-700 via-gray-900 to-black" : "bg-gradient-to-br from-blue-700 via-blue-900 to-black"
+            )}>
+                <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
 
-             <div className="relative z-10 flex justify-between items-start">
-                <div>
-                    <p className="text-sm font-light opacity-80">{card.bank}</p>
-                    <p className="font-semibold text-lg">{card.name}</p>
-                </div>
-                 <AlertDialog>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={handleEdit}>
-                                <Pencil className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem>
-                                    <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <p className="text-sm font-light opacity-80">{card.bank}</p>
+                        <p className="font-semibold text-lg">{card.name}</p>
+                    </div>
+                    <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleEdit}>
+                                    <Pencil className="mr-2 h-4 w-4" /> Editar
                                 </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la tarjeta.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-             </div>
-
-            <div className="relative z-10 space-y-2">
-                <Cpu className="h-8 w-8 md:h-10 md:w-10 text-yellow-300/80" />
-                 <div className="font-mono tracking-widest text-lg md:text-xl">
-                    •••• •••• •••• {card.last4Digits}
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                        <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la tarjeta.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
 
-                {isCredit && card.creditLimit ? (
-                    <div className="text-xs space-y-1">
-                        <div className="flex justify-between">
-                            <span>Utilizado: ${card.usedAmount?.toLocaleString('es-CL') || 0}</span>
-                            <span>Disponible: ${available.toLocaleString('es-CL')}</span>
-                        </div>
-                        <Progress value={progress} className="h-1 bg-white/20 [&>div]:bg-white" />
-                         <div className="text-right text-white/70">
-                            Cupo Total: ${card.creditLimit.toLocaleString('es-CL')}
-                        </div>
+                <div className="relative z-10 space-y-2">
+                    <Cpu className="h-8 w-8 md:h-10 md:w-10 text-yellow-300/80" />
+                    <div className="font-mono tracking-widest text-lg md:text-xl">
+                        •••• •••• •••• {card.last4Digits}
                     </div>
-                ) : (
-                     <div className="text-sm">
-                        <span className="text-white/70">Saldo Cuenta: </span>
-                        <span>${associatedAccount?.balance.toLocaleString('es-CL') || 0}</span>
+                
+                    <div className="flex justify-between items-end pt-2">
+                         <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
+                        {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
                     </div>
-                )}
-               
-                <div className="flex justify-between items-end pt-2">
-                    <div className='flex flex-col gap-1'>
-                        <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
-                         <Button
-                            variant="link"
-                            className="text-xs text-white p-0 h-auto justify-start"
-                            onClick={() => setIsHistoryOpen(true)}
-                        >
-                            <History className="mr-1 h-3 w-3" />
-                            Ver historial
-                        </Button>
-                    </div>
-                    {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
                 </div>
             </div>
-        </div>
+        </Link>
         
         {cardToEdit && (
             <AddBankCardDialog 
@@ -164,11 +138,6 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                 cardToEdit={cardToEdit}
             />
         )}
-        <CardTransactionHistoryDialog
-            open={isHistoryOpen}
-            onOpenChange={setIsHistoryOpen}
-            card={card}
-        />
         </>
     )
 }
