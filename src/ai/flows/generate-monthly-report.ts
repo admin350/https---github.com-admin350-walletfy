@@ -34,18 +34,9 @@ const prompt = ai.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: {schema: GenerateMonthlyReportInputSchema},
   output: {schema: GenerateMonthlyReportOutputSchema},
-  prompt: `You are an expert financial analyst. Your task is to generate a comprehensive, clear, and insightful monthly financial report in Spanish, formatted as a single Markdown string.
+  prompt: `You are a financial analyst. Your task is to generate a comprehensive, clear, and insightful monthly financial report in Spanish, formatted as a single Markdown string.
 
 Analyze the user's financial data for the specified month and year.
-
-**Report Sections to Include:**
-1.  **Executive Summary:** High-level overview of income, expenses, and net balance.
-2.  **Income and Expense Analysis:** Breakdown of income sources and top spending categories.
-3.  **Progress Towards Goals:** Analysis of savings contributions.
-4.  **Debt Situation:** Summary of debt payments and remaining balances.
-5.  **Investment Performance:** Summary of portfolio performance.
-6.  **Budget Comparison:** Analysis of actual spending vs. budgeted amounts.
-7.  **Conclusions and Recommendations:** Provide 2-3 actionable recommendations.
 
 **Input Data:**
 *   **Month/Year:** {{{month}}}/{{{year}}}
@@ -55,6 +46,7 @@ Analyze the user's financial data for the specified month and year.
 *   **Investments:** {{{investments}}}
 *   **Budgets:** {{{budgets}}}
 
+Provide a clear and well-structured financial analysis based on the data.
 Ensure your entire response is a single, valid Markdown string.
 `,
 });
@@ -67,6 +59,9 @@ const generateMonthlyReportFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error("AI failed to generate report. Please try again.");
+    }
+    return output;
   }
 );
