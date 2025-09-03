@@ -51,7 +51,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const accountStyle = {
       '--tw-gradient-from': account.color || '#374151',
       '--tw-gradient-to': 'rgb(0 0 0 / 1)',
-      '--tw-shadow-color': profile ? profile.color : '#06b6d4',
+      '--tw-shadow-color': profile ? profile.color : '#ffffff',
     } as React.CSSProperties;
 
 

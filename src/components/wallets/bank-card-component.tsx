@@ -73,7 +73,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
     const cardStyle = {
       '--tw-gradient-from': card.cardColor || '#374151',
       '--tw-gradient-to': 'rgb(0 0 0 / 1)',
-      '--tw-shadow-color': card.cardColor || '#06b6d4', // Use card color for shadow
+      '--tw-shadow-color': card.cardColor || '#ffffff',
     } as React.CSSProperties;
 
 
@@ -83,7 +83,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
             <div 
                  style={cardStyle}
                  className={cn(
-                    "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 bg-gradient-to-br from-[--tw-gradient-from] via-gray-900 to-[--tw-gradient-to]"
+                    "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)]"
                 )}
             >
                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
