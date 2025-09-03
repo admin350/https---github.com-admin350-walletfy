@@ -22,11 +22,31 @@ import { DataContext } from "@/context/data-context";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, MoreHorizontal, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 export function ReportsDataTable() {
-    const { reports } = useContext(DataContext);
+    const { reports, deleteReport } = useContext(DataContext);
+    const { toast } = useToast();
     
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteReport(id);
+            toast({
+                title: "Informe Eliminado",
+                description: "El informe ha sido eliminado con éxito.",
+            });
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "No se pudo eliminar el informe.",
+                variant: "destructive"
+            });
+        }
+    };
+
     const columns: ColumnDef<MonthlyReport>[] = [
         {
             accessorKey: "month",
@@ -48,12 +68,42 @@ export function ReportsDataTable() {
                 const report = row.original;
                 return (
                     <div className="text-right">
-                        <Button asChild variant="outline" size="sm">
-                            <Link href={`/dashboard/reports/${report.id}`}>
-                                <FileText className="mr-2 h-4 w-4" />
-                                Ver Informe
-                            </Link>
-                        </Button>
+                         <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                     <DropdownMenuItem asChild>
+                                        <Link href={`/dashboard/reports/${report.id}`}>
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Ver Informe
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                             <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el informe.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(report.id)}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 )
             },

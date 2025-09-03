@@ -186,6 +186,7 @@ interface DataContextType {
     updateBankCard: (card: BankCard) => Promise<void>;
     deleteBankCard: (id: string) => Promise<void>;
     addReport: (report: MonthlyReport) => Promise<void>;
+    deleteReport: (id: string) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
 }
 
@@ -244,6 +245,7 @@ export const DataContext = createContext<DataContextType>({
     updateBankCard: async () => {},
     deleteBankCard: async () => {},
     addReport: async () => {},
+    deleteReport: async () => {},
     getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
 });
 
@@ -681,6 +683,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addReport = async (report: MonthlyReport) => {
         setReports(prev => [...prev, report].sort((a,b) => b.generatedAt.getTime() - a.generatedAt.getTime()));
     }
+    
+    const deleteReport = async (id: string) => {
+        setReports(prev => prev.filter(r => r.id !== id));
+    };
 
     const getAllDataForMonth = (month: number, year: number) => {
         const monthTransactions = transactions.filter(t => {
@@ -752,6 +758,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             updateBankCard,
             deleteBankCard,
             addReport,
+            deleteReport,
             getAllDataForMonth
         }}>
             {children}
