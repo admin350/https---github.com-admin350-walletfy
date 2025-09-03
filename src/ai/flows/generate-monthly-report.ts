@@ -33,7 +33,7 @@ export async function generateMonthlyReport(input: GenerateMonthlyReportInput): 
 const prompt = ai.definePrompt({
   name: 'generateMonthlyReportPrompt',
   input: {schema: GenerateMonthlyReportInputSchema},
-  output: {schema: GenerateMonthlyReportOutputSchema},
+  // We remove the output schema validation here to handle potential nulls in the flow itself.
   prompt: `You are a financial analyst. Your task is to generate a comprehensive, clear, and insightful monthly financial report in Spanish, formatted as a single Markdown string.
 
 Analyze the user's financial data for the specified month and year.
@@ -48,7 +48,7 @@ Analyze the user's financial data for the specified month and year.
 
 Provide a clear and well-structured financial analysis based on the data.
 Ensure your entire response is a single, valid Markdown string.
-If you cannot generate a report for any reason, respond with a simple error message in Markdown, like '# Error\n\nNo se pudo generar el informe.' but never return a null or non-string response.
+If you cannot generate a report for any reason, respond with a simple error message in Markdown, like '# Error\\n\\nNo se pudo generar el informe.' but never return a null or non-string response.
 `,
 });
 
