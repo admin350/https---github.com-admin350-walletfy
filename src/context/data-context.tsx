@@ -143,7 +143,6 @@ interface DataContextType {
     budgets: Budget[];
     bankAccounts: BankAccount[];
     bankCards: BankCard[];
-    filteredBankAccounts: BankAccount[];
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -199,7 +198,6 @@ export const DataContext = createContext<DataContextType>({
     budgets: [],
     bankAccounts: [],
     bankCards: [],
-    filteredBankAccounts: [],
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
     setFilters: () => {},
@@ -362,37 +360,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
      const filteredBudgets = useMemo(() => {
         return budgets.filter(b => filters.profile === 'all' || b.profile === filters.profile);
     }, [budgets, filters]);
-
-     const filteredBankAccounts = useMemo(() => {
-        const filterEndDate = filters.month === -1 
-            ? endOfMonth(new Date(filters.year, 11, 31))
-            : endOfMonth(new Date(filters.year, filters.month));
-
-        const relevantTransactions = transactions.filter(t => new Date(t.date) <= filterEndDate);
-
-        return bankAccounts.map(account => {
-            const initialBalance = mockBankAccounts.find(ba => ba.id === account.id)?.balance || 0;
-            const balanceChange = relevantTransactions
-                .filter(t => t.accountId === account.id)
-                .reduce((acc, t) => {
-                    if (t.type === 'income') return acc + t.amount;
-                    return acc - t.amount;
-                }, 0);
-            
-            const currentBalance = bankAccounts.find(ba => ba.id === account.id)?.balance || 0;
-            const futureTransactionsValue = transactions
-                .filter(t => new Date(t.date) > filterEndDate && t.accountId === account.id)
-                .reduce((acc, t) => {
-                     if (t.type === 'income') return acc - t.amount;
-                     return acc + t.amount;
-                }, 0);
-
-            const historicBalance = currentBalance + futureTransactionsValue;
-
-            return { ...account, balance: historicBalance };
-        });
-
-     }, [bankAccounts, transactions, filters]);
 
 
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
@@ -689,7 +656,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             budgets: filteredBudgets,
             bankAccounts,
             bankCards,
-            filteredBankAccounts: filteredBankAccounts,
             isLoading,
             filters,
             setFilters,

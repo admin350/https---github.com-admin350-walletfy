@@ -25,8 +25,12 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
 
-export function BankAccountsDataTable() {
-    const { filteredBankAccounts, deleteBankAccount, profiles } = useContext(DataContext);
+interface BankAccountsDataTableProps {
+    data: BankAccount[];
+}
+
+export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
+    const { deleteBankAccount, profiles } = useContext(DataContext);
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -139,7 +143,7 @@ export function BankAccountsDataTable() {
 
 
     const table = useReactTable({
-        data: filteredBankAccounts,
+        data,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),

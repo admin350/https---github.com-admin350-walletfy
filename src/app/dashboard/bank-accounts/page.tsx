@@ -11,11 +11,16 @@ import { BankAccountsDataTable } from "@/components/wallets/bank-accounts-data-t
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 
 export default function BankAccountsPage() {
-    const { filteredBankAccounts, isLoading } = useContext(DataContext);
+    const { bankAccounts, isLoading, filters } = useContext(DataContext);
     
-    const totalBalance = filteredBankAccounts.reduce((acc, account) => acc + account.balance, 0);
-    const personalBalance = filteredBankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
-    const businessBalance = filteredBankAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
+    // Filter accounts by profile, but use the live balance, not the historical one.
+    const filteredAccounts = bankAccounts.filter(account => 
+        filters.profile === 'all' || account.profile === filters.profile
+    );
+
+    const totalBalance = filteredAccounts.reduce((acc, account) => acc + account.balance, 0);
+    const personalBalance = filteredAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
+    const businessBalance = filteredAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
     
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -40,21 +45,21 @@ export default function BankAccountsPage() {
                             value={<span className="text-primary">${totalBalance.toLocaleString('es-CL')}</span>}
                             icon={Wallet} 
                             iconClassName="text-primary"
-                            description="Balance consolidado de tus cuentas para el período seleccionado."
+                            description="Balance consolidado actual de tus cuentas."
                         />
                         <KpiCard 
                             title="Balance Personal" 
                             value={<span className="text-blue-400">${personalBalance.toLocaleString('es-CL')}</span>} 
                             icon={Banknote}
                             iconClassName="text-blue-400"
-                            description="Balance de tus cuentas 'Personal' para el período seleccionado."
+                            description="Balance actual de tus cuentas 'Personal'."
                         />
                         <KpiCard
                             title="Balance Negocio"
                             value={<span className="text-teal-400">${businessBalance.toLocaleString('es-CL')}</span>}
                             icon={Landmark}
                             iconClassName="text-teal-400"
-                            description="Balance de tus cuentas 'Negocio' para el período seleccionado."
+                            description="Balance actual de tus cuentas 'Negocio'."
                         />
                     </>
                 )}
@@ -76,7 +81,7 @@ export default function BankAccountsPage() {
                     </AddBankAccountDialog>
                 </CardHeader>
                 <CardContent>
-                    <BankAccountsDataTable />
+                    <BankAccountsDataTable data={filteredAccounts} />
                 </CardContent>
             </Card>
         </div>
