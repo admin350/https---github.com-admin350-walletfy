@@ -9,24 +9,49 @@ import { es } from 'date-fns/locale';
 
 // This is a simple markdown parser, we can replace it with a more robust library if needed.
 const MarkdownRenderer = ({ content }: { content: string }) => {
-    const lines = content.split('\\n');
+    const lines = content.split('\n');
+    let inList = false;
+
     return (
-        <div className="prose prose-invert max-w-none">
+        <div className="prose prose-invert max-w-none text-sm leading-relaxed">
             {lines.map((line, index) => {
-                 if (line.startsWith('# ')) {
-                    return <h1 key={index} className="text-2xl font-bold mt-4 mb-2">{line.substring(2)}</h1>;
+                const trimmedLine = line.trim();
+
+                if (trimmedLine.startsWith('# ')) {
+                    inList = false;
+                    return <h1 key={index} className="text-2xl font-bold mt-6 mb-3 border-b pb-2">{trimmedLine.substring(2)}</h1>;
                 }
-                if (line.startsWith('## ')) {
-                    return <h2 key={index} className="text-xl font-semibold mt-3 mb-1">{line.substring(3)}</h2>;
+                if (trimmedLine.startsWith('## ')) {
+                    inList = false;
+                    return <h2 key={index} className="text-xl font-semibold mt-4 mb-2">{trimmedLine.substring(3)}</h2>;
                 }
-                if (line.startsWith('* ')) {
-                    return <li key={index} className="ml-4 list-disc">{line.substring(2)}</li>;
+                if (trimmedLine.startsWith('### ')) {
+                    inList = false;
+                    return <h3 key={index} className="text-lg font-semibold mt-3 mb-1">{trimmedLine.substring(4)}</h3>;
                 }
-                 if (line.startsWith('**')) {
-                    const cleanLine = line.replace(/\*\*/g, '');
-                    return <p key={index} className="font-bold my-1">{cleanLine}</p>;
+
+                if (trimmedLine.startsWith('* ')) {
+                    const listContent = <li key={index}>{trimmedLine.substring(2)}</li>;
+                    if (!inList) {
+                        inList = true;
+                        return <ul key={`ul-${index}`} className="list-disc pl-5 mt-2 mb-2">{listContent}</ul>;
+                    }
+                    return listContent;
                 }
-                return <p key={index}>{line}</p>;
+
+                if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                     inList = false;
+                    const cleanLine = trimmedLine.substring(2, trimmedLine.length - 2);
+                    return <p key={index} className="font-bold my-2">{cleanLine}</p>;
+                }
+                
+                if (trimmedLine === '') {
+                    inList = false;
+                    return <br key={index} />;
+                }
+                
+                inList = false;
+                return <p key={index} className="my-1">{trimmedLine}</p>;
             })}
         </div>
     )
