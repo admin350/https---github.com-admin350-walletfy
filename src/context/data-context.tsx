@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
@@ -122,6 +122,8 @@ const mockBudgets: Budget[] = [
     }
 ];
 
+const mockReports: MonthlyReport[] = [];
+
 interface IFilters {
     profile: string;
     month: number; // -1 for all months
@@ -144,6 +146,7 @@ interface DataContextType {
     budgets: Budget[];
     bankAccounts: BankAccount[];
     bankCards: BankCard[];
+    reports: MonthlyReport[];
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -182,6 +185,8 @@ interface DataContextType {
     addBankCard: (card: Omit<BankCard, 'id' | 'usedAmount'>) => Promise<void>;
     updateBankCard: (card: BankCard) => Promise<void>;
     deleteBankCard: (id: string) => Promise<void>;
+    addReport: (report: MonthlyReport) => Promise<void>;
+    getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -199,6 +204,7 @@ export const DataContext = createContext<DataContextType>({
     budgets: [],
     bankAccounts: [],
     bankCards: [],
+    reports: [],
     isLoading: true,
     filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
     setFilters: () => {},
@@ -237,6 +243,8 @@ export const DataContext = createContext<DataContextType>({
     addBankCard: async () => {},
     updateBankCard: async () => {},
     deleteBankCard: async () => {},
+    addReport: async () => {},
+    getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
 });
 
 // PROVIDER
@@ -255,6 +263,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [budgets, setBudgets] = useState<Budget[]>([]);
     const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
     const [bankCards, setBankCards] = useState<BankCard[]>([]);
+    const [reports, setReports] = useState<MonthlyReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
@@ -279,6 +288,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setBudgets(mockBudgets);
             setBankAccounts(mockBankAccounts);
             setBankCards(mockBankCards);
+            setReports(mockReports);
             setIsLoading(false);
         }, 1000);
         return () => clearTimeout(timer);
@@ -667,6 +677,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteBankCard = async (id: string) => {
         setBankCards(prev => prev.filter(c => c.id !== id));
     };
+    
+    const addReport = async (report: MonthlyReport) => {
+        setReports(prev => [...prev, report].sort((a,b) => b.generatedAt.getTime() - a.generatedAt.getTime()));
+    }
+
+    const getAllDataForMonth = (month: number, year: number) => {
+        const monthTransactions = transactions.filter(t => {
+            const date = new Date(t.date);
+            return getMonth(date) === month && getYear(date) === year;
+        });
+        return {
+            transactions: monthTransactions,
+            goals, // These are not time-bound in the same way
+            debts, // These are not time-bound in the same way
+            investments, // These are not time-bound in the same way
+            budgets, // These are not time-bound in the same way
+        }
+    }
 
     return (
         <DataContext.Provider value={{ 
@@ -684,6 +712,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             budgets: filteredBudgets,
             bankAccounts: filteredBankAccounts,
             bankCards: filteredBankCards,
+            reports,
             isLoading,
             filters,
             setFilters,
@@ -722,6 +751,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addBankCard,
             updateBankCard,
             deleteBankCard,
+            addReport,
+            getAllDataForMonth
         }}>
             {children}
         </DataContext.Provider>

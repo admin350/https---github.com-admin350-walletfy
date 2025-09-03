@@ -136,3 +136,11 @@ export type Category = {
     type: 'Ingreso' | 'Gasto';
     color: string;
 }
+
+export type MonthlyReport = {
+    id: string; // e.g., '2024-07'
+    month: number;
+    year: number;
+    generatedAt: Date;
+    content: string; // Markdown content
+}

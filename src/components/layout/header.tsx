@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, Wallet, ClipboardPen, Banknote, Building } from "lucide-react";
+import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, Wallet, ClipboardPen, Banknote, Building, FileText } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -25,6 +25,7 @@ const navSections = [
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
             { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
             { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
+            { href: "/dashboard/reports", icon: FileText, label: "Informes", color: "text-gray-400" },
         ]
     },
     {

@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { DebtsOverviewChart } from "@/components/dashboard/debts-overview-chart";
 import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
+import { CloseMonthButton } from "@/components/reports/close-month-button";
 
 
 export default function DashboardPage() {
@@ -48,6 +49,10 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+       <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Panel Principal</h1>
+            <CloseMonthButton />
+        </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -85,7 +90,7 @@ export default function DashboardPage() {
               )}
           </div>
           
-            <Card>
+            <Card className="bg-card/80 border-border/80">
                 <CardHeader>
                     <CardTitle>Destino Real de tus Ingresos</CardTitle>
                     <CardDescription>
@@ -117,14 +122,13 @@ export default function DashboardPage() {
                   <CardDescription>
                     Visualización del progreso de tus metas de ahorro activas.
                   </CardDescription>
-                </CardHeader>
+                </Header>
                 <CardContent>
                   <GoalsSummaryChart />
                 </CardContent>
               </Card>
            </div>
-
-          <FinancialAnalysisIA />
+            <FinancialAnalysisIA />
 
         </div>
 
