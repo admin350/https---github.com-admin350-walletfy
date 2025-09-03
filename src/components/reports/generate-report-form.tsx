@@ -39,17 +39,36 @@ export function GenerateReportForm() {
                     description: "No hay transacciones registradas para el período seleccionado. No se puede generar un informe.",
                     variant: "destructive"
                 });
+                setIsLoading(false);
                 return;
             }
+
+            // Create a summarized version of the data
+            const totalIncome = dataForMonth.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const totalExpenses = dataForMonth.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const expensesByCategory = dataForMonth.transactions
+                .filter(t => t.type === 'expense')
+                .reduce((acc, t) => {
+                    if (!acc[t.category]) acc[t.category] = 0;
+                    acc[t.category] += t.amount;
+                    return acc;
+                }, {} as Record<string, number>);
+
+            const reportDataSummary = `
+                - Total Ingresos: $${totalIncome.toLocaleString('es-CL')}
+                - Total Egresos: $${totalExpenses.toLocaleString('es-CL')}
+                - Balance Neto: $${(totalIncome - totalExpenses).toLocaleString('es-CL')}
+                - Desglose de Gastos por Categoría: ${JSON.stringify(expensesByCategory, null, 2)}
+                - Deudas Activas: ${dataForMonth.debts.length}
+                - Metas Activas: ${dataForMonth.goals.length}
+                - Inversiones: ${dataForMonth.investments.length}
+                - Presupuestos: ${JSON.stringify(dataForMonth.budgets.map(b => ({ name: b.name, items: b.items })), null, 2)}
+            `;
 
             const reportContent = await generateMonthlyReport({
                 month: selectedMonth,
                 year: selectedYear,
-                transactions: JSON.stringify(dataForMonth.transactions, null, 2),
-                goals: JSON.stringify(dataForMonth.goals, null, 2),
-                debts: JSON.stringify(dataForMonth.debts, null, 2),
-                investments: JSON.stringify(dataForMonth.investments, null, 2),
-                budgets: JSON.stringify(dataForMonth.budgets, null, 2),
+                reportData: reportDataSummary,
             });
             
             const newReport: MonthlyReport = {
