@@ -174,118 +174,73 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             {transactionToEdit?.id ? 'Edita los detalles de tu transacción.' : 'Registra un nuevo ingreso, egreso o transferencia.'}
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                 <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona un tipo" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="expense">Egreso</SelectItem>
-                                <SelectItem value="income">Ingreso</SelectItem>
-                                <SelectItem value="transfer">Transferencia a Ahorros</SelectItem>
-                                <SelectItem value="transfer-investment">Transferencia a Inversión</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Monto</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="$0" {...field} value={field.value ?? ''}/>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Descripción</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej: Compra semanal" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="profile"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Perfil</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona un perfil" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {profiles.map(p => (
-                                    <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="accountId"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Cuenta de Origen / Afectada</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona una cuenta" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                               {availableAccounts.map(a => (
-                                   <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
-                               ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 {transactionType === 'expense' && (
-                     <FormField
+        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
                         control={form.control}
-                        name="cardId"
+                        name="type"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Tarjeta Utilizada (Opcional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} >
+                            <FormLabel>Tipo</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona una tarjeta si aplica" />
+                                    <SelectValue placeholder="Selecciona un tipo" />
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="ninguna">Ninguna (Transferencia/Efectivo)</SelectItem>
-                                    {availableCards.map(c => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name} (**** {c.last4Digits})</SelectItem>
+                                    <SelectItem value="expense">Egreso</SelectItem>
+                                    <SelectItem value="income">Ingreso</SelectItem>
+                                    <SelectItem value="transfer">Transferencia a Ahorros</SelectItem>
+                                    <SelectItem value="transfer-investment">Transferencia a Inversión</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Monto</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="$0" {...field} value={field.value ?? ''}/>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Descripción</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej: Compra semanal" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="profile"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Perfil</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona un perfil" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {profiles.map(p => (
+                                        <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -293,77 +248,124 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             </FormItem>
                         )}
                     />
-                )}
-                <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Categoría</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona una categoría" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {availableCategories.map(c => (
-                                     <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                    <FormField
+                        control={form.control}
+                        name="accountId"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Cuenta de Origen / Afectada</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una cuenta" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {availableAccounts.map(a => (
+                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
                                 ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    {transactionType === 'expense' && (
+                        <FormField
+                            control={form.control}
+                            name="cardId"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Tarjeta Utilizada (Opcional)</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value} >
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona una tarjeta si aplica" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="ninguna">Ninguna (Transferencia/Efectivo)</SelectItem>
+                                        {availableCards.map(c => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name} (**** {c.last4Digits})</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     )}
-                />
-                <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Fecha</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, "PPP", { locale: es })
-                                ) : (
-                                    <span>Selecciona una fecha</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                                locale={es}
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {transactionToEdit?.id ? 'Guardar Cambios' : 'Guardar Transacción'}
-                </Button>
-            </form>
-        </Form>
+                    <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Categoría</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una categoría" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {availableCategories.map(c => (
+                                        <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Fecha</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP", { locale: es })
+                                    ) : (
+                                        <span>Selecciona una fecha</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                    date > new Date() || date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                    locale={es}
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {transactionToEdit?.id ? 'Guardar Cambios' : 'Guardar Transacción'}
+                    </Button>
+                </form>
+            </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

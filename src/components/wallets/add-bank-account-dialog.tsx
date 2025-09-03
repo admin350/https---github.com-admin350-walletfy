@@ -123,110 +123,112 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                         {accountToEdit ? 'Actualiza los detalles de tu cuenta.' : 'Define una nueva cuenta para gestionar fondos.'}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Alias de la Cuenta</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Mi Cuenta Principal" {...field} />
-                                    </FormControl>
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Alias de la Cuenta</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Mi Cuenta Principal" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="bank"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Banco</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Banco de Chile" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="accountType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Tipo de Cuenta</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un tipo" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Cuenta Corriente">Cuenta Corriente</SelectItem>
+                                            <SelectItem value="Cuenta Vista">Cuenta Vista</SelectItem>
+                                            <SelectItem value="Cuenta de Ahorro">Cuenta de Ahorro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="bank"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Banco</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="Ej: Banco de Chile" {...field} />
-                                    </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="accountNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Número de Cuenta</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="00-123-45678-9" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="balance"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Saldo Inicial</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="profile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Perfil Asociado</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un perfil" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {profiles.map(p => (
+                                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="accountType"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Tipo de Cuenta</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un tipo" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="Cuenta Corriente">Cuenta Corriente</SelectItem>
-                                        <SelectItem value="Cuenta Vista">Cuenta Vista</SelectItem>
-                                        <SelectItem value="Cuenta de Ahorro">Cuenta de Ahorro</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="accountNumber"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Número de Cuenta</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="00-123-45678-9" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="balance"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Saldo Inicial</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="profile"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Perfil Asociado</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un perfil" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {profiles.map(p => (
-                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {accountToEdit ? 'Guardar Cambios' : 'Guardar Cuenta'}
-                        </Button>
-                    </form>
-                </Form>
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {accountToEdit ? 'Guardar Cambios' : 'Guardar Cuenta'}
+                            </Button>
+                        </form>
+                    </Form>
+                </div>
             </DialogContent>
         </Dialog>
     );

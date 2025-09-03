@@ -122,114 +122,116 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
                         {budgetToEdit ? 'Actualiza los detalles de tu plan.' : 'Define un nuevo plan presupuestario.'}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre del Plan</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Presupuesto Ideal" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="profile"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Perfil</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nombre del Plan</FormLabel>
                                         <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona un perfil" />
-                                        </SelectTrigger>
+                                            <Input placeholder="Ej: Presupuesto Ideal" {...field} />
                                         </FormControl>
-                                        <SelectContent>
-                                            {profiles.map(p => (
-                                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="profile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Perfil</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona un perfil" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {profiles.map(p => (
+                                                    <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        <div>
-                            <FormLabel>Categorías del Presupuesto</FormLabel>
-                            <div className="space-y-2 mt-2">
-                                {fields.map((field, index) => (
-                                    <div key={field.id} className="flex gap-2 items-end">
-                                        <FormField
-                                            control={form.control}
-                                            name={`items.${index}.category`}
-                                            render={({ field }) => (
-                                                <FormItem className='flex-1'>
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                            <div>
+                                <FormLabel>Categorías del Presupuesto</FormLabel>
+                                <div className="space-y-2 mt-2">
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="flex gap-2 items-end">
+                                            <FormField
+                                                control={form.control}
+                                                name={`items.${index}.category`}
+                                                render={({ field }) => (
+                                                    <FormItem className='flex-1'>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Categoría" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {expenseCategories.map(c => (
+                                                                    <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name={`items.${index}.percentage`}
+                                                render={({ field }) => (
+                                                    <FormItem className="w-28">
                                                         <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Categoría" />
-                                                            </SelectTrigger>
+                                                            <Input type="number" placeholder="%" {...field} />
                                                         </FormControl>
-                                                        <SelectContent>
-                                                            {expenseCategories.map(c => (
-                                                                <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name={`items.${index}.percentage`}
-                                            render={({ field }) => (
-                                                <FormItem className="w-28">
-                                                     <FormControl>
-                                                        <Input type="number" placeholder="%" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-2"
+                                    onClick={() => append({ category: "", percentage: 0 })}
+                                >
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Añadir Categoría
+                                </Button>
                             </div>
-                             <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => append({ category: "", percentage: 0 })}
-                            >
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Añadir Categoría
+                            
+                            <div className="text-right font-medium text-lg">
+                                Total: <span className={totalPercentage !== 100 ? 'text-red-500' : 'text-green-500'}>{totalPercentage}%</span>
+                            </div>
+                            {form.formState.errors.items && (
+                                <p className="text-sm font-medium text-destructive">{form.formState.errors.items.message}</p>
+                            )}
+
+
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {budgetToEdit ? 'Guardar Cambios' : 'Guardar Presupuesto'}
                             </Button>
-                        </div>
-                        
-                        <div className="text-right font-medium text-lg">
-                            Total: <span className={totalPercentage !== 100 ? 'text-red-500' : 'text-green-500'}>{totalPercentage}%</span>
-                        </div>
-                         {form.formState.errors.items && (
-                            <p className="text-sm font-medium text-destructive">{form.formState.errors.items.message}</p>
-                        )}
-
-
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {budgetToEdit ? 'Guardar Cambios' : 'Guardar Presupuesto'}
-                        </Button>
-                    </form>
-                </Form>
+                        </form>
+                    </Form>
+                </div>
             </DialogContent>
         </Dialog>
     );

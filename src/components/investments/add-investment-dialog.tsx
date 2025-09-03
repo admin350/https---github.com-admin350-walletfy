@@ -127,88 +127,90 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                         {investmentToEdit ? 'Actualiza los detalles de tu activo.' : 'Registra un nuevo activo en tu portafolio.'}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre del Activo</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej: Acciones Apple" {...field} />
-                                    </FormControl>
+                <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nombre del Activo</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Acciones Apple" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="initialAmount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Monto Invertido Inicialmente</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="investmentType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tipo de Inversión</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Acciones, Cripto, Forex" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="platform"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Plataforma / Broker</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej: Interactive Brokers, Binance" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="profile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Perfil</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona un perfil" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {profiles.map(p => (
+                                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="initialAmount"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Monto Invertido Inicialmente</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="investmentType"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tipo de Inversión</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="Ej: Acciones, Cripto, Forex" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="platform"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Plataforma / Broker</FormLabel>
-                                     <FormControl>
-                                        <Input placeholder="Ej: Interactive Brokers, Binance" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="profile"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Perfil</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona un perfil" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {profiles.map(p => (
-                                            <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {investmentToEdit ? 'Guardar Cambios' : 'Guardar Inversión'}
-                        </Button>
-                    </form>
-                </Form>
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {investmentToEdit ? 'Guardar Cambios' : 'Guardar Inversión'}
+                            </Button>
+                        </form>
+                    </Form>
+                </div>
             </DialogContent>
         </Dialog>
     );
