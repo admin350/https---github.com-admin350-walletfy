@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Rocket, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, Wallet, ClipboardPen, Banknote, Building, FileText } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -141,7 +141,7 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
     return (
         <div className="p-4 flex flex-col h-full overflow-y-auto">
             <div className="flex items-center gap-2 text-2xl font-bold text-primary mb-6">
-                <Rocket className="h-7 w-7" />
+                <Wallet className="h-7 w-7" />
                 <h1 className="font-headline">FA WALLET</h1>
             </div>
 
