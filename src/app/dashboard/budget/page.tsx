@@ -45,9 +45,8 @@ export default function BudgetPage() {
                         </CardDescription>
                     </div>
                      <AddBudgetDialog>
-                        <Button size="sm">
-                           <PlusCircle className="mr-2 h-4 w-4 text-rose-400" />
-                            Añadir
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddBudgetDialog>
                 </CardHeader>
