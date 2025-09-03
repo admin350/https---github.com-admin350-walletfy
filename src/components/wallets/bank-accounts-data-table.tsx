@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 interface BankAccountsDataTableProps {
     data: BankAccount[];
@@ -116,10 +117,18 @@ export function BankAccountsDataTable({ data }: BankAccountsDataTableProps) {
                 const item = row.original;
                 return (
                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleCopy(item)}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copiar Datos
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleCopy(item)}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Copiar Datos</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                         <AlertDialog>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
