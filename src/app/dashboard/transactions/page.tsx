@@ -17,9 +17,8 @@ export default function TransactionsPage() {
                         </CardDescription>
                     </div>
                     <AddTransactionDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-orange-400" />
-                            Añadir Transacción
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddTransactionDialog>
                 </CardHeader>
