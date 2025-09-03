@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { MoreHorizontal, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, Trash2, Pencil, PlusCircle } from "lucide-react";
 import { useContext, useState } from "react";
 import { DataContext } from "@/context/data-context";
 import { AddCategoryDialog } from "./add-category-dialog";
@@ -53,7 +53,9 @@ export function CategoryManager() {
                         <CardTitle>Gestionar Categorías</CardTitle>
                         <CardDescription>Añade, edita o elimina categorías para tus transacciones.</CardDescription>
                     </div>
-                    <Button onClick={handleAddNew}>Añadir Nueva</Button>
+                    <Button onClick={handleAddNew} size="icon" variant="outline">
+                        <PlusCircle className="h-6 w-6" />
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>

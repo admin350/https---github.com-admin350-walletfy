@@ -23,9 +23,8 @@ export default function BankCardsPage() {
                         </CardDescription>
                     </div>
                      <AddBankCardDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-orange-400" />
-                            Añadir Tarjeta
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddBankCardDialog>
                 </CardHeader>

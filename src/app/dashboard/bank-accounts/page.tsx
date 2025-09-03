@@ -69,9 +69,8 @@ export default function BankAccountsPage() {
                         </CardDescription>
                     </div>
                      <AddBankAccountDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-primary" />
-                            Añadir Cuenta
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddBankAccountDialog>
                 </CardHeader>

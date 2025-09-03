@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useContext } from "react";
 import { DataContext } from "@/context/data-context";
@@ -18,7 +18,9 @@ export function ProfileManager() {
                         <CardTitle>Gestionar Perfiles</CardTitle>
                         <CardDescription>Añade, edita o elimina perfiles de usuario para organizar tus finanzas.</CardDescription>
                     </div>
-                    <Button>Añadir Perfil</Button>
+                    <Button size="icon" variant="outline">
+                        <PlusCircle className="h-6 w-6" />
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>

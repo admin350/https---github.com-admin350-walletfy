@@ -80,9 +80,8 @@ export default function GoalsPage() {
                         </CardDescription>
                     </div>
                      <AddGoalDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-yellow-400" />
-                            Añadir Meta
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddGoalDialog>
                 </CardHeader>

@@ -72,9 +72,8 @@ export default function InvestmentsPage() {
                         </CardDescription>
                     </div>
                      <AddInvestmentDialog>
-                        <Button>
-                           <PlusCircle className="mr-2 h-4 w-4 text-green-400" />
-                            Añadir Inversión
+                        <Button size="icon" variant="outline">
+                           <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddInvestmentDialog>
                 </CardHeader>
