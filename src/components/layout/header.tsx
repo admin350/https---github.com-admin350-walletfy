@@ -12,6 +12,7 @@ import { DataContext } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
+import { useAuth } from "@/context/auth-context";
 
 const navSections = [
     {
@@ -52,6 +53,7 @@ export function Header() {
     setFilters,
     availableYears 
   } = useContext(DataContext);
+  const { logout } = useAuth();
   
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
@@ -126,7 +128,7 @@ export function Header() {
                     </Select>
                  </div>
             )}
-           <Button variant="ghost" size="icon">
+           <Button variant="ghost" size="icon" onClick={logout}>
             <LogOut className="h-4 w-4" />
            </Button>
         </div>
