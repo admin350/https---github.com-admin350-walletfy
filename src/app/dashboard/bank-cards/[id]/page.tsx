@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function CardTransactionsTable({ cardId }: { cardId: string }) {
-    const { transactions } = useContext(DataContext);
+    const { transactions, formatCurrency } = useContext(DataContext);
     const cardTransactions = transactions.filter(t => t.cardId === cardId);
 
     return (
@@ -43,7 +43,7 @@ function CardTransactionsTable({ cardId }: { cardId: string }) {
                             <TableCell>{t.description}</TableCell>
                             <TableCell>{t.category}</TableCell>
                             <TableCell className="text-right font-medium text-red-400">
-                                -${t.amount.toLocaleString('es-CL')}
+                                -{formatCurrency(t.amount, false)}
                             </TableCell>
                         </TableRow>
                     ))
@@ -62,7 +62,7 @@ function CardTransactionsTable({ cardId }: { cardId: string }) {
 
 export default function BankCardDetailPage() {
     const { id } = useParams();
-    const { bankCards, bankAccounts, isLoading } = useContext(DataContext);
+    const { bankCards, bankAccounts, isLoading, formatCurrency } = useContext(DataContext);
 
     const card = bankCards.find(c => c.id === id);
     const account = bankAccounts.find(a => a.id === card?.accountId);
@@ -114,11 +114,11 @@ export default function BankCardDetailPage() {
                 <KpiCard title="Perfil Asociado" value={card.profile} icon={WalletCards} description={`Cuenta: ${account?.name || 'N/A'}`}/>
                 {isCredit ? (
                     <>
-                        <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">${usedAmount.toLocaleString('es-CL')}</span>} icon={Banknote} iconClassName="text-red-400" description={`de $${creditLimit.toLocaleString('es-CL')}`}/>
-                        <KpiCard title="Cupo Disponible" value={<span className="text-green-400">${availableAmount.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-green-400" description="Cupo restante para compras"/>
+                        <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">{formatCurrency(usedAmount)}</span>} icon={Banknote} iconClassName="text-red-400" description={`de ${formatCurrency(creditLimit)}`}/>
+                        <KpiCard title="Cupo Disponible" value={<span className="text-green-400">{formatCurrency(availableAmount)}</span>} icon={Landmark} iconClassName="text-green-400" description="Cupo restante para compras"/>
                     </>
                 ) : (
-                    <KpiCard title="Saldo de Cuenta" value={<span className="text-green-400">${account?.balance.toLocaleString('es-CL') || '0'}</span>} icon={Landmark} iconClassName="text-green-400" description="Saldo de la cuenta de débito asociada."/>
+                    <KpiCard title="Saldo de Cuenta" value={<span className="text-green-400">{formatCurrency(account?.balance || 0)}</span>} icon={Landmark} iconClassName="text-green-400" description="Saldo de la cuenta de débito asociada."/>
                 )}
              </div>
 
@@ -126,7 +126,7 @@ export default function BankCardDetailPage() {
                 <div>
                     <div className='flex justify-between items-center mb-1'>
                         <p className="text-sm text-muted-foreground">{progress.toFixed(1)}% del cupo utilizado</p>
-                        <p className="text-sm text-muted-foreground">Cupo Total: ${creditLimit.toLocaleString('es-CL')}</p>
+                        <p className="text-sm text-muted-foreground">Cupo Total: {formatCurrency(creditLimit)}</p>
                     </div>
                     <Progress value={progress} className="h-2" />
                 </div>
