@@ -10,7 +10,7 @@ import { useContext, useState } from "react";
 import { DataContext } from "@/context/data-context";
 import { AddBankCardDialog } from "./add-bank-card-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Progress } from "../ui/progress";
 
 interface BankCardComponentProps {
