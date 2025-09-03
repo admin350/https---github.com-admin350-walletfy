@@ -45,7 +45,7 @@ Analyze the user's financial data for the specified month and year.
 *   **Total Income:** {{{totalIncome}}}
 *   **Total Expenses:** {{{totalExpenses}}}
 *   **Net Balance:** {{{netBalance}}}
-*   **Expenses by Category:** {{jsonStringify expensesByCategory}}
+*   **Expenses by Category:** {{expensesByCategory}}
 *   **Active Debts:** {{{activeDebts}}}
 *   **Active Goals:** {{{activeGoals}}}
 *   **Active Investments:** {{{activeInvestments}}}
