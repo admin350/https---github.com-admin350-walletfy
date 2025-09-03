@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { DataContext } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, CreditCard, Landmark, Percent, Scale, WalletCards } from 'lucide-react';
+import { ArrowLeft, Banknote, CreditCard, Landmark, WalletCards } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import {
     Table,
@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/table";
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function CardTransactionsTable({ cardId }: { cardId: string }) {
     const { transactions } = useContext(DataContext);
@@ -85,11 +88,25 @@ export default function BankCardDetailPage() {
     
     return (
         <div className="space-y-6">
-             <div className="flex flex-col space-y-2">
-                 <div className="flex items-center gap-4">
+             <div className="flex items-center gap-4 mb-4">
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Button asChild variant="outline" size="icon">
+                                <Link href="/dashboard/bank-cards">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Volver a Tarjetas</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                 <div className="flex flex-col">
                     <h1 className="text-2xl font-bold">{card.name}</h1>
+                    <p className="text-muted-foreground">Detalle y movimientos de tu tarjeta {card.bank} terminada en {card.last4Digits}.</p>
                  </div>
-                <p className="text-muted-foreground">Detalle y movimientos de tu tarjeta {card.bank} terminada en {card.last4Digits}.</p>
              </div>
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
