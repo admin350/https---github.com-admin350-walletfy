@@ -104,10 +104,10 @@ export default function BankAccountDetailPage() {
              </div>
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <KpiCard title="Saldo Actual" value={<span className="text-primary">${account.balance.toLocaleString('es-CL')}</span>} icon={Landmark} description="Dinero disponible en la cuenta"/>
-                <KpiCard title="Banco" value={account.bank} icon={Building} description={account.accountNumber} />
-                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} />
-                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} />
+                <KpiCard title="Saldo Actual" value={<span className="text-primary">${account.balance.toLocaleString('es-CL')}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
+                <KpiCard title="Banco" value={account.bank} icon={Building} iconClassName="text-blue-400" description={account.accountNumber} />
+                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" />
+                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" />
              </div>
 
             <Card>

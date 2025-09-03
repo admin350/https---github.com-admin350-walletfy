@@ -20,6 +20,7 @@ export type BankAccount = {
   accountNumber: string;
   balance: number;
   profile: string;
+  color?: string;
 }
 
 export type BankCard = {

@@ -35,6 +35,7 @@ const formSchema = z.object({
   accountNumber: z.string().min(1, { message: "El número de cuenta es requerido." }),
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
+  color: z.string().optional(),
 });
 
 interface AddBankAccountDialogProps {
@@ -63,12 +64,16 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             accountNumber: "",
             balance: 0,
             profile: "",
+            color: "#0ea5e9",
         },
     });
 
     useEffect(() => {
         if (dialogOpen && accountToEdit) {
-            form.reset(accountToEdit);
+            form.reset({
+                ...accountToEdit,
+                color: accountToEdit.color || "#0ea5e9"
+            });
         } else if (dialogOpen && !accountToEdit) {
             form.reset({
                 name: "",
@@ -77,6 +82,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 accountNumber: "",
                 balance: 0,
                 profile: "",
+                color: "#0ea5e9",
             });
         }
     }, [accountToEdit, form, dialogOpen]);
@@ -171,6 +177,22 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="color"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color Representativo</FormLabel>
+                                        <FormControl>
+                                            <div className='flex items-center gap-2'>
+                                                <Input type="color" className='w-12 h-10 p-1' {...field} />
+                                                <Input type="text" className='flex-1' {...field} />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />

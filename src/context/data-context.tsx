@@ -7,15 +7,15 @@ import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMont
 
 // MOCK DATA
 const mockBankAccounts: BankAccount[] = [
-    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', accountNumber: '123456789', balance: 1850000, profile: 'Personal' },
-    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', accountNumber: '987654321', balance: 3200000, profile: 'Negocio' },
-    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', accountNumber: '112233445', balance: 250000, profile: 'Personal' },
+    { id: 'acc1', name: 'Cuenta Principal', bank: 'Banco de Chile', accountType: 'Cuenta Corriente', accountNumber: '123456789', balance: 1850000, profile: 'Personal', color: '#00509D' },
+    { id: 'acc2', name: 'Cuenta de Negocios', bank: 'Santander', accountType: 'Cuenta Corriente', accountNumber: '987654321', balance: 3200000, profile: 'Negocio', color: '#e60000' },
+    { id: 'acc3', name: 'Cuenta MACH', bank: 'BCI', accountType: 'Cuenta Vista', accountNumber: '112233445', balance: 250000, profile: 'Personal', color: '#7b4397' },
 ];
 
 const mockBankCards: BankCard[] = [
-    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1', creditLimit: 2000000, usedAmount: 450000 },
-    { id: 'card2', name: 'Mastercard Negocios', bank: 'Santander', cardType: 'debit', last4Digits: '5678', profile: 'Negocio', accountId: 'acc2' },
-    { id: 'card3', name: 'Prepago Tenpo', bank: 'Tenpo', cardType: 'prepaid', last4Digits: '9988', profile: 'Personal', accountId: 'acc3' },
+    { id: 'card1', name: 'Visa Personal', bank: 'Banco de Chile', cardType: 'credit', last4Digits: '1234', profile: 'Personal', accountId: 'acc1', creditLimit: 2000000, usedAmount: 450000, cardLevel: 'Signature', cardColor: '#1a1a1a'},
+    { id: 'card2', name: 'Mastercard Negocios', bank: 'Santander', cardType: 'debit', last4Digits: '5678', profile: 'Negocio', accountId: 'acc2', cardLevel: 'Business', cardColor: '#d62828' },
+    { id: 'card3', name: 'Prepago Tenpo', bank: 'Tenpo', cardType: 'prepaid', last4Digits: '9988', profile: 'Personal', accountId: 'acc3', cardLevel: 'Standard', cardColor: '#764abc' },
 ];
 
 const mockTransactions: Transaction[] = [

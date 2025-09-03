@@ -49,6 +49,8 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     };
     
     const accountStyle = {
+      '--tw-gradient-from': account.color || '#374151',
+      '--tw-gradient-to': 'rgb(0 0 0 / 1)',
       '--tw-shadow-color': profile ? profile.color : '#06b6d4',
     } as React.CSSProperties;
 
@@ -59,9 +61,10 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative aspect-video rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[--tw-shadow-color]/20 hover:shadow-[--tw-shadow-color]/30 bg-gradient-to-br from-card to-background border border-border"
+                    "relative aspect-video rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
                 )}
             >
+                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
                 <div className="relative z-10 flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-2">
