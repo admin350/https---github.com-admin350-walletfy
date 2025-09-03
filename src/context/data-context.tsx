@@ -2,7 +2,7 @@
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
-import { createContext, useState, useEffect, ReactNode, useMemo } from "react";
+import { createContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
 import { addDays, addMonths, setDate, getYear, getMonth, startOfMonth, endOfMonth, isPast } from "date-fns";
 
 // MOCK DATA
@@ -191,6 +191,7 @@ interface DataContextType {
     deleteReport: (id: string) => Promise<void>;
     updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
+    formatCurrency: (value: number, withSymbol?: boolean, isCompact?: boolean) => string;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -252,6 +253,7 @@ export const DataContext = createContext<DataContextType>({
     deleteReport: async () => {},
     updateSettings: async () => {},
     getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
+    formatCurrency: () => '',
 });
 
 // PROVIDER
@@ -278,6 +280,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         month: getMonth(new Date()),
         year: getYear(new Date()),
     });
+
+    const formatCurrency = useCallback((value: number, withSymbol = true, isCompact = false) => {
+        const options: Intl.NumberFormatOptions = {
+            style: 'currency',
+            currency: settings.currency,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        };
+
+        if (!withSymbol) {
+            options.style = 'decimal';
+        }
+        
+        if (isCompact) {
+             options.notation = 'compact';
+             options.compactDisplay = 'short';
+        }
+
+        const locale = settings.currency === 'CLP' ? 'es-CL' : settings.currency === 'USD' ? 'en-US' : 'de-DE';
+        
+        return new Intl.NumberFormat(locale, options).format(value);
+    }, [settings.currency]);
     
     // Simulate fetching data on mount
     useEffect(() => {
@@ -304,6 +328,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const availableYears = useMemo(() => {
         const years = new Set(transactions.map(t => getYear(new Date(t.date))));
+        years.add(getYear(new Date())); // Ensure current year is always available
         return Array.from(years).sort((a, b) => b - a);
     }, [transactions]);
     
@@ -422,9 +447,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         });
         
-        // This logic gets complex with credit cards. For now, we simplify it by assuming
-        // updates don't change card type vs non-card, which is a reasonable assumption for an MVP.
         if (originalTransaction) {
+            // Revert original transaction effect
             setBankAccounts(prev => prev.map(acc => {
                 let balance = acc.balance;
                 if (acc.id === originalTransaction!.accountId) {
@@ -434,15 +458,36 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         balance += originalTransaction!.amount;
                     }
                 }
-                if (acc.id === updatedTransaction.accountId) {
-                     if (updatedTransaction.type === 'income') {
-                        balance += updatedTransaction.amount;
-                    } else {
-                        balance -= updatedTransaction.amount;
-                    }
-                }
                 return { ...acc, balance };
             }));
+
+             setBankCards(prev => prev.map(card => {
+                let used = card.usedAmount || 0;
+                if(card.cardType === 'credit' && card.id === originalTransaction!.cardId) {
+                    used -= originalTransaction!.amount;
+                }
+                return { ...card, usedAmount: used };
+            }));
+
+            // Apply new transaction effect
+            const card = bankCards.find(c => c.id === updatedTransaction.cardId);
+            if (updatedTransaction.type === 'expense' && card && card.cardType === 'credit') {
+                setBankCards(prev => prev.map(c => 
+                    c.id === card.id ? { ...c, usedAmount: (c.usedAmount || 0) + updatedTransaction.amount } : c
+                ));
+            } else {
+                setBankAccounts(prev => prev.map(acc => {
+                    let balance = acc.balance;
+                     if (acc.id === updatedTransaction.accountId) {
+                        if (updatedTransaction.type === 'income') {
+                            balance += updatedTransaction.amount;
+                        } else {
+                            balance -= updatedTransaction.amount;
+                        }
+                    }
+                    return { ...acc, balance };
+                }));
+            }
         }
     };
 
@@ -771,9 +816,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addReport,
             deleteReport,
             updateSettings,
-            getAllDataForMonth
+            getAllDataForMonth,
+            formatCurrency,
         }}>
             {children}
         </DataContext.Provider>
     );
 };
+

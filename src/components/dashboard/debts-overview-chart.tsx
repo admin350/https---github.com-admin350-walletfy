@@ -105,3 +105,4 @@ export function DebtsOverviewChart() {
 // Recharts doesn't directly expose Cell for BarChart, but it works.
 // We'll declare it to satisfy TypeScript.
 const Cell = (_props: { fill: string; key: string, opacity?: number }) => null;
+
