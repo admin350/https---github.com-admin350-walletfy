@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function DebtDetailPage() {
     const { id } = useParams();
-    const { debts, debtPayments, isLoading } = useContext(DataContext);
+    const { debts, debtPayments, isLoading, formatCurrency } = useContext(DataContext);
 
     const debt = debts.find(d => d.id === id);
     const payments = debtPayments.filter(p => p.debtId === id);
@@ -60,16 +60,16 @@ export default function DebtDetailPage() {
              </div>
              
              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                <KpiCard title="Monto Total" value={`$${debt.totalAmount.toLocaleString('es-CL')}`} icon={Scale} iconClassName="text-red-400" description="Monto original de la deuda"/>
-                <KpiCard title="Monto Pagado" value={`$${debt.paidAmount.toLocaleString('es-CL')}`} icon={HandCoins} iconClassName="text-green-400" description="Suma de todos los abonos"/>
-                <KpiCard title="Monto Restante" value={`$${remainingAmount.toLocaleString('es-CL')}`} icon={Banknote} iconClassName="text-red-400" description="Lo que queda por pagar"/>
-                <KpiCard title="Cuota Mensual" value={`$${debt.monthlyPayment.toLocaleString('es-CL')}`} icon={Landmark} iconClassName="text-red-400" description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
+                <KpiCard title="Monto Total" value={formatCurrency(debt.totalAmount)} icon={Scale} iconClassName="text-red-400" description="Monto original de la deuda"/>
+                <KpiCard title="Monto Pagado" value={formatCurrency(debt.paidAmount)} icon={HandCoins} iconClassName="text-green-400" description="Suma de todos los abonos"/>
+                <KpiCard title="Monto Restante" value={formatCurrency(remainingAmount)} icon={Banknote} iconClassName="text-red-400" description="Lo que queda por pagar"/>
+                <KpiCard title="Cuota Mensual" value={formatCurrency(debt.monthlyPayment)} icon={Landmark} iconClassName="text-red-400" description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
                 <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} iconClassName="text-green-400" description="Total de cuotas pagadas"/>
              </div>
 
             <div>
                 <p className="text-sm text-muted-foreground mb-1">{progress.toFixed(1)}% pagado</p>
-                <Progress value={progress} className="h-2" />
+                <Progress value={progress > 100 ? 100 : progress} className="h-2" />
             </div>
 
             <Card>
@@ -92,7 +92,7 @@ export default function DebtDetailPage() {
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
                                         <TableCell>{format(payment.date, "dd/MM/yyyy")}</TableCell>
-                                        <TableCell className="text-right font-medium">${payment.amount.toLocaleString('es-CL')}</TableCell>
+                                        <TableCell className="text-right font-medium">{formatCurrency(payment.amount)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -110,5 +110,3 @@ export default function DebtDetailPage() {
         </div>
     )
 }
-
-    
