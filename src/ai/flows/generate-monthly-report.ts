@@ -48,6 +48,7 @@ Analyze the user's financial data for the specified month and year.
 
 Provide a clear and well-structured financial analysis based on the data.
 Ensure your entire response is a single, valid Markdown string.
+If you cannot generate a report for any reason, respond with a simple error message in Markdown, like '# Error\n\nNo se pudo generar el informe.' but never return a null or non-string response.
 `,
 });
 
