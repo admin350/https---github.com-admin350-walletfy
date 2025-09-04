@@ -1,18 +1,17 @@
 
-
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsPortfolioDataTable } from "@/components/transactions/savings-portfolio-data-table";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Landmark, ArrowRightLeft, Wallet } from "lucide-react";
-import { useContext, useMemo } from "react";
-import { DataContext } from "@/context/data-context";
+import { useMemo } from "react";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalContributionsTable } from "@/components/goals/goal-contributions-table";
 
 
 export default function SavingsPortfolioPage() {
-    const { bankAccounts, goalContributions, isLoading, formatCurrency } = useContext(DataContext);
+    const { bankAccounts, goalContributions, isLoading, formatCurrency } = useData();
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     

@@ -1,7 +1,6 @@
 
-
 'use client';
-import { useState, useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Investment } from '@/types';
 
 interface ContributeToInvestmentDialogProps {
@@ -36,7 +35,7 @@ interface ContributeToInvestmentDialogProps {
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addInvestmentContribution, bankAccounts, investmentContributions } = useContext(DataContext);
+    const { addInvestmentContribution, bankAccounts, investmentContributions } = useData();
     
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
     const totalInvestmentTransfers = investmentAccount?.balance ?? 0;

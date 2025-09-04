@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
@@ -48,7 +49,7 @@ export function DebtsWidget() {
                     Vence: {format(debt.dueDate, "dd 'de' MMMM", { locale: es })}
                   </p>
                 </div>
-                <p className="font-semibold text-base">${debt.amount.toLocaleString('es-CL')}</p>
+                <p className="font-semibold text-base">${debt.monthlyPayment.toLocaleString('es-CL')}</p>
               </li>
             ))}
           </ul>

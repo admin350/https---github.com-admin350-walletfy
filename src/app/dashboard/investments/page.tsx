@@ -1,19 +1,17 @@
 
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, TrendingUp, Wallet, BarChart } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddInvestmentDialog } from "@/components/investments/add-investment-dialog";
 import { InvestmentsWidget } from "@/components/investments/investments-widget";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 
 export default function InvestmentsPage() {
-    const { investments, isLoading } = useContext(DataContext);
+    const { investments, isLoading } = useData();
     
     const totalInvested = investments.reduce((acc, investment) => acc + investment.initialAmount, 0);
     const totalCurrentValue = investments.reduce((acc, investment) => acc + investment.currentValue, 0);

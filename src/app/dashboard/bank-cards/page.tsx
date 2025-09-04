@@ -4,13 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { AddBankCardDialog } from "@/components/wallets/add-bank-card-dialog";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { BankCardComponent } from "@/components/wallets/bank-card-component";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BankCardsPage() {
-    const { bankCards, isLoading } = useContext(DataContext);
+    const { bankCards, isLoading } = useData();
     
     return (
         <div className="space-y-6">

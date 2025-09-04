@@ -7,8 +7,8 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useContext, useMemo } from "react"
-import { DataContext } from "@/context/data-context"
+import { useMemo } from "react"
+import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 const COLORS = {
@@ -17,7 +17,7 @@ const COLORS = {
 
 
 export function ExpenseChart() {
-  const { transactions, categories, isLoading, formatCurrency } = useContext(DataContext);
+  const { transactions, categories, isLoading, formatCurrency } = useData();
   
   const { chartData, totalIncome } = useMemo(() => {
     const totalIncome = transactions

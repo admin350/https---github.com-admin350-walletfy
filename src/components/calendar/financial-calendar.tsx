@@ -1,8 +1,8 @@
 
 'use client';
-import { useState, useMemo, useContext } from 'react';
+import { useState, useMemo } from 'react';
 import { Calendar } from "@/components/ui/calendar";
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { addMonths, startOfMonth, endOfMonth, getDay, isSameDay, setDate, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
@@ -23,7 +23,7 @@ type CalendarEvent = {
 };
 
 export function FinancialCalendar() {
-    const { debts, subscriptions, fixedExpenses, formatCurrency } = useContext(DataContext);
+    const { debts, subscriptions, fixedExpenses, formatCurrency } = useData();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState<Date | null>(new Date());
     const [itemToPay, setItemToPay] = useState<CalendarEvent | null>(null);

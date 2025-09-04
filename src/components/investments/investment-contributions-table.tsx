@@ -16,13 +16,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
 import type { InvestmentContribution } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { format } from "date-fns";
 
 export function InvestmentContributionsTable() {
-    const { investmentContributions } = useContext(DataContext);
+    const { investmentContributions } = useData();
     
     const columns: ColumnDef<InvestmentContribution>[] = [
         {

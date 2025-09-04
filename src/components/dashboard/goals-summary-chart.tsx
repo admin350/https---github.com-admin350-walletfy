@@ -7,8 +7,8 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useContext, useMemo } from "react"
-import { DataContext } from "@/context/data-context"
+import { useMemo } from "react"
+import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 // Recharts doesn't directly expose Cell for BarChart, but it works.
@@ -17,7 +17,7 @@ const Cell = (_props: { fill: string; key: string, opacity?: number }) => null;
 
 
 export function GoalsSummaryChart() {
-  const { goals, profiles, isLoading, formatCurrency } = useContext(DataContext);
+  const { goals, profiles, isLoading, formatCurrency } = useData();
   
   const chartData = useMemo(() => {
     return goals

@@ -1,7 +1,6 @@
 
-
 'use client';
-import { useState, useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { SavingsGoal } from '@/types';
 
 interface ContributeToGoalDialogProps {
@@ -36,7 +35,7 @@ interface ContributeToGoalDialogProps {
 export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeToGoalDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addGoalContribution, bankAccounts, goalContributions } = useContext(DataContext);
+    const { addGoalContribution, bankAccounts, goalContributions } = useData();
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     const totalSavings = savingsAccount?.balance ?? 0;

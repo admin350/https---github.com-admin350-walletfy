@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Target, CheckCircle, PiggyBank } from "lucide-react";
 import { AddGoalDialog } from "@/components/goals/add-goal-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GoalsPage() {
-    const { goals, isLoading } = useContext(DataContext);
+    const { goals, isLoading } = useData();
     
     const totalGoals = goals.length;
     const totalTargetAmount = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
@@ -103,5 +102,3 @@ export default function GoalsPage() {
         </div>
     )
 }
-
-    

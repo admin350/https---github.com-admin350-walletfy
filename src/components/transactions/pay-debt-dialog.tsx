@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Debt } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
@@ -36,7 +36,7 @@ interface PayDebtDialogProps {
 export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebtPayment, bankAccounts } = useContext(DataContext);
+    const { addDebtPayment, bankAccounts } = useData();
     
     const relevantAccount = bankAccounts.find(acc => acc.id === debt.accountId);
     

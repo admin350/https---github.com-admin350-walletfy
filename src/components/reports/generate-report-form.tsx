@@ -1,9 +1,9 @@
 
 'use client'
-import { useState, useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { format, getMonth, getYear } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +12,7 @@ import { Loader2, Sparkles } from 'lucide-react';
 import type { MonthlyReport } from '@/types';
 
 export function GenerateReportForm() {
-    const { availableYears, reports, getAllDataForMonth, addReport } = useContext(DataContext);
+    const { availableYears, reports, getAllDataForMonth, addReport } = useData();
     const { toast } = useToast();
     
     const [selectedYear, setSelectedYear] = useState(getYear(new Date()));

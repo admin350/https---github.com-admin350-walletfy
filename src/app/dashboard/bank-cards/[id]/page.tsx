@@ -1,8 +1,7 @@
 
 'use client';
-import { useContext } from 'react';
 import { useParams } from 'next/navigation';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { ArrowLeft, Banknote, CreditCard, Landmark, WalletCards } from 'lucide-react';
@@ -22,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function CardTransactionsTable({ cardId }: { cardId: string }) {
-    const { transactions, formatCurrency } = useContext(DataContext);
+    const { transactions, formatCurrency } = useData();
     const cardTransactions = transactions.filter(t => t.cardId === cardId);
 
     return (
@@ -62,7 +61,7 @@ function CardTransactionsTable({ cardId }: { cardId: string }) {
 
 export default function BankCardDetailPage() {
     const { id } = useParams();
-    const { bankCards, bankAccounts, isLoading, formatCurrency } = useContext(DataContext);
+    const { bankCards, bankAccounts, isLoading, formatCurrency } = useData();
 
     const card = bankCards.find(c => c.id === id);
     const account = bankAccounts.find(a => a.id === card?.accountId);

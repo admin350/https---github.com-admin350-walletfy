@@ -16,13 +16,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
 import type { GoalContribution } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { format } from "date-fns";
 
 export function GoalContributionsTable() {
-    const { goalContributions } = useContext(DataContext);
+    const { goalContributions } = useData();
     
     const columns: ColumnDef<GoalContribution>[] = [
         {

@@ -1,12 +1,12 @@
 
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useEffect, useContext } from 'react';
-import { DataContext } from "@/context/data-context";
+import { useState, useEffect } from 'react';
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function FixedExpensesWidget() {
-  const { fixedExpenses, isLoading } = useContext(DataContext);
+  const { fixedExpenses, isLoading } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

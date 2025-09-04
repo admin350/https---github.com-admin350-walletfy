@@ -1,9 +1,8 @@
 
 'use client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useEffect, useState, useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useEffect, useState } from "react";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,11 +25,10 @@ interface SavingsGoalsWidgetProps {
 
 
 export function SavingsGoalsWidget({ goals: goalsFromProps, isLoading: isLoadingFromProps, isDashboardWidget = false }: SavingsGoalsWidgetProps) {
-  const context = useContext(DataContext);
-  const { deleteGoal } = context;
+  const { deleteGoal, goals: goalsFromContext, isLoading: isLoadingFromContext } = useData();
 
-  const goals = goalsFromProps !== undefined ? goalsFromProps : context.goals;
-  const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : context.isLoading;
+  const goals = goalsFromProps !== undefined ? goalsFromProps : goalsFromContext;
+  const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : isLoadingFromContext;
 
 
   const [isClient, setIsClient] = useState(false);

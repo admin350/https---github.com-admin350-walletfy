@@ -1,7 +1,7 @@
 
 
 'use client';
-import { ReactNode, useState, useContext, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Transaction } from '@/types';
 
 
@@ -81,7 +81,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards } = useContext(DataContext);
+    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;

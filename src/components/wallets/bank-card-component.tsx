@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { Cpu, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { useContext, useState } from "react";
-import { DataContext } from "@/context/data-context";
+import { useState } from "react";
+import { useData } from "@/context/data-context";
 import { AddBankCardDialog } from "./add-bank-card-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
@@ -34,7 +34,7 @@ const MastercardLogo = () => (
 
 
 export function BankCardComponent({ card }: BankCardComponentProps) {
-    const { deleteBankCard } = useContext(DataContext);
+    const { deleteBankCard } = useData();
     const { toast } = useToast();
     const [cardToEdit, setCardToEdit] = useState<BankCard | null>(null);
 

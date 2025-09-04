@@ -1,8 +1,8 @@
 
 'use client';
 import { Progress } from "@/components/ui/progress";
-import { useEffect, useState, useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useEffect, useState } from "react";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -21,11 +21,10 @@ interface InvestmentsWidgetProps {
 }
 
 export function InvestmentsWidget({ investments: investmentsFromProps, isLoading: isLoadingFromProps }: InvestmentsWidgetProps) {
-  const context = useContext(DataContext);
-  const { deleteInvestment, formatCurrency } = context;
+  const { deleteInvestment, formatCurrency, investments: contextInvestments, isLoading: contextIsLoading } = useData();
 
-  const investments = investmentsFromProps !== undefined ? investmentsFromProps : context.investments;
-  const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : context.isLoading;
+  const investments = investmentsFromProps !== undefined ? investmentsFromProps : contextInvestments;
+  const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : contextIsLoading;
 
   const [isClient, setIsClient] = useState(false);
   const [selectedForContribution, setSelectedForContribution] = useState<Investment | null>(null);

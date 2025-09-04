@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -15,14 +15,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useContext, useMemo } from "react"
-import { DataContext } from "@/context/data-context"
+import { useMemo } from "react"
+import { useData } from "@/context/data-context"
 import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, getYear, getMonth } from "date-fns"
 import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
 export function CashflowChart() {
-  const { transactions, isLoading, filters, profiles, formatCurrency } = useContext(DataContext);
+  const { transactions, isLoading, filters, profiles, formatCurrency } = useData();
   
   const chartConfig = useMemo(() => {
     const config: any = {};

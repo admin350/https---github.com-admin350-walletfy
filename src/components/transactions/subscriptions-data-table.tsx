@@ -17,9 +17,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import type { Subscription } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { format, isPast } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -34,7 +34,7 @@ interface SubscriptionsDataTableProps {
 }
 
 export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
-    const { cancelSubscription, bankCards } = useContext(DataContext);
+    const { cancelSubscription, bankCards } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);

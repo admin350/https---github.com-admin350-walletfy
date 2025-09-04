@@ -1,18 +1,17 @@
 
-
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Landmark, ArrowRightLeft, Wallet } from "lucide-react";
-import { useContext, useMemo } from "react";
-import { DataContext } from "@/context/data-context";
+import { useMemo } from "react";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 import { InvestmentsPortfolioDataTable } from "@/components/transactions/investments-portfolio-data-table";
 
 
 export default function InvestmentsPortfolioPage() {
-    const { bankAccounts, investmentContributions, isLoading, formatCurrency } = useContext(DataContext);
+    const { bankAccounts, investmentContributions, isLoading, formatCurrency } = useData();
     
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
     

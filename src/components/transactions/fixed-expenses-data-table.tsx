@@ -16,9 +16,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import type { FixedExpense, Transaction } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { MoreHorizontal, Pencil, Trash2, FilePlus2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,7 @@ import { AddFixedExpenseDialog } from "./add-fixed-expense-dialog";
 import { Badge } from "../ui/badge";
 
 export function FixedExpensesDataTable() {
-    const { fixedExpenses, deleteFixedExpense } = useContext(DataContext);
+    const { fixedExpenses, deleteFixedExpense } = useData();
     const { toast } = useToast();
     const [expenseToRegister, setExpenseToRegister] = useState<Partial<Transaction> | undefined>(undefined);
     const [expenseToEdit, setExpenseToEdit] = useState<FixedExpense | undefined>(undefined);

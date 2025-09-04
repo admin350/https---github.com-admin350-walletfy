@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
@@ -44,7 +44,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addSubscription, profiles, bankCards } = useContext(DataContext);
+    const { addSubscription, profiles, bankCards } = useData();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

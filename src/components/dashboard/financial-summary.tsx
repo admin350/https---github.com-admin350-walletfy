@@ -1,9 +1,8 @@
 
-
 'use client';
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
@@ -16,7 +15,7 @@ export function FinancialSummary() {
         subscriptions,
         isLoading,
         formatCurrency
-    } = useContext(DataContext);
+    } = useData();
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);

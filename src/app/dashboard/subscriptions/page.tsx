@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ListChecks, PlusCircle, CalendarClock, CircleDollarSign, Percent } from "lucide-react";
 import { SubscriptionsDataTable } from "@/components/transactions/subscriptions-data-table";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isPast, isThisMonth, isFuture, startOfToday, format } from "date-fns";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -14,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
 
 export default function SubscriptionsPage() {
-    const { subscriptions, transactions, isLoading } = useContext(DataContext);
+    const { subscriptions, transactions, isLoading } = useData();
     const today = startOfToday();
 
     const activeSubscriptions = subscriptions.filter(s => s.status === 'active');

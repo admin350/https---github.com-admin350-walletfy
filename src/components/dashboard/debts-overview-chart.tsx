@@ -7,12 +7,12 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useContext, useMemo } from "react"
-import { DataContext } from "@/context/data-context"
+import { useMemo } from "react"
+import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 export function DebtsOverviewChart() {
-  const { debts, profiles, isLoading, formatCurrency } = useContext(DataContext);
+  const { debts, profiles, isLoading, formatCurrency } = useData();
   
   const chartData = useMemo(() => {
     return debts
@@ -105,4 +105,3 @@ export function DebtsOverviewChart() {
 // Recharts doesn't directly expose Cell for BarChart, but it works.
 // We'll declare it to satisfy TypeScript.
 const Cell = (_props: { fill: string; key: string, opacity?: number }) => null;
-

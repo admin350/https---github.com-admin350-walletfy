@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { FixedExpense } from '@/types';
 
 const formSchema = z.object({
@@ -49,7 +49,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addFixedExpense, updateFixedExpense, categories, profiles } = useContext(DataContext);
+    const { addFixedExpense, updateFixedExpense, categories, profiles } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;

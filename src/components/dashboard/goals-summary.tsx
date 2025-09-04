@@ -1,14 +1,13 @@
 
 'use client';
-import { useContext } from 'react';
+import { useData } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataContext } from '@/context/data-context';
 import { Target } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { Skeleton } from '../ui/skeleton';
 
 export function GoalsSummary() {
-    const { goals, isLoading } = useContext(DataContext);
+    const { goals, isLoading } = useData();
     
     const activeGoals = goals.filter(g => g.currentAmount < g.targetAmount);
 

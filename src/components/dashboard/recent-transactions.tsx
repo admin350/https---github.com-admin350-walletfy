@@ -3,12 +3,12 @@
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState, useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useEffect, useState } from "react";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function RecentTransactions() {
-  const { transactions, isLoading, formatCurrency } = useContext(DataContext);
+  const { transactions, isLoading, formatCurrency } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

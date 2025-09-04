@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import * as z from "zod";
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Budget } from '@/types';
 
 const budgetItemSchema = z.object({
@@ -42,7 +42,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addBudget, updateBudget, profiles, categories } = useContext(DataContext);
+    const { addBudget, updateBudget, profiles, categories } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;

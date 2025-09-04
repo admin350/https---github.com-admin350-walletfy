@@ -16,9 +16,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import type { Debt } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ interface DebtsDataTableProps {
 
 
 export function DebtsDataTable({ debts }: DebtsDataTableProps) {
-    const { deleteDebt, profiles, formatCurrency } = useContext(DataContext);
+    const { deleteDebt, profiles, formatCurrency } = useData();
     const { toast } = useToast();
     const [debtToEdit, setDebtToEdit] = useState<Debt | undefined>(undefined);
     const [debtToPay, setDebtToPay] = useState<Debt | undefined>(undefined);

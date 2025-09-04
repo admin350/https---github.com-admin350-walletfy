@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { useContext, useState } from "react";
-import { DataContext } from "@/context/data-context";
+import { useState } from "react";
+import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import Link from "next/link";
@@ -19,7 +19,7 @@ interface BankAccountComponentProps {
 }
 
 export function BankAccountComponent({ account }: BankAccountComponentProps) {
-    const { deleteBankAccount, profiles, formatCurrency } = useContext(DataContext);
+    const { deleteBankAccount, profiles, formatCurrency } = useData();
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
     const [isCopied, setIsCopied] = useState(false);

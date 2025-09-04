@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useContext, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Subscription } from '@/types';
 
 interface PaySubscriptionDialogProps {
@@ -35,7 +35,7 @@ interface PaySubscriptionDialogProps {
 export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PaySubscriptionDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { paySubscription, bankAccounts, bankCards } = useContext(DataContext);
+    const { paySubscription, bankAccounts, bankCards } = useData();
 
     const card = useMemo(() => bankCards.find(c => c.id === subscription.cardId), [bankCards, subscription]);
     const account = useMemo(() => bankAccounts.find(a => a.id === card?.accountId), [bankAccounts, card]);

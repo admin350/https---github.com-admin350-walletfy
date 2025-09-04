@@ -1,8 +1,7 @@
 
 'use client';
-import { useContext } from 'react';
 import { useParams } from 'next/navigation';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Banknote, Building, Landmark, User } from 'lucide-react';
@@ -24,7 +23,7 @@ import type { Transaction } from '@/types';
 
 
 function AccountTransactionsTable({ accountId }: { accountId: string }) {
-    const { transactions, formatCurrency } = useContext(DataContext);
+    const { transactions, formatCurrency } = useData();
     const accountTransactions = transactions.filter(t => t.accountId === accountId);
 
     return (
@@ -67,7 +66,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
 
 export default function BankAccountDetailPage() {
     const { id } = useParams();
-    const { bankAccounts, isLoading, formatCurrency } = useContext(DataContext);
+    const { bankAccounts, isLoading, formatCurrency } = useData();
 
     const account = bankAccounts.find(c => c.id === id);
 

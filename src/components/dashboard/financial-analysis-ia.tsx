@@ -1,10 +1,11 @@
+
 'use client';
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { generateFinancialSummary } from "@/ai/flows/generate-financial-summary";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,7 +13,7 @@ export function FinancialAnalysisIA() {
     const [question, setQuestion] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [analysis, setAnalysis] = useState("");
-    const { transactions, goals, debts, subscriptions, fixedExpenses } = useContext(DataContext);
+    const { transactions, goals, debts, subscriptions, fixedExpenses } = useData();
     const { toast } = useToast();
 
     const handleAsk = async () => {

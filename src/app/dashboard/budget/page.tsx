@@ -5,15 +5,13 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { AddBudgetDialog } from "@/components/budget/add-budget-dialog";
 import { BudgetWidget } from "@/components/budget/budget-widget";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useData } from "@/context/data-context";
 import { BudgetAnalysis } from "@/components/budget/budget-analysis";
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 export default function BudgetPage() {
-    const { budgets, isLoading, transactions } = useContext(DataContext);
+    const { budgets, isLoading, transactions } = useData();
     
     const totalIncome = transactions
         .filter(t => t.type === 'income')

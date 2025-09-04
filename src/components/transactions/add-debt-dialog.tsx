@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Debt } from '@/types';
 
@@ -55,7 +55,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebt, updateDebt, profiles, bankAccounts } = useContext(DataContext);
+    const { addDebt, updateDebt, profiles, bankAccounts } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;

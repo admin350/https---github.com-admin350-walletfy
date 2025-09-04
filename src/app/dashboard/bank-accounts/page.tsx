@@ -4,14 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Landmark, Wallet, Banknote } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 
 export default function BankAccountsPage() {
-    const { bankAccounts, isLoading } = useContext(DataContext);
+    const { bankAccounts, isLoading } = useData();
     
     const totalBalance = bankAccounts.reduce((acc, account) => acc + account.balance, 0);
     const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);

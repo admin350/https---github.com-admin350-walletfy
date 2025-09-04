@@ -1,8 +1,8 @@
 
 'use client';
-import { useContext, useRef } from 'react';
+import { useRef } from 'react';
 import { useParams } from 'next/navigation';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -70,7 +70,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 
 export default function ReportDetailPage() {
     const { id } = useParams();
-    const { reports, isLoading } = useContext(DataContext);
+    const { reports, isLoading } = useData();
     const [isDownloading, setIsDownloading] = useState(false);
     const reportRef = useRef<HTMLDivElement>(null);
 

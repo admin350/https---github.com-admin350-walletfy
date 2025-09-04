@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { Banknote, HandCoins, PlusCircle, Scale } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { useContext } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isPast } from "date-fns";
 
 export default function DebtsPage() {
-    const { debts, isLoading } = useContext(DataContext);
+    const { debts, isLoading } = useData();
 
     const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
     const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);

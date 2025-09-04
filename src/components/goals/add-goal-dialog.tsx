@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useContext, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { SavingsGoal } from '@/types';
 
 const formSchema = z.object({
@@ -52,7 +52,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addGoal, updateGoal, profiles } = useContext(DataContext);
+    const { addGoal, updateGoal, profiles } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;

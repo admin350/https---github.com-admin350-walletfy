@@ -16,9 +16,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
 import type { MonthlyReport } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
 import Link from "next/link";
@@ -28,7 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 
 export function ReportsDataTable() {
-    const { reports, deleteReport } = useContext(DataContext);
+    const { reports, deleteReport } = useData();
     const { toast } = useToast();
     
     const handleDelete = async (id: string) => {

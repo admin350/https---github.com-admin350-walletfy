@@ -1,8 +1,7 @@
 
 'use client';
-import { useContext } from 'react';
 import { useParams } from 'next/navigation';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Banknote, HandCoins, Landmark, Percent, Scale } from 'lucide-react';
@@ -21,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function DebtDetailPage() {
     const { id } = useParams();
-    const { debts, debtPayments, isLoading, formatCurrency } = useContext(DataContext);
+    const { debts, debtPayments, isLoading, formatCurrency } = useData();
 
     const debt = debts.find(d => d.id === id);
     const payments = debtPayments.filter(p => p.debtId === id);
