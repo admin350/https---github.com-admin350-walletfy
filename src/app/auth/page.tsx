@@ -50,7 +50,7 @@ export default function AuthenticationPage() {
             <div className="absolute inset-0 -z-10 h-full w-full">
                 <div className="relative h-full w-full bg-zinc-900">
                    <div className="absolute inset-0 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                   <div className="absolute -z-10 h-full w-full bg-gradient-to-t from-zinc-950 to-transparent"></div>
+                   <div className="absolute -z-10 h-full w-full bg-gradient-to-t from-zinc-950 to-zinc-900"></div>
                 </div>
             </div>
 
