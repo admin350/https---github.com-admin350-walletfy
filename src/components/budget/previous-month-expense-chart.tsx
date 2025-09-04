@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card"
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useContext, useMemo } from "react"
@@ -35,6 +34,7 @@ export function PreviousMonthExpenseChart() {
     
     const previousMonthLabel = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(prevMonthDate);
 
+    // Use the unfiltered data getter
     const { transactions: prevMonthTransactions } = getAllDataForMonth(prevMonth, prevMonthYear);
 
     const totalIncome = prevMonthTransactions

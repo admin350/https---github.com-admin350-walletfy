@@ -146,21 +146,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
     const uid = user?.uid;
 
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [goals, setGoals] = useState<SavingsGoal[]>([]);
-    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-    const [debts, setDebts] = useState<Debt[]>([]);
-    const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
-    const [profiles, setProfiles] = useState<Profile[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [goalContributions, setGoalContributions] = useState<GoalContribution[]>([]);
-    const [debtPayments, setDebtPayments] = useState<DebtPayment[]>([]);
-    const [investments, setInvestments] = useState<Investment[]>([]);
-    const [investmentContributions, setInvestmentContributions] = useState<InvestmentContribution[]>([]);
-    const [budgets, setBudgets] = useState<Budget[]>([]);
-    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-    const [bankCards, setBankCards] = useState<BankCard[]>([]);
-    const [reports, setReports] = useState<MonthlyReport[]>([]);
+    const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+    const [allGoals, setAllGoals] = useState<SavingsGoal[]>([]);
+    const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
+    const [allDebts, setAllDebts] = useState<Debt[]>([]);
+    const [allFixedExpenses, setAllFixedExpenses] = useState<FixedExpense[]>([]);
+    const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+    const [allCategories, setAllCategories] = useState<Category[]>([]);
+    const [allGoalContributions, setAllGoalContributions] = useState<GoalContribution[]>([]);
+    const [allDebtPayments, setAllDebtPayments] = useState<DebtPayment[]>([]);
+    const [allInvestments, setAllInvestments] = useState<Investment[]>([]);
+    const [allInvestmentContributions, setAllInvestmentContributions] = useState<InvestmentContribution[]>([]);
+    const [allBudgets, setAllBudgets] = useState<Budget[]>([]);
+    const [allBankAccounts, setAllBankAccounts] = useState<BankAccount[]>([]);
+    const [allBankCards, setAllBankCards] = useState<BankCard[]>([]);
+    const [allReports, setAllReports] = useState<MonthlyReport[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP' });
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
@@ -197,21 +197,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) {
             setIsLoading(false);
             // Clear all data when user logs out
-            setTransactions([]);
-            setGoals([]);
-            setSubscriptions([]);
-            setDebts([]);
-            setFixedExpenses([]);
-            setProfiles([]);
-            setCategories([]);
-            setGoalContributions([]);
-            setDebtPayments([]);
-            setInvestments([]);
-            setInvestmentContributions([]);
-            setBudgets([]);
-            setBankAccounts([]);
-            setBankCards([]);
-            setReports([]);
+            setAllTransactions([]);
+            setAllGoals([]);
+            setAllSubscriptions([]);
+            setAllDebts([]);
+            setAllFixedExpenses([]);
+            setAllProfiles([]);
+            setAllCategories([]);
+            setAllGoalContributions([]);
+            setAllDebtPayments([]);
+            setAllInvestments([]);
+            setAllInvestmentContributions([]);
+            setAllBudgets([]);
+            setAllBankAccounts([]);
+            setAllBankCards([]);
+            setAllReports([]);
             setSettings({ currency: 'CLP' });
             return;
         }
@@ -225,21 +225,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         ];
 
         const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
-            transactions: setTransactions,
-            goals: setGoals,
-            subscriptions: setSubscriptions,
-            debts: setDebts,
-            fixedExpenses: setFixedExpenses,
-            profiles: setProfiles,
-            categories: setCategories,
-            goalContributions: setGoalContributions,
-            debtPayments: setDebtPayments,
-            investments: setInvestments,
-            investmentContributions: setInvestmentContributions,
-            budgets: setBudgets,
-            bankAccounts: setBankAccounts,
-            bankCards: setBankCards,
-            reports: setReports,
+            transactions: setAllTransactions,
+            goals: setAllGoals,
+            subscriptions: setAllSubscriptions,
+            debts: setAllDebts,
+            fixedExpenses: setAllFixedExpenses,
+            profiles: setAllProfiles,
+            categories: setAllCategories,
+            goalContributions: setAllGoalContributions,
+            debtPayments: setAllDebtPayments,
+            investments: setAllInvestments,
+            investmentContributions: setAllInvestmentContributions,
+            budgets: setAllBudgets,
+            bankAccounts: setAllBankAccounts,
+            bankCards: setAllBankCards,
+            reports: setAllReports,
         };
 
         const unsubscribers: Unsubscribe[] = [];
@@ -448,10 +448,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteDebt = async (id: string) => await deleteDocById('debts', id);
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         await addDoc('debtPayments', payment);
-        const debt = debts.find(d => d.id === payment.debtId);
+        const debt = allDebts.find(d => d.id === payment.debtId);
         if (debt) {
             await updateDebt({ ...debt, paidAmount: debt.paidAmount + payment.amount });
-            const debtCategory = categories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
+            const debtCategory = allCategories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
             await addTransaction({
                 type: 'expense',
                 amount: payment.amount,
@@ -532,11 +532,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addSubscription = async (sub: Omit<Subscription, 'id'|'status'>) => await addDoc('subscriptions', {...sub, status: 'active'});
     const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
     const cancelSubscription = async (id: string) => {
-        const sub = subscriptions.find(s => s.id === id);
+        const sub = allSubscriptions.find(s => s.id === id);
         if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
     };
     const paySubscription = async (sub: Subscription) => {
-        const subscriptionCategory = categories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
+        const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
         await addTransaction({
             type: 'expense',
             amount: sub.amount,
@@ -544,7 +544,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             category: subscriptionCategory,
             profile: sub.profile,
             date: new Date().toISOString(),
-            accountId: bankCards.find(c => c.id === sub.cardId)?.accountId || '',
+            accountId: allBankCards.find(c => c.id === sub.cardId)?.accountId || '',
             cardId: sub.cardId,
         });
     };
@@ -568,51 +568,51 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateSettings = async (newSettings: Partial<AppSettings>) => await setDocWithId('settings', 'appSettings', newSettings);
     
     const availableYears = useMemo(() => {
-        const years = new Set(transactions.map(t => getYear(new Date(t.date))));
+        const years = new Set(allTransactions.map(t => getYear(new Date(t.date))));
         years.add(getYear(new Date())); // Ensure current year is always available
         return Array.from(years).sort((a, b) => b - a);
-    }, [transactions]);
+    }, [allTransactions]);
     
     const filteredTransactions = useMemo(() => {
-        return transactions.filter(t => {
+        return allTransactions.filter(t => {
             const date = new Date(t.date);
             const profileMatch = filters.profile === 'all' || t.profile === filters.profile;
             const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
             const yearMatch = getYear(date) === filters.year;
             return profileMatch && monthMatch && yearMatch;
         });
-    }, [transactions, filters]);
+    }, [allTransactions, filters]);
     
     const filteredBankAccounts = useMemo(() => {
-        return bankAccounts.filter(acc => filters.profile === 'all' || acc.profile === filters.profile);
-    }, [bankAccounts, filters]);
+        return allBankAccounts.filter(acc => filters.profile === 'all' || acc.profile === filters.profile);
+    }, [allBankAccounts, filters]);
 
     const filteredBankCards = useMemo(() => {
-        return bankCards.filter(card => filters.profile === 'all' || card.profile === filters.profile);
-    }, [bankCards, filters]);
+        return allBankCards.filter(card => filters.profile === 'all' || card.profile === filters.profile);
+    }, [allBankCards, filters]);
 
     const filteredDebts = useMemo(() => {
-        return debts.filter(d => filters.profile === 'all' || d.profile === filters.profile);
-    }, [debts, filters]);
+        return allDebts.filter(d => filters.profile === 'all' || d.profile === filters.profile);
+    }, [allDebts, filters]);
     
     const filteredSubscriptions = useMemo(() => {
-        return subscriptions.filter(s => {
+        return allSubscriptions.filter(s => {
             const profileMatch = filters.profile === 'all' || s.profile === filters.profile;
             return profileMatch;
         });
-    }, [subscriptions, filters]);
+    }, [allSubscriptions, filters]);
 
     const filteredGoals = useMemo(() => {
-        return goals.filter(g => filters.profile === 'all' || g.profile === filters.profile);
-    }, [goals, filters]);
+        return allGoals.filter(g => filters.profile === 'all' || g.profile === filters.profile);
+    }, [allGoals, filters]);
     
     const filteredFixedExpenses = useMemo(() => {
-        return fixedExpenses.filter(fe => filters.profile === 'all' || fe.profile === filters.profile);
-    }, [fixedExpenses, filters]);
+        return allFixedExpenses.filter(fe => filters.profile === 'all' || fe.profile === filters.profile);
+    }, [allFixedExpenses, filters]);
 
     const filteredGoalContributions = useMemo(() => {
-        return goalContributions.filter(gc => {
-            const goal = goals.find(g => g.id === gc.goalId);
+        return allGoalContributions.filter(gc => {
+            const goal = allGoals.find(g => g.id === gc.goalId);
             if (!goal) return false;
             const profileMatch = filters.profile === 'all' || goal.profile === filters.profile;
             const date = new Date(gc.date);
@@ -620,11 +620,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const yearMatch = getYear(date) === filters.year;
             return profileMatch && monthMatch && yearMatch;
         });
-    }, [goalContributions, goals, filters]);
+    }, [allGoalContributions, allGoals, filters]);
 
      const filteredDebtPayments = useMemo(() => {
-        return debtPayments.filter(dp => {
-            const debt = debts.find(d => d.id === dp.debtId);
+        return allDebtPayments.filter(dp => {
+            const debt = allDebts.find(d => d.id === dp.debtId);
             if (!debt) return false;
             const profileMatch = filters.profile === 'all' || debt.profile === filters.profile;
             const date = new Date(dp.date);
@@ -632,15 +632,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const yearMatch = getYear(date) === filters.year;
             return profileMatch && monthMatch && yearMatch;
         });
-    }, [debtPayments, debts, filters]);
+    }, [allDebtPayments, allDebts, filters]);
 
     const filteredInvestments = useMemo(() => {
-        return investments.filter(i => filters.profile === 'all' || i.profile === filters.profile);
-    }, [investments, filters]);
+        return allInvestments.filter(i => filters.profile === 'all' || i.profile === filters.profile);
+    }, [allInvestments, filters]);
 
     const filteredInvestmentContributions = useMemo(() => {
-        return investmentContributions.filter(ic => {
-            const investment = investments.find(i => i.id === ic.investmentId);
+        return allInvestmentContributions.filter(ic => {
+            const investment = allInvestments.find(i => i.id === ic.investmentId);
             if (!investment) return false;
             const profileMatch = filters.profile === 'all' || investment.profile === filters.profile;
             const date = new Date(ic.date);
@@ -648,25 +648,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const yearMatch = getYear(date) === filters.year;
             return profileMatch && monthMatch && yearMatch;
         });
-    }, [investmentContributions, investments, filters]);
+    }, [allInvestmentContributions, allInvestments, filters]);
     
      const filteredBudgets = useMemo(() => {
-        return budgets.filter(b => filters.profile === 'all' || b.profile === filters.profile);
-    }, [budgets, filters]);
+        return allBudgets.filter(b => filters.profile === 'all' || b.profile === filters.profile);
+    }, [allBudgets, filters]);
 
-    const getAllDataForMonth = (month: number, year: number) => {
-        const monthTransactions = transactions.filter(t => {
+    const getAllDataForMonth = useCallback((month: number, year: number) => {
+        const monthTransactions = allTransactions.filter(t => {
             const date = new Date(t.date);
             return getMonth(date) === month && getYear(date) === year;
         });
+        // These are not filtered by month, but that's the existing logic.
+        // If they needed to be, we would filter them here.
         return {
             transactions: monthTransactions,
-            goals,
-            debts,
-            investments,
-            budgets,
+            goals: allGoals,
+            debts: allDebts,
+            investments: allInvestments,
+            budgets: allBudgets,
         }
-    }
+    }, [allTransactions, allGoals, allDebts, allInvestments, allBudgets]);
+
 
     return (
         <DataContext.Provider value={{ 
@@ -675,8 +678,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             subscriptions: filteredSubscriptions,
             debts: filteredDebts,
             fixedExpenses: filteredFixedExpenses,
-            profiles,
-            categories,
+            profiles: allProfiles,
+            categories: allCategories,
             goalContributions: filteredGoalContributions,
             debtPayments: filteredDebtPayments,
             investments: filteredInvestments,
@@ -684,7 +687,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             budgets: filteredBudgets,
             bankAccounts: filteredBankAccounts,
             bankCards: filteredBankCards,
-            reports,
+            reports: allReports,
             settings,
             isLoading,
             filters,
