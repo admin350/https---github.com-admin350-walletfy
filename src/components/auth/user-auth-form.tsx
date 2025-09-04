@@ -24,10 +24,16 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false);
   const [email, setEmail] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
-  const { login, signup, loginWithGoogle, error } = useAuth();
+  const { login, signup, loginWithGoogle, error: authError } = useAuth();
+  const [formError, setFormError] = React.useState<string | null>(null);
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault()
+    if (!email || !password) {
+        setFormError("Por favor, completa todos los campos.");
+        return;
+    }
+    setFormError(null);
     setIsLoading(true)
     if (authAction === 'login') {
         await login(email, password)
@@ -38,6 +44,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   }
   
   const handleGoogleLogin = async () => {
+    setFormError(null);
     setIsGoogleLoading(true);
     await loginWithGoogle();
     setIsGoogleLoading(false);
@@ -46,7 +53,10 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const toggleAuthAction = (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       setAuthAction(authAction === 'login' ? 'signup' : 'login');
+      setFormError(null);
   }
+  
+  const error = formError || authError;
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
