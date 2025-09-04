@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { MoreHorizontal, Trash2, Pencil, PlusCircle } from "lucide-react";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useData } from "@/context/data-context";
 import { AddCategoryDialog } from "./add-category-dialog";
 import { useToast } from "@/hooks/use-toast";

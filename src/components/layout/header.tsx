@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Land
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
@@ -52,7 +52,7 @@ export function Header() {
     filters,
     setFilters,
     availableYears 
-  } = useContext(DataContext);
+  } = useData();
   const { logout } = useAuth();
   
   const months = Array.from({ length: 12 }, (_, i) => ({

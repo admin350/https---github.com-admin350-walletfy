@@ -1,14 +1,13 @@
-
 'use client';
-import { useContext, useState, useMemo } from 'react';
-import { DataContext } from '@/context/data-context';
+import { useState, useMemo } from 'react';
+import { useData } from '@/context/data-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 
 export function BudgetAnalysis() {
-    const { budgets, transactions, isLoading } = useContext(DataContext);
+    const { budgets, transactions, isLoading } = useData();
     const [selectedBudgetId, setSelectedBudgetId] = useState<string | undefined>(budgets[0]?.id);
 
     const analysisData = useMemo(() => {

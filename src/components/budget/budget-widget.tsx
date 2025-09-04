@@ -1,9 +1,7 @@
-
-
 'use client';
-import { useState, useContext } from "react";
+import { useState } from "react";
 import type { Budget } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
@@ -22,7 +20,7 @@ interface BudgetWidgetProps {
 }
 
 export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
-    const { deleteBudget, transactions, categories, profiles } = useContext(DataContext);
+    const { deleteBudget, transactions, categories, profiles } = useData();
     const { toast } = useToast();
 
     const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);

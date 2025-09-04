@@ -2,13 +2,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import type { UpcomingPayment } from '@/types';
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function DebtsWidget() {
-  const { debts, isLoading } = useContext(DataContext);
+  const { debts, isLoading } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

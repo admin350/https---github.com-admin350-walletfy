@@ -1,14 +1,13 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useState, useEffect, useContext } from 'react';
-import { DataContext } from "@/context/data-context";
+import { useState, useEffect } from 'react';
+import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function UpcomingPaymentsWidget() {
-  const { subscriptions, isLoading } = useContext(DataContext);
+  const { subscriptions, isLoading } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

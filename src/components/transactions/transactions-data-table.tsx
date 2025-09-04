@@ -1,5 +1,3 @@
-
-
 'use client'
 import {
     ColumnDef,
@@ -18,9 +16,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext, useState, useMemo } from "react";
+import { useState } from "react";
 import type { Transaction } from "@/types";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { format } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -30,7 +28,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "../ui/badge";
 
 export function TransactionsDataTable() {
-    const { transactions, deleteTransaction, profiles, bankAccounts, formatCurrency } = useContext(DataContext);
+    const { transactions, deleteTransaction, profiles, bankAccounts, formatCurrency } = useData();
     const { toast } = useToast();
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);

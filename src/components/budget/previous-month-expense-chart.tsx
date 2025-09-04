@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
@@ -14,8 +12,8 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useContext, useMemo } from "react"
-import { DataContext } from "@/context/data-context"
+import { useMemo } from "react"
+import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 import { subMonths, getMonth, getYear } from "date-fns"
 
@@ -24,7 +22,7 @@ const COLORS = {
 };
 
 export function PreviousMonthExpenseChart() {
-  const { categories, isLoading, getAllDataForMonth, formatCurrency } = useContext(DataContext);
+  const { categories, isLoading, getAllDataForMonth, formatCurrency } = useData();
 
   const { chartData, totalIncome, previousMonthLabel } = useMemo(() => {
     const today = new Date();

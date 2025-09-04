@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
@@ -23,7 +23,7 @@ import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading } = useContext(DataContext);
+  const { transactions, isLoading } = useData();
 
   useEffect(() => {
     setIsClient(true);
