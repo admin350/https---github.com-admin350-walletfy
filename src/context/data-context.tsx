@@ -223,13 +223,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
         const userDocRef = doc(db, 'users', uid);
-    
-        // Ensure user document exists before batching writes
-        const userDocSnap = await getDoc(userDocRef);
-        if (!userDocSnap.exists()) {
-            // Set a placeholder or initial field to create the document
-            batch.set(userDocRef, { createdAt: new Date() });
-        }
 
         // Set profiles
         data.profiles.forEach(profile => {
@@ -248,7 +241,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         batch.set(settingsRef, data.settings);
 
         // Mark setup as complete by updating the user document
-        batch.update(userDocRef, { setupComplete: true });
+        // Use set with merge true to create if it doesn't exist, or update if it does.
+        batch.set(userDocRef, { setupComplete: true }, { merge: true });
 
         await batch.commit();
         setNeedsSetup(false);
@@ -637,3 +631,6 @@ budgets: filteredBudgets,
     );
 };
 
+
+
+    
