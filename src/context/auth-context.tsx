@@ -7,7 +7,9 @@ import {
     User, 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
-    signOut 
+    signOut,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -18,6 +20,7 @@ interface AuthContextType {
     login: (email: string, pass: string) => Promise<void>;
     signup: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
     error: string | null;
 }
 
@@ -27,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
     login: async () => {},
     signup: async () => {},
     logout: async () => {},
+    loginWithGoogle: async () => {},
     error: null,
 });
 
@@ -70,6 +74,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error(e);
         }
     };
+    
+    const loginWithGoogle = async () => {
+        setError(null);
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
+            // onAuthStateChanged will handle redirect
+        } catch (e: any) {
+            setError(mapFirebaseError(e.code));
+            console.error(e);
+        }
+    }
 
     const logout = async () => {
         setUser(null);
@@ -89,6 +105,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return 'Este correo electrónico ya está en uso.';
             case 'auth/weak-password':
                 return 'La contraseña debe tener al menos 6 caracteres.';
+             case 'auth/popup-closed-by-user':
+                return 'El proceso fue cancelado. Inténtalo de nuevo.';
             default:
                 return 'Ocurrió un error. Por favor, inténtalo de nuevo.';
         }
@@ -101,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         signup,
         logout,
+        loginWithGoogle,
         error
     };
 
