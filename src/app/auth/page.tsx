@@ -1,9 +1,9 @@
 
 'use client';
 import { UserAuthForm } from "@/components/auth/user-auth-form";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { PieChart, Wallet, BarChart, TrendingUp } from "lucide-react";
-import React from "react";
+import React, { useRef } from "react";
 
 // Framer Motion Variants
 const containerVariants = {
@@ -44,18 +44,44 @@ const iconVariants = {
 };
 
 export default function AuthenticationPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
+    if (!currentTarget) return;
+    let { left, top, width, height } = currentTarget.getBoundingClientRect();
+    mouseX.set((clientX - left) / width);
+    mouseY.set((clientY - top) / height);
+  }
+
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white">
+    <div 
+        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white"
+    >
       {/* Background Glows */}
       <div className="absolute -top-1/4 left-0 w-96 h-96 bg-primary/10 rounded-full blur-[150px] animate-pulse"></div>
       <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
 
       <motion.div
-        className="relative z-10 w-full max-w-md"
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        className="group relative z-10 w-full max-w-md"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
+        <motion.div
+          className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: useTransform(
+              [mouseX, mouseY],
+              ([x, y]: number[]) => `radial-gradient(400px circle at ${x * 100}% ${y * 100}%, hsl(var(--primary) / 0.15), transparent 80%)`
+            ),
+          }}
+        />
+
         <div 
             className="flex flex-col items-center justify-center p-4 sm:p-0"
         >
