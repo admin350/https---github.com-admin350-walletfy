@@ -42,18 +42,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
-            if (user) {
-                router.push('/dashboard');
-            }
         });
         return () => unsubscribe();
-    }, [router]);
+    }, []);
 
     const login = async (email: string, pass: string) => {
         setError(null);
         try {
             await signInWithEmailAndPassword(auth, email, pass);
-            // onAuthStateChanged will handle redirect
+            // onAuthStateChanged will handle user state, layout will handle redirect
         } catch (e: any) {
             setError(mapFirebaseError(e.code));
             console.error(e);

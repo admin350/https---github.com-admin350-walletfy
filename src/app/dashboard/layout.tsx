@@ -15,8 +15,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (!loading && !user) {
       router.push('/auth');
     }
+    // This effect should run whenever user or loading state changes.
   }, [user, loading, router]);
-
+  
+  // While loading, or if there's no user after loading, show a loader.
+  // This prevents a flash of the dashboard content before redirection.
   if (loading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -25,6 +28,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // If loading is finished and a user exists, render the dashboard.
   return (
     <DataProvider>
       <div className="flex min-h-screen w-full">
