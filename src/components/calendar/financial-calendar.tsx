@@ -7,9 +7,12 @@ import { addMonths, startOfMonth, endOfMonth, getDay, isSameDay, setDate, format
 import { es } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { CreditCard, Repeat, ListChecks, Calendar as CalendarIconLucide } from 'lucide-react';
+import { CreditCard, Repeat, ListChecks, Calendar as CalendarIconLucide, HandCoins } from 'lucide-react';
 import type { Debt, Subscription, FixedExpense } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Button } from '../ui/button';
+import { PayDebtDialog } from '../transactions/pay-debt-dialog';
+import { PaySubscriptionDialog } from '../transactions/pay-subscription-dialog';
 
 type CalendarEvent = {
     date: Date;
@@ -23,6 +26,8 @@ export function FinancialCalendar() {
     const { debts, subscriptions, fixedExpenses, formatCurrency } = useContext(DataContext);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+    const [itemToPay, setItemToPay] = useState<CalendarEvent | null>(null);
+
 
     const events = useMemo(() => {
         const monthStart = startOfMonth(currentMonth);
@@ -140,9 +145,16 @@ export function FinancialCalendar() {
                                 <div key={index} className="flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 truncate">
                                         <EventBadge type={event.type} />
-                                        <span className="text-sm font-medium truncate" title={event.title}>{event.title}</span>
+                                        <div className="flex flex-col truncate">
+                                            <span className="text-sm font-medium truncate" title={event.title}>{event.title}</span>
+                                            <span className="text-xs text-muted-foreground">{formatCurrency(event.amount)}</span>
+                                        </div>
                                     </div>
-                                    <span className="text-sm font-semibold flex-shrink-0">{formatCurrency(event.amount)}</span>
+                                    { (event.type === 'debt' || event.type === 'subscription') && (
+                                         <Button variant="outline" size="sm" onClick={() => setItemToPay(event)}>
+                                            <HandCoins className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                 </div>
                             ))
                         ) : (
@@ -152,6 +164,21 @@ export function FinancialCalendar() {
                         )}
                     </CardContent>
                 </Card>
+
+                 {itemToPay?.type === 'debt' && (
+                    <PayDebtDialog 
+                        debt={itemToPay.data as Debt}
+                        open={!!itemToPay}
+                        onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
+                    />
+                 )}
+                 {itemToPay?.type === 'subscription' && (
+                    <PaySubscriptionDialog 
+                        subscription={itemToPay.data as Subscription}
+                        open={!!itemToPay}
+                        onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
+                    />
+                 )}
             </div>
         </div>
     );
