@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -21,6 +21,7 @@ const navSections = [
             { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
             { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
             { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
+            { href: "/dashboard/calendar", icon: Calendar, label: "Calendario", color: "text-amber-400" },
             { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
             { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
@@ -128,8 +129,13 @@ export function Header() {
                     </Select>
                  </div>
             )}
+           <Link href="/dashboard/calendar">
+                <Button variant="ghost" size="icon">
+                    <Calendar className="h-5 w-5" />
+                </Button>
+            </Link>
            <Button variant="ghost" size="icon" onClick={logout}>
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-5 w-5" />
            </Button>
         </div>
       </div>

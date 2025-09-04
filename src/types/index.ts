@@ -2,6 +2,7 @@
 
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -100,6 +101,7 @@ export type FixedExpense = {
   type: 'income' | 'expense';
   category: string;
   profile: string;
+  paymentDay: number; // Day of the month (1-31)
 }
 
 export type Investment = {

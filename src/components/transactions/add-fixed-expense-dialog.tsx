@@ -34,6 +34,7 @@ const formSchema = z.object({
   type: z.enum(["income", "expense"], { required_error: "El tipo es requerido." }),
   category: z.string().min(1, { message: "La categoría es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
+  paymentDay: z.coerce.number().min(1, "El día debe ser al menos 1.").max(31, "El día no puede ser mayor a 31.").optional(),
 });
 
 interface AddFixedExpenseDialogProps {
@@ -62,6 +63,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
             type: "expense",
             category: "",
             profile: "",
+            paymentDay: undefined,
         },
     });
 
@@ -70,6 +72,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
             form.reset({
                 ...expenseToEdit,
                 amount: expenseToEdit.amount || ('' as any),
+                paymentDay: expenseToEdit.paymentDay || undefined,
             });
         } else if (dialogOpen && !expenseToEdit) {
             form.reset({
@@ -78,6 +81,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                 type: "expense",
                 category: "",
                 profile: "",
+                paymentDay: undefined,
             });
         }
     }, [expenseToEdit, form, dialogOpen]);
@@ -94,13 +98,13 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
         setIsLoading(true);
         try {
             if (expenseToEdit) {
-                await updateFixedExpense({ id: expenseToEdit.id, ...values });
+                await updateFixedExpense({ id: expenseToEdit.id, ...values, paymentDay: values.paymentDay || 0 });
                 toast({
                     title: "Plantilla Actualizada",
                     description: "La plantilla de gasto fijo ha sido actualizada.",
                 });
             } else {
-                await addFixedExpense(values);
+                await addFixedExpense({...values, paymentDay: values.paymentDay || 0});
                 toast({
                     title: "Gasto Fijo Añadido",
                     description: "Tu plantilla de gasto ha sido creada exitosamente.",
@@ -175,6 +179,19 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                                         <FormLabel>Monto Mensual</FormLabel>
                                         <FormControl>
                                             <Input type="number" placeholder="$50.000" {...field} value={field.value ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="paymentDay"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Día de Pago (Opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="Ej: 5 (para el día 5 del mes)" {...field} value={field.value ?? ''} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
