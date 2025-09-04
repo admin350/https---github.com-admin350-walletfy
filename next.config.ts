@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    allowedDevOrigins: ['*.cluster-hkcruqmgzbd2aqcdnktmz6k7ba.cloudworkstations.dev']
+    
   },
   images: {
     remotePatterns: [
@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ['*.cluster-hkcruqmgzbd2aqcdnktmz6k7ba.cloudworkstations.dev'],
 };
 
 export default nextConfig;
