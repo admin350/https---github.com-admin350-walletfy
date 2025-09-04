@@ -70,7 +70,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await createUserWithEmailAndPassword(auth, email, pass);
             // onAuthStateChanged will handle redirect
         } catch (e: any) {
-            setError(mapFirebaseError(e.code));
+             if (e.code === 'auth/email-already-in-use') {
+                setError('auth/email-already-in-use');
+            } else {
+                setError(mapFirebaseError(e.code));
+            }
             console.error(e);
         }
     };

@@ -27,6 +27,15 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const { login, signup, loginWithGoogle, error: authError } = useAuth();
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (authError === 'auth/email-already-in-use') {
+        setAuthAction('login');
+        setFormError("Ya existe una cuenta con este correo. Por favor, inicia sesión.");
+    } else {
+        setFormError(authError);
+    }
+  }, [authError]);
+
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault()
     if (!email || !password) {
@@ -56,8 +65,6 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
       setFormError(null);
   }
   
-  const error = formError || authError;
-
   return (
     <div className={cn("grid gap-6", className)} {...props}>
       <div className="flex flex-col space-y-2 text-center">
@@ -106,7 +113,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             )}
             {authAction === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </Button>
-           {error && <p className="text-center text-sm text-destructive">{error}</p>}
+           {formError && <p className="text-center text-sm text-destructive">{formError}</p>}
         </div>
       </form>
 
