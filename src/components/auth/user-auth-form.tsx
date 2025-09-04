@@ -19,23 +19,21 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+  const [authAction, setAuthAction] = React.useState<'login' | 'signup'>('login');
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false);
   const [email, setEmail] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
   const { login, signup, loginWithGoogle, error } = useAuth();
 
-  const handleLogin = async (event: React.SyntheticEvent) => {
+  const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault()
     setIsLoading(true)
-    await login(email, password)
-    setIsLoading(false)
-  }
-
-  const handleSignup = async (event: React.SyntheticEvent) => {
-    event.preventDefault()
-    setIsLoading(true)
-    await signup(email, password)
+    if (authAction === 'login') {
+        await login(email, password)
+    } else {
+        await signup(email, password)
+    }
     setIsLoading(false)
   }
   
@@ -44,10 +42,24 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     await loginWithGoogle();
     setIsGoogleLoading(false);
   }
+  
+  const toggleAuthAction = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      setAuthAction(authAction === 'login' ? 'signup' : 'login');
+  }
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
-      <form>
+      <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">
+                {authAction === 'login' ? 'Inicia Sesión' : 'Crea una cuenta'}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+                Ingresa tu correo y contraseña para continuar
+            </p>
+      </div>
+
+      <form onSubmit={handleSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="email">
@@ -78,23 +90,23 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button disabled={isLoading || isGoogleLoading} onClick={handleLogin}>
-              {isLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Iniciar Sesión
-            </Button>
-             <Button disabled={isLoading || isGoogleLoading} onClick={handleSignup} variant="outline">
-              {isLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Registrarse
-            </Button>
-          </div>
+          <Button disabled={isLoading || isGoogleLoading} type="submit">
+            {isLoading && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {authAction === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+          </Button>
            {error && <p className="text-center text-sm text-destructive">{error}</p>}
         </div>
       </form>
+
+        <p className="text-center text-sm text-muted-foreground">
+            {authAction === 'login' ? '¿No tienes una cuenta? ' : '¿Ya tienes una cuenta? '}
+            <Button variant="link" onClick={toggleAuthAction} className="p-0 h-auto">
+                 {authAction === 'login' ? 'Regístrate' : 'Inicia Sesión'}
+            </Button>
+        </p>
+
        <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
