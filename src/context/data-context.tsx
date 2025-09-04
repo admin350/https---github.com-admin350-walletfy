@@ -7,7 +7,7 @@ import { createContext, useState, useEffect, ReactNode, useMemo, useCallback } f
 import { getYear, getMonth, isPast } from "date-fns";
 import { useAuth } from "./auth-context";
 import { db } from "@/lib/firebase";
-import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 
 
 interface IFilters {
@@ -75,9 +75,9 @@ interface DataContextType {
     addReport: (report: MonthlyReport) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
     updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
-    addProfile: (profile: Profile) => Promise<void>;
+    addProfile: (profile: Omit<Profile, 'id'>) => Promise<void>;
     updateProfile: (profile: Profile) => Promise<void>;
-    deleteProfile: (name: string) => Promise<void>;
+    deleteProfile: (id: string) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
     formatCurrency: (value: number, withSymbol?: boolean, isCompact?: boolean) => string;
 }
@@ -258,24 +258,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (!userDocSnap.exists()) {
                 const batch = writeBatch(db);
                 
-                const defaultProfiles: Profile[] = [
+                const defaultProfiles: Omit<Profile, 'id'>[] = [
                     { name: "Personal", color: "#3b82f6" },
                     { name: "Negocio", color: "#14b8a6" },
                 ];
                 defaultProfiles.forEach(p => {
-                    const profileRef = doc(db, 'users', uid, 'profiles', p.name);
+                    const profileRef = doc(collection(db, 'users', uid, 'profiles'));
                     batch.set(profileRef, p);
                 });
 
-                const defaultCategories: Category[] = [
-                    { id: '1', name: "Alimentación", type: "Gasto", color: "#f97316" },
-                    { id: '2', name: "Transporte", type: "Gasto", color: "#3b82f6" },
-                    { id: '3', name: "Vivienda", type: "Gasto", color: "#84cc16" },
-                    { id: '4', name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-                    { id: '5', name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-                    { id: '6', name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-                    { id: '7', name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-                    { id: '8', name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+                const defaultCategories: Omit<Category, 'id'>[] = [
+                    { name: "Alimentación", type: "Gasto", color: "#f97316" },
+                    { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+                    { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+                    { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+                    { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+                    { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+                    { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+                    { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
                 ];
 
                 defaultCategories.forEach(c => {
@@ -335,15 +335,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: T) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const docRef = doc(collection(db, 'users', uid, collectionName));
-        await setDoc(docRef, { ...data, id: docRef.id });
+        const docRef = await addFirestoreDoc(collection(db, 'users', uid, collectionName), data);
         return { ...data, id: docRef.id };
     };
 
     const setDocWithId = async <T>(collectionName: string, id: string, data: T) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const docRef = doc(db, 'users', uid, collectionName, id);
-        await setDoc(docRef, data);
+        await setDoc(docRef, data, { merge: true });
     };
 
     const deleteDocById = async (collectionName: string, id: string) => {
@@ -573,9 +572,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const updateSettings = async (newSettings: Partial<AppSettings>) => await setDocWithId('settings', 'appSettings', newSettings);
     
-    const addProfile = async (profile: Profile) => await setDocWithId('profiles', profile.name, profile);
-    const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.name, profile);
-    const deleteProfile = async (name: string) => await deleteDocById('profiles', name);
+    const addProfile = async (profile: Omit<Profile, 'id'>) => await addDoc('profiles', profile);
+    const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.id, profile);
+    const deleteProfile = async (id: string) => await deleteDocById('profiles', id);
 
     const availableYears = useMemo(() => {
         const years = new Set(allTransactions.map(t => getYear(new Date(t.date))));

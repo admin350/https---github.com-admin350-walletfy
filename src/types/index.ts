@@ -3,6 +3,7 @@
 
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -135,6 +136,7 @@ export type Budget = {
 };
 
 export type Profile = {
+    id: string;
     name: string;
     color: string;
 }

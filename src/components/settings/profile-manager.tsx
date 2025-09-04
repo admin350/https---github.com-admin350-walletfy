@@ -27,9 +27,9 @@ export function ProfileManager() {
         setIsDialogOpen(true);
     };
 
-    const handleDelete = async (name: string) => {
+    const handleDelete = async (id: string) => {
         try {
-            await deleteProfile(name);
+            await deleteProfile(id);
             toast({
                 title: "Perfil eliminado",
                 description: "El perfil ha sido eliminado exitosamente.",
@@ -67,7 +67,7 @@ export function ProfileManager() {
                     </TableHeader>
                     <TableBody>
                         {profiles.map((profile) => (
-                            <TableRow key={profile.name}>
+                            <TableRow key={profile.id}>
                                 <TableCell className="font-medium">{profile.name}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export function ProfileManager() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(profile.name)}>Continuar</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleDelete(profile.id)}>Continuar</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>

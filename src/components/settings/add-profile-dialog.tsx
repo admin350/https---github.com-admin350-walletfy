@@ -39,7 +39,10 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
 
     useEffect(() => {
         if (open && profileToEdit) {
-            form.reset(profileToEdit);
+            form.reset({
+                name: profileToEdit.name,
+                color: profileToEdit.color,
+            });
         } else if (open && !profileToEdit) {
             form.reset({
                 name: "",
@@ -52,8 +55,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
         setIsLoading(true);
         try {
             if(profileToEdit) {
-                // Since profile name is the ID and we can't change it, we just update the color
-                await updateProfile(values);
+                await updateProfile({ ...values, id: profileToEdit.id });
                  toast({
                     title: "Perfil actualizado",
                     description: "El perfil ha sido actualizado exitosamente.",
@@ -96,7 +98,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                                 <FormItem>
                                     <FormLabel>Nombre</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ej: Familia" {...field} disabled={!!profileToEdit} />
+                                        <Input placeholder="Ej: Familia" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
