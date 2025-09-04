@@ -25,7 +25,7 @@ type CalendarEvent = {
 export function FinancialCalendar() {
     const { debts, subscriptions, fixedExpenses, formatCurrency } = useContext(DataContext);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+    const [selectedDay, setSelectedDay] = useState<Date | null>(new Date());
     const [itemToPay, setItemToPay] = useState<CalendarEvent | null>(null);
 
 
@@ -83,67 +83,80 @@ export function FinancialCalendar() {
     
     const EventBadge = ({ type }: { type: CalendarEvent['type'] }) => {
         const config = {
-            debt: { icon: CreditCard, color: 'bg-red-500/20 text-red-500 border-red-500/20' },
-            subscription: { icon: ListChecks, color: 'bg-purple-500/20 text-purple-500 border-purple-500/20' },
-            fixedExpense: { icon: Repeat, color: 'bg-indigo-500/20 text-indigo-500 border-indigo-500/20' },
+            debt: { icon: CreditCard, color: 'text-red-400 border-red-400/30 bg-red-400/10' },
+            subscription: { icon: ListChecks, color: 'text-purple-400 border-purple-400/30 bg-purple-400/10' },
+            fixedExpense: { icon: Repeat, color: 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10' },
         };
         const Icon = config[type].icon;
-        return <Icon className={`h-4 w-4 ${config[type].color}`} />;
+        return (
+             <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${config[type].color}`}>
+                <Icon className="h-4 w-4" />
+             </div>
+        )
     };
     
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-                 <Calendar
-                    mode="single"
-                    month={currentMonth}
-                    onMonthChange={setCurrentMonth}
-                    selected={selectedDay as Date}
-                    onSelect={(day) => setSelectedDay(day || null)}
-                    className="p-0"
-                    components={{
-                        DayContent: ({ date, displayMonth }) => {
-                            const dayKey = format(date, 'yyyy-MM-dd');
-                            const dayEvents = eventsByDay[dayKey];
-                            const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
-                            
-                            return (
-                                <div className="relative w-full h-full">
-                                    <span className="relative z-10">{format(date, 'd')}</span>
-                                    {dayEvents && isCurrentMonth && (
-                                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
-                                            {dayEvents.slice(0, 3).map((event, index) => {
-                                                const colors = {
-                                                    debt: 'bg-red-500',
-                                                    subscription: 'bg-purple-500',
-                                                    fixedExpense: 'bg-indigo-500'
-                                                };
-                                                return <div key={index} className={`w-1.5 h-1.5 rounded-full ${colors[event.type]}`}></div>
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        }
-                    }}
-                />
-            </div>
+        <div className="flex flex-col gap-6">
+            <Card>
+                <CardContent className="p-0">
+                    <Calendar
+                        mode="single"
+                        month={currentMonth}
+                        onMonthChange={setCurrentMonth}
+                        selected={selectedDay as Date}
+                        onSelect={(day) => setSelectedDay(day || null)}
+                        className="p-0"
+                        classNames={{
+                            table: "w-full border-collapse space-y-1",
+                            head_cell: "text-muted-foreground rounded-md w-full font-normal text-sm",
+                            row: "flex w-full mt-2",
+                            cell: "h-20 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-full w-full p-1.5 flex flex-col items-start justify-start font-normal aria-selected:opacity-100",
+                            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-lg",
+                            day_today: "bg-accent text-accent-foreground rounded-lg",
+                        }}
+                        components={{
+                            DayContent: ({ date, displayMonth }) => {
+                                const dayKey = format(date, 'yyyy-MM-dd');
+                                const dayEvents = eventsByDay[dayKey];
+                                const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
+                                
+                                return (
+                                    <div className="relative w-full h-full flex flex-col items-start">
+                                        <time dateTime={date.toISOString()} className="relative z-10">{format(date, 'd')}</time>
+                                        {dayEvents && isCurrentMonth && (
+                                            <div className="flex-1 w-full overflow-hidden mt-1">
+                                                <div className="flex flex-col gap-1">
+                                                    {dayEvents.slice(0, 2).map((event, index) => {
+                                                        const colors = {
+                                                            debt: 'bg-red-500',
+                                                            subscription: 'bg-purple-500',
+                                                            fixedExpense: 'bg-indigo-500'
+                                                        };
+                                                        return <div key={index} className={`w-full h-1.5 rounded-full ${colors[event.type]}`}></div>
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            }
+                        }}
+                    />
+                </CardContent>
+            </Card>
+            
             <div>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                             <CalendarIconLucide className="h-5 w-5" />
-                            {selectedDay ? format(selectedDay, "eeee, dd 'de' MMMM", { locale: es }) : 'Eventos del Mes'}
-                        </CardTitle>
-                        <CardDescription>
-                            {selectedDay ? 'Eventos para este día.' : 'Selecciona un día para ver los detalles.'}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                        {selectedDay && selectedDayEvents.length > 0 ? (
-                            selectedDayEvents.map((event, index) => (
-                                <div key={index} className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 truncate">
+                <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                     <CalendarIconLucide className="h-5 w-5" />
+                    {selectedDay ? format(selectedDay, "eeee, dd 'de' MMMM", { locale: es }) : 'Eventos del Mes'}
+                </h2>
+                <div className="space-y-4">
+                    {selectedDay && selectedDayEvents.length > 0 ? (
+                        <ul className="divide-y divide-border rounded-md border">
+                            {selectedDayEvents.map((event, index) => (
+                                <li key={index} className="flex items-center justify-between gap-2 p-3">
+                                    <div className="flex items-center gap-3 truncate">
                                         <EventBadge type={event.type} />
                                         <div className="flex flex-col truncate">
                                             <span className="text-sm font-medium truncate" title={event.title}>{event.title}</span>
@@ -152,34 +165,35 @@ export function FinancialCalendar() {
                                     </div>
                                     { (event.type === 'debt' || event.type === 'subscription') && (
                                          <Button variant="outline" size="sm" onClick={() => setItemToPay(event)}>
-                                            <HandCoins className="h-4 w-4" />
+                                            <HandCoins className="mr-2 h-4 w-4" />
+                                            Pagar
                                         </Button>
                                     )}
-                                </div>
-                            ))
-                        ) : (
-                             <p className="text-sm text-muted-foreground text-center pt-4">
-                                {selectedDay ? 'No hay eventos para este día.' : 'No hay eventos programados para este mes.'}
-                            </p>
-                        )}
-                    </CardContent>
-                </Card>
-
-                 {itemToPay?.type === 'debt' && (
-                    <PayDebtDialog 
-                        debt={itemToPay.data as Debt}
-                        open={!!itemToPay}
-                        onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
-                    />
-                 )}
-                 {itemToPay?.type === 'subscription' && (
-                    <PaySubscriptionDialog 
-                        subscription={itemToPay.data as Subscription}
-                        open={!!itemToPay}
-                        onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
-                    />
-                 )}
+                                </li>
+                            ))}
+                         </ul>
+                    ) : (
+                         <p className="text-sm text-muted-foreground text-center pt-4">
+                            {selectedDay ? 'No hay eventos para este día.' : 'No hay eventos programados para este mes.'}
+                        </p>
+                    )}
+                </div>
             </div>
+
+             {itemToPay?.type === 'debt' && (
+                <PayDebtDialog 
+                    debt={itemToPay.data as Debt}
+                    open={!!itemToPay}
+                    onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
+                />
+             )}
+             {itemToPay?.type === 'subscription' && (
+                <PaySubscriptionDialog 
+                    subscription={itemToPay.data as Subscription}
+                    open={!!itemToPay}
+                    onOpenChange={(isOpen) => !isOpen && setItemToPay(null)}
+                />
+             )}
         </div>
     );
 }
