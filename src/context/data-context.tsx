@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
@@ -245,10 +246,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setNeedsSetup(false);
     };
 
-    const addDoc = async <T extends { id?: string }>(collectionName: string, data: T) => {
+    const addDoc = async <T extends { id?: string }>(collectionName: string, data: T): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const docRef = await addFirestoreDoc(collection(db, 'users', uid, collectionName), data);
-        return { ...data, id: docRef.id };
+        await addFirestoreDoc(collection(db, 'users', uid, collectionName), data);
     };
 
     const setDocWithId = async <T>(collectionName: string, id: string, data: T) => {
