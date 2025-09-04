@@ -55,37 +55,38 @@ export default function AuthenticationPage() {
       mouseX.set(clientX - left);
       mouseY.set(clientY - top);
   }
-
-  const springConfig = { stiffness: 150, damping: 20, mass: 0.5 };
   
-  const rotateX = useSpring(useTransform(mouseY, [0, 300], [10, -10]), springConfig);
-  const rotateY = useSpring(useTransform(mouseX, [0, 500], [-10, 10]), springConfig);
+  const backgroundGradient = useTransform(
+    mouseX,
+    [0, 500],
+    [
+      "radial-gradient(400px circle at 50% 50%, hsl(var(--primary) / 0.1), transparent 80%)",
+      "radial-gradient(400px circle at 100% 100%, hsl(var(--primary) / 0.1), transparent 80%)",
+    ]
+  );
 
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-black via-zinc-900 to-zinc-800 text-white">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white">
       {/* Background Glows */}
       <div className="absolute -top-1/4 left-0 w-96 h-96 bg-primary/10 rounded-full blur-[150px] animate-pulse"></div>
       <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
 
       <motion.div
-        className="relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-md group"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => {
-            mouseX.set(0);
-            mouseY.set(0);
+            mouseX.set(250);
+            mouseY.set(150);
         }}
-        style={{
-             perspective: '800px'
-        }}
+       
       >
         <motion.div 
-            className="flex flex-col items-center justify-center p-4 sm:p-0"
-            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            className="flex flex-col items-center justify-center p-4 sm:p-0 transition-transform duration-300 ease-out group-hover:scale-[1.02]"
         >
             <motion.div
             className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
@@ -117,7 +118,7 @@ export default function AuthenticationPage() {
                     className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                     style={{
                         background: useMotionValue(
-                        `radial-gradient(350px circle at ${mouseX}px ${mouseY}px, hsla(var(--primary), 0.2), transparent 80%)`
+                        `radial-gradient(350px circle at ${mouseX.get()}px ${mouseY.get()}px, hsla(var(--primary), 0.15), transparent 80%)`
                         ),
                     }}
                 />
