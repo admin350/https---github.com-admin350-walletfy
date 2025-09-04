@@ -64,7 +64,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
         try {
             await createUserWithEmailAndPassword(auth, email, pass);
-            // onAuthStateChanged will handle redirect
         } catch (e: any) {
              if (e.code === 'auth/email-already-in-use') {
                 setError('auth/email-already-in-use');
@@ -86,7 +85,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             case 'auth/invalid-email':
                 return 'El correo electrónico no es válido.';
             case 'auth/user-not-found':
-                return 'No se encontró ningún usuario con este correo.';
+            case 'auth/invalid-credential':
+                return 'Las credenciales son incorrectas.';
             case 'auth/wrong-password':
                 return 'La contraseña es incorrecta.';
             case 'auth/email-already-in-use':
