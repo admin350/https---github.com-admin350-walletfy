@@ -1,7 +1,7 @@
 
 'use client';
 import { UserAuthForm } from "@/components/auth/user-auth-form";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { PieChart, Wallet, BarChart, TrendingUp } from "lucide-react";
 import React from "react";
 
@@ -44,30 +44,6 @@ const iconVariants = {
 };
 
 export default function AuthenticationPage() {
-  const mouseX = useMotionValue(250);
-  const mouseY = useMotionValue(150);
-
-  const cardRef = React.useRef<HTMLDivElement>(null);
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
-      if (!cardRef.current) return;
-      const { left, top } = cardRef.current.getBoundingClientRect();
-      mouseX.set(clientX - left);
-      mouseY.set(clientY - top);
-  }
-  
-  const backgroundGradient = useTransform(
-    mouseX,
-    [0, 500],
-    [
-      "radial-gradient(400px circle at 50% 50%, hsl(var(--primary) / 0.1), transparent 80%)",
-      "radial-gradient(400px circle at 100% 100%, hsl(var(--primary) / 0.1), transparent 80%)",
-    ]
-  );
-  
-  const dynamicMouseX = useSpring(mouseX, { stiffness: 400, damping: 90 });
-  const dynamicMouseY = useSpring(mouseY, { stiffness: 400, damping: 90 });
-
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white">
       {/* Background Glows */}
@@ -75,20 +51,13 @@ export default function AuthenticationPage() {
       <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
 
       <motion.div
-        className="relative z-10 w-full max-w-md group"
+        className="relative z-10 w-full max-w-md"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => {
-            mouseX.set(250);
-            mouseY.set(150);
-        }}
-       
       >
-        <motion.div 
-            className="flex flex-col items-center justify-center p-4 sm:p-0 transition-transform duration-300 ease-out group-hover:scale-[1.02]"
+        <div 
+            className="flex flex-col items-center justify-center p-4 sm:p-0"
         >
             <motion.div
             className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
@@ -113,18 +82,9 @@ export default function AuthenticationPage() {
             </motion.div>
 
             <motion.div 
-                className="w-full relative" 
+                className="w-full" 
                 variants={itemVariants}
             >
-                 <motion.div
-                    className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                    style={{
-                        background: useTransform(
-                            [dynamicMouseX, dynamicMouseY],
-                            ([latestX, latestY]) => `radial-gradient(350px circle at ${latestX}px ${latestY}px, hsla(var(--primary), 0.15), transparent 80%)`
-                        ),
-                    }}
-                />
                 <div className="w-full p-6 space-y-6 rounded-2xl border border-border/20 bg-card/60 backdrop-blur-lg">
                     <UserAuthForm />
                 </div>
@@ -150,7 +110,7 @@ export default function AuthenticationPage() {
             </a>
             .
             </motion.p>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
