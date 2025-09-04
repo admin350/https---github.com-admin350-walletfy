@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useContext, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,7 +15,7 @@ import type { Category } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre es muy corto."),
-  type: z.enum(["Ingreso", "Gasto"], { required_error: "El tipo es requerido." }),
+  type: z.enum(["Ingreso", "Gasto", "Transferencia"], { required_error: "El tipo es requerido." }),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal válido."),
 });
 
@@ -120,6 +119,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                                         <SelectContent>
                                             <SelectItem value="Gasto">Gasto</SelectItem>
                                             <SelectItem value="Ingreso">Ingreso</SelectItem>
+                                             <SelectItem value="Transferencia">Transferencia</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
