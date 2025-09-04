@@ -264,6 +264,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     { id: '2', name: "Transporte", type: "Gasto", color: "#3b82f6" },
                     { id: '3', name: "Vivienda", type: "Gasto", color: "#84cc16" },
                     { id: '4', name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+                    { id: '5', name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+                    { id: '6', name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+                    { id: '7', name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
                 ];
 
                 defaultCategories.forEach(c => {
@@ -409,11 +412,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const debt = debts.find(d => d.id === payment.debtId);
         if (debt) {
             await updateDebt({ ...debt, paidAmount: debt.paidAmount + payment.amount });
+            const debtCategory = categories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
             await addTransaction({
                 type: 'expense',
                 amount: payment.amount,
                 description: `Abono a: ${debt.name}`,
-                category: 'Pago de Deuda',
+                category: debtCategory,
                 profile: debt.profile,
                 date: new Date().toISOString(),
                 accountId: payment.accountId,
@@ -453,11 +457,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
     };
     const paySubscription = async (sub: Subscription) => {
+        const subscriptionCategory = categories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
         await addTransaction({
             type: 'expense',
             amount: sub.amount,
             description: `Suscripción: ${sub.name}`,
-            category: 'Suscripciones',
+            category: subscriptionCategory,
             profile: sub.profile,
             date: new Date().toISOString(),
             accountId: bankCards.find(c => c.id === sub.cardId)?.accountId || '',
