@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useContext, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +9,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Profile } from '@/types';
 
 const formSchema = z.object({
@@ -27,7 +26,7 @@ interface AddProfileDialogProps {
 export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfileDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addProfile, updateProfile } = useContext(DataContext);
+    const { addProfile, updateProfile } = useData();
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

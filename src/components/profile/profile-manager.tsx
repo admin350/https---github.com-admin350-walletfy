@@ -2,43 +2,42 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "../ui/badge";
+import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { MoreHorizontal, Trash2, Pencil, PlusCircle } from "lucide-react";
 import { useContext, useState } from "react";
-import { DataContext } from "@/context/data-context";
-import { AddCategoryDialog } from "./add-category-dialog";
+import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import type { Category } from "@/types";
+import type { Profile } from "@/types";
+import { AddProfileDialog } from "./add-profile-dialog";
 
-export function CategoryManager() {
-    const { categories, deleteCategory } = useContext(DataContext);
+export function ProfileManager() {
+    const { profiles, deleteProfile } = useData();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [categoryToEdit, setCategoryToEdit] = useState<Category | undefined>(undefined);
+    const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
 
-    const handleEdit = (category: Category) => {
-        setCategoryToEdit(category);
+    const handleEdit = (profile: Profile) => {
+        setProfileToEdit(profile);
         setIsDialogOpen(true);
     };
 
     const handleAddNew = () => {
-        setCategoryToEdit(undefined);
+        setProfileToEdit(undefined);
         setIsDialogOpen(true);
     };
 
     const handleDelete = async (id: string) => {
         try {
-            await deleteCategory(id);
+            await deleteProfile(id);
             toast({
-                title: "Categoría eliminada",
-                description: "La categoría ha sido eliminada exitosamente.",
+                title: "Perfil eliminado",
+                description: "El perfil ha sido eliminado exitosamente.",
             });
         } catch (error) {
             toast({
                 title: "Error",
-                description: "No se pudo eliminar la categoría.",
+                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
                 variant: "destructive"
             });
         }
@@ -49,8 +48,8 @@ export function CategoryManager() {
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
-                        <CardTitle>Gestionar Categorías</CardTitle>
-                        <CardDescription>Añade, edita o elimina categorías para tus transacciones.</CardDescription>
+                        <CardTitle>Gestionar Perfiles</CardTitle>
+                        <CardDescription>Añade, edita o elimina perfiles para organizar tus finanzas.</CardDescription>
                     </div>
                     <Button onClick={handleAddNew} size="icon" variant="outline">
                         <PlusCircle className="h-6 w-6" />
@@ -62,26 +61,22 @@ export function CategoryManager() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nombre</TableHead>
-                            <TableHead>Tipo</TableHead>
+                            <TableHead>Color</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {categories.map((category) => (
-                            <TableRow key={category.id}>
-                                <TableCell className="font-medium">
+                        {profiles.map((profile) => (
+                            <TableRow key={profile.id}>
+                                <TableCell className="font-medium">{profile.name}</TableCell>
+                                <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
-                                        <span>{category.name}</span>
+                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: profile.color }} />
+                                        <span>{profile.color}</span>
                                     </div>
                                 </TableCell>
-                                <TableCell>
-                                    <Badge variant={category.type === "Gasto" ? "destructive" : "default"} className={category.type === 'Ingreso' ? 'bg-green-500/20 text-green-500 border-green-500/20' : category.type === 'Gasto' ? 'bg-red-500/20 text-red-500 border-red-500/20' : 'bg-blue-500/20 text-blue-500 border-blue-500/20'}>
-                                        {category.type}
-                                    </Badge>
-                                </TableCell>
                                 <TableCell className="text-right">
-                                     <AlertDialog>
+                                    <AlertDialog>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -90,12 +85,12 @@ export function CategoryManager() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEdit(category)}>
+                                                <DropdownMenuItem onClick={() => handleEdit(profile)}>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     Editar
                                                 </DropdownMenuItem>
                                                 <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem>
+                                                    <DropdownMenuItem disabled={profiles.length <= 1}>
                                                         <Trash2 className="mr-2 h-4 w-4" />
                                                         Eliminar
                                                     </DropdownMenuItem>
@@ -106,12 +101,12 @@ export function CategoryManager() {
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la categoría.
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el perfil.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(category.id)}>Continuar</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleDelete(profile.id)}>Continuar</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -121,10 +116,10 @@ export function CategoryManager() {
                     </TableBody>
                 </Table>
             </CardContent>
-            <AddCategoryDialog
+             <AddProfileDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
-                categoryToEdit={categoryToEdit}
+                profileToEdit={profileToEdit}
             />
         </Card>
     );

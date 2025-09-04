@@ -1,16 +1,15 @@
-
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useContext, useState } from "react";
-import { DataContext } from "@/context/data-context";
+import { useData } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type { AppSettings } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 export function CurrencyManager() {
-    const { settings, updateSettings } = useContext(DataContext);
+    const { settings, updateSettings } = useData();
     const { toast } = useToast();
     const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
     const [isLoading, setIsLoading] = useState(false);

@@ -1,10 +1,9 @@
-
 'use client';
 import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
@@ -87,7 +86,7 @@ export function Header() {
                     </SheetContent>
                 </Sheet>
             )}
-          <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/settings') ? 'Configuración' : pageTitle}</h1>
+          <h1 className="text-xl font-semibold hidden sm:block">{pathname.startsWith('/dashboard/profile') ? 'Perfil y Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
             {isClient && (
@@ -176,9 +175,9 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
             </div>
             
             <div className="mt-auto flex flex-col gap-2 pt-6">
-               <Link href="/dashboard/settings" className={`flex items-center gap-4 rounded-lg px-3 py-2.5 transition-all hover:text-primary ${pathname.startsWith("/dashboard/settings") ? "bg-muted text-primary" : "text-muted-foreground"}`}>
-                    <Settings className="h-5 w-5" />
-                    Configuración
+               <Link href="/dashboard/profile" className={`flex items-center gap-4 rounded-lg px-3 py-2.5 transition-all hover:text-primary ${pathname.startsWith("/dashboard/profile") ? "bg-muted text-primary" : "text-muted-foreground"}`}>
+                    <User className="h-5 w-5" />
+                    Perfil y Configuración
                 </Link>
             </div>
         </div>

@@ -10,7 +10,7 @@ import * as z from "zod";
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { DataContext } from '@/context/data-context';
+import { useData } from '@/context/data-context';
 import type { Category } from '@/types';
 
 const formSchema = z.object({
@@ -28,7 +28,7 @@ interface AddCategoryDialogProps {
 export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCategoryDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addCategory, updateCategory } = useContext(DataContext);
+    const { addCategory, updateCategory } = useData();
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

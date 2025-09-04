@@ -1,14 +1,17 @@
-
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
-import { createContext, useState, useEffect, ReactNode, useMemo, useCallback } from "react";
+import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast } from "date-fns";
 import { useAuth } from "./auth-context";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 
+interface InitialSetupData {
+    profiles: Omit<Profile, 'id'>[];
+    categories: Omit<Category, 'id'>[];
+    settings: AppSettings;
+}
 
 interface IFilters {
     profile: string;
@@ -35,9 +38,11 @@ interface DataContextType {
     reports: MonthlyReport[];
     settings: AppSettings;
     isLoading: boolean;
+    needsSetup: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
     availableYears: number[];
+    finishSetup: (data: InitialSetupData) => Promise<void>;
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -82,70 +87,16 @@ interface DataContextType {
     formatCurrency: (value: number, withSymbol?: boolean, isCompact?: boolean) => string;
 }
 
-export const DataContext = createContext<DataContextType>({
-    transactions: [],
-    goals: [],
-    subscriptions: [],
-    debts: [],
-    fixedExpenses: [],
-    profiles: [],
-    categories: [],
-    goalContributions: [],
-    debtPayments: [],
-    investments: [],
-    investmentContributions: [],
-    budgets: [],
-    bankAccounts: [],
-    bankCards: [],
-    reports: [],
-    settings: { currency: 'CLP' },
-    isLoading: true,
-    filters: { profile: 'all', month: getMonth(new Date()), year: getYear(new Date()) },
-    setFilters: () => {},
-    availableYears: [],
-    addTransaction: async () => {},
-    updateTransaction: async () => {},
-    deleteTransaction: async () => {},
-    addGoal: async () => {},
-    updateGoal: async () => {},
-    deleteGoal: async () => {},
-    addSubscription: async () => {},
-    updateSubscription: async () => {},
-    cancelSubscription: async () => {},
-    addDebt: async () => {},
-    updateDebt: async () => {},
-    deleteDebt: async () => {},
-    addFixedExpense: async () => {},
-    updateFixedExpense: async () => {},
-    deleteFixedExpense: async () => {},
-    addGoalContribution: async () => {},
-    addDebtPayment: async () => {},
-    paySubscription: async () => {},
-    addInvestment: async () => {},
-    updateInvestment: async () => {},
-    deleteInvestment: async () => {},
-    addInvestmentContribution: async () => {},
-    addBudget: async () => {},
-    updateBudget: async () => {},
-    deleteBudget: async () => {},
-    addCategory: async () => {},
-    updateCategory: async () => {},
-    deleteCategory: async () => {},
-    addBankAccount: async () => {},
-    updateBankAccount: async () => {},
-    deleteBankAccount: async () => {},
-    addBankCard: async () => {},
-    updateBankCard: async () => {},
-    deleteBankCard: async () => {},
-    addReport: async () => {},
-    deleteReport: async () => {},
-    updateSettings: async () => {},
-    addProfile: async () => {},
-    updateProfile: async () => {},
-    deleteProfile: async () => {},
-    getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
-    formatCurrency: () => '',
-});
+const DataContext = createContext<DataContextType | undefined>(undefined);
+
+export const useData = () => {
+    const context = useContext(DataContext);
+    if (!context) {
+        throw new Error("useData must be used within a DataProvider");
+    }
+    return context;
+};
+
 
 // PROVIDER
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -169,6 +120,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allReports, setAllReports] = useState<MonthlyReport[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP' });
     const [isLoading, setIsLoading] = useState(true);
+    const [needsSetup, setNeedsSetup] = useState(false);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
         month: getMonth(new Date()),
@@ -202,27 +154,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!uid) {
             setIsLoading(false);
-            // Clear all data when user logs out
-            setAllTransactions([]);
-            setAllGoals([]);
-            setAllSubscriptions([]);
-            setAllDebts([]);
-            setAllFixedExpenses([]);
-            setAllProfiles([]);
-            setAllCategories([]);
-            setAllGoalContributions([]);
-            setAllDebtPayments([]);
-            setAllInvestments([]);
-            setAllInvestmentContributions([]);
-            setAllBudgets([]);
-            setAllBankAccounts([]);
-            setAllBankCards([]);
-            setAllReports([]);
-            setSettings({ currency: 'CLP' });
+            setNeedsSetup(false);
             return;
         }
 
         setIsLoading(true);
+
+        const userDocRef = doc(db, 'users', uid);
+        const unsubscribeUserDoc = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists() && docSnap.data().setupComplete) {
+                setNeedsSetup(false);
+            } else {
+                setNeedsSetup(true);
+                setIsLoading(false);
+            }
+        });
 
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
@@ -231,107 +177,73 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         ];
 
         const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
-            transactions: setAllTransactions,
-            goals: setAllGoals,
-            subscriptions: setAllSubscriptions,
-            debts: setAllDebts,
-            fixedExpenses: setAllFixedExpenses,
-            profiles: setAllProfiles,
-            categories: setAllCategories,
-            goalContributions: setAllGoalContributions,
-            debtPayments: setAllDebtPayments,
-            investments: setAllInvestments,
-            investmentContributions: setAllInvestmentContributions,
-            budgets: setAllBudgets,
-            bankAccounts: setAllBankAccounts,
-            bankCards: setAllBankCards,
-            reports: setAllReports,
+            transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
+            debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
+            categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
+            investments: setAllInvestments, investmentContributions: setAllInvestmentContributions, budgets: setAllBudgets,
+            bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports,
         };
 
-        const unsubscribers: Unsubscribe[] = [];
-
-        const fetchData = async () => {
-            // Check if user has data, if not, create default data
-            const userDocRef = doc(db, 'users', uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            if (!userDocSnap.exists()) {
-                const batch = writeBatch(db);
-                
-                const defaultProfiles: Omit<Profile, 'id'>[] = [
-                    { name: "Personal", color: "#3b82f6" },
-                    { name: "Negocio", color: "#14b8a6" },
-                ];
-                defaultProfiles.forEach(p => {
-                    const profileRef = doc(collection(db, 'users', uid, 'profiles'));
-                    batch.set(profileRef, p);
-                });
-
-                const defaultCategories: Omit<Category, 'id'>[] = [
-                    { name: "Alimentación", type: "Gasto", color: "#f97316" },
-                    { name: "Transporte", type: "Gasto", color: "#3b82f6" },
-                    { name: "Vivienda", type: "Gasto", color: "#84cc16" },
-                    { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-                    { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-                    { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-                    { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-                    { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
-                ];
-
-                defaultCategories.forEach(c => {
-                    const categoryRef = doc(collection(db, 'users', uid, 'categories'));
-                    batch.set(categoryRef, { name: c.name, type: c.type, color: c.color });
-                });
-                
-                const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-                batch.set(settingsRef, { currency: 'CLP' });
-
-                // Set user document to mark as initialized
-                batch.set(userDocRef, { initialized: true });
-
-                await batch.commit();
-            }
-
-            // Set up listeners
-            collections.forEach(collectionName => {
-                const collRef = collection(db, 'users', uid, collectionName);
-                const unsubscribe = onSnapshot(collRef, (snapshot) => {
-                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // Firestore timestamps need to be converted to JS Dates
-                    const processedData = data.map(item => {
-                        const newItem: DocumentData = { ...item };
-                        for (const key in newItem) {
-                            if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                newItem[key] = newItem[key].toDate();
-                            }
+        const unsubscribers = collections.map(collectionName => {
+            const collRef = collection(db, 'users', uid, collectionName);
+            return onSnapshot(collRef, (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const processedData = data.map(item => {
+                    const newItem: DocumentData = { ...item };
+                    for (const key in newItem) {
+                        if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                            newItem[key] = newItem[key].toDate();
                         }
-                        return newItem;
-                    });
-                    
-                    if (dataSetters[collectionName]) {
-                        dataSetters[collectionName](processedData as any);
                     }
+                    return newItem;
                 });
-                unsubscribers.push(unsubscribe);
+                dataSetters[collectionName]?.(processedData as any);
             });
-            
-             const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-             const unsubSettings = onSnapshot(settingsRef, (doc) => {
-                if(doc.exists()){
-                    setSettings(doc.data() as AppSettings);
-                }
-             });
-             unsubscribers.push(unsubSettings);
-        };
+        });
+        
+        const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
+        const unsubSettings = onSnapshot(settingsRef, (doc) => {
+            if(doc.exists()){
+                setSettings(doc.data() as AppSettings);
+            }
+        });
+        unsubscribers.push(unsubSettings);
+        unsubscribers.push(unsubscribeUserDoc);
 
-        fetchData().finally(() => setIsLoading(false));
+        setIsLoading(false);
 
-        // Cleanup subscriptions on unmount
         return () => unsubscribers.forEach(unsub => unsub());
 
     }, [uid]);
 
+
+    const finishSetup = async (data: InitialSetupData) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const batch = writeBatch(db);
+
+        // Set profiles
+        data.profiles.forEach(profile => {
+            const profileRef = doc(collection(db, 'users', uid, 'profiles'));
+            batch.set(profileRef, profile);
+        });
+
+        // Set categories
+        data.categories.forEach(category => {
+            const categoryRef = doc(collection(db, 'users', uid, 'categories'));
+            batch.set(categoryRef, category);
+        });
+
+        // Set settings
+        const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
+        batch.set(settingsRef, data.settings);
+
+        // Mark setup as complete
+        const userDocRef = doc(db, 'users', uid);
+        batch.set(userDocRef, { setupComplete: true });
+
+        await batch.commit();
+        setNeedsSetup(false);
+    };
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: T) => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -355,13 +267,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
         
-        // Add transaction doc
         const transRef = doc(collection(db, 'users', uid, 'transactions'));
         batch.set(transRef, transaction);
     
-        // Update account balances
         if (transaction.type === 'transfer') {
-            // Internal transfer between accounts
             const sourceAccountRef = doc(db, 'users', uid, 'bankAccounts', transaction.accountId);
             const sourceAccountSnap = await getDoc(sourceAccountRef);
             if (sourceAccountSnap.exists()) {
@@ -378,7 +287,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
         } else {
-            // Income or expense
             const accountRef = doc(db, 'users', uid, 'bankAccounts', transaction.accountId);
             const accountSnap = await getDoc(accountRef);
             if (accountSnap.exists()) {
@@ -387,7 +295,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 batch.update(accountRef, { balance: newBalance });
             }
             
-            // Update credit card used amount if applicable
             if (transaction.type === 'expense' && transaction.cardId) {
                 const cardRef = doc(db, 'users', uid, 'bankCards', transaction.cardId);
                 const cardSnap = await getDoc(cardRef);
@@ -404,15 +311,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
-        // This is complex. For now, we'll just update the transaction doc itself.
-        // A full implementation would require reverting old balance changes and applying new ones.
         await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
-        // Note: This simplified version does NOT adjust account balances on edit.
     };
 
     const deleteTransaction = async (id: string) => {
-        // This is complex. For now, we'll just delete the transaction doc itself.
-        // A full implementation would require reverting balance changes.
          await deleteDocById('transactions', id);
     };
     
@@ -423,27 +325,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-
-        // 1. Add contribution doc
         const contribRef = doc(collection(db, 'users', uid, 'goalContributions'));
         batch.set(contribRef, contribution);
-
-        // 2. Update goal's current amount
         const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
         const goalSnap = await getDoc(goalRef);
         if (goalSnap.exists()) {
             const goal = goalSnap.data() as SavingsGoal;
             batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
         }
-
-        // 3. Update savings account balance
         const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
         const accountSnap = await getDoc(accountRef);
         if(accountSnap.exists()) {
             const account = accountSnap.data() as BankAccount;
             batch.update(accountRef, { balance: account.balance - contribution.amount });
         }
-
         await batch.commit();
     };
     
@@ -476,12 +371,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-
-        // 1. Add contribution doc
         const contribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
         batch.set(contribRef, contribution);
-
-        // 2. Update investment's amounts
         const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
         const investmentSnap = await getDoc(investmentRef);
         if (investmentSnap.exists()) {
@@ -491,15 +382,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 currentValue: investment.currentValue + contribution.amount,
             });
         }
-
-        // 3. Update investment account balance
         const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
         const accountSnap = await getDoc(accountRef);
         if(accountSnap.exists()) {
             const account = accountSnap.data() as BankAccount;
             batch.update(accountRef, { balance: account.balance - contribution.amount });
         }
-
         await batch.commit();
     };
 
@@ -508,24 +396,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateBankAccount = async (account: BankAccount) => await setDocWithId('bankAccounts', account.id, account);
     const deleteBankAccount = async (id: string) => {
         if (!uid) throw new Error("Usuario no autenticado");
-
         const batch = writeBatch(db);
-
-        // 1. Get all cards associated with the account
         const cardsQuery = query(collection(db, 'users', uid, 'bankCards'), where('accountId', '==', id));
         const cardsSnapshot = await getDocs(cardsQuery);
         cardsSnapshot.forEach(doc => batch.delete(doc.ref));
-
-        // 2. Get all debts associated with the account
         const debtsQuery = query(collection(db, 'users', uid, 'debts'), where('accountId', '==', id));
         const debtsSnapshot = await getDocs(debtsQuery);
         debtsSnapshot.forEach(doc => batch.delete(doc.ref));
-        
-        // 3. Delete the account itself
         const accountRef = doc(db, 'users', uid, 'bankAccounts', id);
         batch.delete(accountRef);
-        
-        // 4. Commit the batch
         await batch.commit();
     };
 
@@ -668,8 +547,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const date = new Date(t.date);
             return getMonth(date) === month && getYear(date) === year;
         });
-        // These are not filtered by month, but that's the existing logic.
-        // If they needed to be, we would filter them here.
         return {
             transactions: monthTransactions,
             goals: allGoals,
@@ -693,15 +570,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             debtPayments: filteredDebtPayments,
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
-            budgets: filteredBudgets,
+budgets: filteredBudgets,
             bankAccounts: filteredBankAccounts,
             bankCards: filteredBankCards,
             reports: allReports,
             settings,
             isLoading,
+            needsSetup,
             filters,
             setFilters,
             availableYears,
+            finishSetup,
             addTransaction,
             updateTransaction,
             deleteTransaction,
