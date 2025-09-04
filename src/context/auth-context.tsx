@@ -8,8 +8,6 @@ import {
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
     signOut,
-    GoogleAuthProvider,
-    signInWithPopup
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -20,7 +18,6 @@ interface AuthContextType {
     login: (email: string, pass: string) => Promise<void>;
     signup: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
-    loginWithGoogle: () => Promise<void>;
     error: string | null;
 }
 
@@ -30,7 +27,6 @@ const AuthContext = createContext<AuthContextType>({
     login: async () => {},
     signup: async () => {},
     logout: async () => {},
-    loginWithGoogle: async () => {},
     error: null,
 });
 
@@ -79,18 +75,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    const loginWithGoogle = async () => {
-        setError(null);
-        try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            // onAuthStateChanged will handle redirect
-        } catch (e: any) {
-            setError(mapFirebaseError(e.code));
-            console.error(e);
-        }
-    }
-
     const logout = async () => {
         setUser(null);
         await signOut(auth);
@@ -123,7 +107,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         signup,
         logout,
-        loginWithGoogle,
         error
     };
 
