@@ -96,16 +96,16 @@ export function FinancialCalendar() {
     };
     
     return (
-        <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="rounded-2xl shadow-lg bg-card/80">
-                <CardContent className="p-4">
+                <CardContent className="p-4 flex justify-center">
                     <Calendar
                         mode="single"
                         month={currentMonth}
                         onMonthChange={setCurrentMonth}
                         selected={selectedDay as Date}
                         onSelect={(day) => setSelectedDay(day || null)}
-                        className="w-full"
+                        className="w-full max-w-sm"
                         classNames={{
                             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                             month: "space-y-4 w-full",
@@ -113,7 +113,7 @@ export function FinancialCalendar() {
                             head_row: "flex justify-around",
                             head_cell: "text-muted-foreground rounded-md w-full font-normal text-sm",
                             row: "flex w-full mt-2 justify-around",
-                            cell: "h-24 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            cell: "h-16 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                             day: "h-full w-full p-1.5 flex flex-col items-start justify-start font-normal aria-selected:opacity-100 rounded-lg transition-colors hover:bg-accent/50",
                             day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                             day_today: "bg-accent text-accent-foreground",
