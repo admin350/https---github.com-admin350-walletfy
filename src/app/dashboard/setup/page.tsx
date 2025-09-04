@@ -56,6 +56,21 @@ export default function SetupPage() {
         const newProfiles = profiles.filter((_, i) => i !== index);
         setProfiles(newProfiles);
     };
+    
+    const addCategory = (type: 'Gasto' | 'Ingreso') => {
+        const newCategory: Omit<Category, 'id'> = {
+            name: `Nueva Categoría`,
+            type: type,
+            color: '#ffffff'
+        };
+        setCategories([...categories, newCategory]);
+    };
+    
+    const removeCategory = (index: number) => {
+        const newCategories = categories.filter((_, i) => i !== index);
+        setCategories(newCategories);
+    };
+
 
     const handleFinishSetup = async () => {
         setIsLoading(true);
@@ -132,37 +147,52 @@ export default function SetupPage() {
                     </CardHeader>
                     <CardContent className="space-y-4 max-h-64 overflow-y-auto">
                         <h3 className="font-semibold text-white">Gastos</h3>
-                         {categories.filter(c => c.type === "Gasto").map((category, index) => (
-                           <div key={index} className="flex items-center gap-4">
-                                <Input 
-                                    type="color" 
-                                    value={category.color}
-                                    onChange={(e) => handleCategoryChange(categories.findIndex(c => c.name === category.name), 'color', e.target.value)}
-                                    className="w-12 h-10 p-1"
-                                />
-                                <Input
-                                    value={category.name}
-                                    onChange={(e) => handleCategoryChange(categories.findIndex(c => c.name === category.name), 'name', e.target.value)}
-                                    className="flex-1"
-                                />
-                            </div>
-                        ))}
+                         {categories.map((category, index) => {
+                            if (category.type !== "Gasto") return null;
+                            return (
+                               <div key={index} className="flex items-center gap-4">
+                                    <Input 
+                                        type="color" 
+                                        value={category.color}
+                                        onChange={(e) => handleCategoryChange(index, 'color', e.target.value)}
+                                        className="w-12 h-10 p-1"
+                                    />
+                                    <Input
+                                        value={category.name}
+                                        onChange={(e) => handleCategoryChange(index, 'name', e.target.value)}
+                                        className="flex-1"
+                                    />
+                                    <Button variant="ghost" size="icon" onClick={() => removeCategory(index)}>
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                </div>
+                            )
+                        })}
+                        <Button variant="outline" size="sm" onClick={() => addCategory('Gasto')}>Añadir Categoría de Gasto</Button>
+
                          <h3 className="font-semibold text-white mt-4">Ingresos</h3>
-                         {categories.filter(c => c.type === "Ingreso").map((category, index) => (
-                           <div key={index} className="flex items-center gap-4">
-                                <Input 
-                                    type="color" 
-                                    value={category.color}
-                                    onChange={(e) => handleCategoryChange(categories.findIndex(c => c.name === category.name), 'color', e.target.value)}
-                                    className="w-12 h-10 p-1"
-                                />
-                                <Input
-                                    value={category.name}
-                                     onChange={(e) => handleCategoryChange(categories.findIndex(c => c.name === category.name), 'name', e.target.value)}
-                                    className="flex-1"
-                                />
-                            </div>
-                        ))}
+                         {categories.map((category, index) => {
+                             if (category.type !== "Ingreso") return null;
+                             return (
+                               <div key={index} className="flex items-center gap-4">
+                                    <Input 
+                                        type="color" 
+                                        value={category.color}
+                                        onChange={(e) => handleCategoryChange(index, 'color', e.target.value)}
+                                        className="w-12 h-10 p-1"
+                                    />
+                                    <Input
+                                        value={category.name}
+                                         onChange={(e) => handleCategoryChange(index, 'name', e.target.value)}
+                                        className="flex-1"
+                                    />
+                                    <Button variant="ghost" size="icon" onClick={() => removeCategory(index)}>
+                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                </div>
+                             )
+                         })}
+                         <Button variant="outline" size="sm" onClick={() => addCategory('Ingreso')}>Añadir Categoría de Ingreso</Button>
                     </CardContent>
                 </Card>
 
