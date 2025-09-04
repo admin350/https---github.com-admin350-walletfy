@@ -54,7 +54,7 @@ export default function AuthenticationPage() {
       <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
 
       <motion.div
-        className="group relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-md"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

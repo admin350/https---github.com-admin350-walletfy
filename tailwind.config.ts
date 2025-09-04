@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      animationDelay: {
+        '4000': '4000ms',
+      },
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],
@@ -96,5 +99,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('tailwindcss-animation-delay')],
 } satisfies Config;
