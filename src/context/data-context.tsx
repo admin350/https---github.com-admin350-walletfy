@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
@@ -5,7 +6,7 @@ import { createContext, useState, useEffect, ReactNode, useMemo, useCallback } f
 import { getYear, getMonth, isPast } from "date-fns";
 import { useAuth } from "./auth-context";
 import { db } from "@/lib/firebase";
-import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc } from "firebase/firestore";
+import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where } from "firebase/firestore";
 
 
 interface IFilters {
@@ -222,8 +223,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports'
         ];
 
-        const unsubscribers: Unsubscribe[] = [];
-
         const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
             transactions: setTransactions,
             goals: setGoals,
@@ -241,6 +240,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             bankCards: setBankCards,
             reports: setReports,
         };
+
+        const unsubscribers: Unsubscribe[] = [];
 
         const fetchData = async () => {
             // Check if user has data, if not, create default data
@@ -271,11 +272,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
                 defaultCategories.forEach(c => {
                     const categoryRef = doc(collection(db, 'users', uid, 'categories'));
-                    batch.set(categoryRef, c);
+                    batch.set(categoryRef, { name: c.name, type: c.type, color: c.color });
                 });
                 
                 const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
                 batch.set(settingsRef, { currency: 'CLP' });
+
+                // Set user document to mark as initialized
+                batch.set(userDocRef, { initialized: true });
 
                 await batch.commit();
             }
@@ -444,7 +448,29 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // BANK ACCOUNT/CARD FUNCTIONS
     const addBankAccount = async (account: Omit<BankAccount, 'id'>) => await addDoc('bankAccounts', account);
     const updateBankAccount = async (account: BankAccount) => await setDocWithId('bankAccounts', account.id, account);
-    const deleteBankAccount = async (id: string) => await deleteDocById('bankAccounts', id);
+    const deleteBankAccount = async (id: string) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+
+        const batch = writeBatch(db);
+
+        // 1. Get all cards associated with the account
+        const cardsQuery = query(collection(db, 'users', uid, 'bankCards'), where('accountId', '==', id));
+        const cardsSnapshot = await getDocs(cardsQuery);
+        cardsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+        // 2. Get all debts associated with the account
+        const debtsQuery = query(collection(db, 'users', uid, 'debts'), where('accountId', '==', id));
+        const debtsSnapshot = await getDocs(debtsQuery);
+        debtsSnapshot.forEach(doc => batch.delete(doc.ref));
+        
+        // 3. Delete the account itself
+        const accountRef = doc(db, 'users', uid, 'bankAccounts', id);
+        batch.delete(accountRef);
+        
+        // 4. Commit the batch
+        await batch.commit();
+    };
+
     const addBankCard = async (card: Omit<BankCard, 'id'|'usedAmount'>) => await addDoc('bankCards', {...card, usedAmount: 0});
     const updateBankCard = async (card: BankCard) => await setDocWithId('bankCards', card.id, card);
     const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);

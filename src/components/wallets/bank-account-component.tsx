@@ -38,7 +38,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             await deleteBankAccount(account.id);
             toast({
                 title: "Cuenta Eliminada",
-                description: "La cuenta ha sido eliminada exitosamente."
+                description: "La cuenta y todos sus datos asociados han sido eliminados."
             })
         } catch (error) {
             toast({
@@ -107,14 +107,19 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                             </DropdownMenu>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. Esto eliminará permanentemente la cuenta.
+                                        Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:
+                                        <ul className="list-disc list-inside mt-2 text-yellow-400/80">
+                                            <li>Tarjetas de crédito y débito vinculadas</li>
+                                            <li>Deudas y préstamos asociados</li>
+                                        </ul>
+                                        ¿Deseas continuar?
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
+                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
