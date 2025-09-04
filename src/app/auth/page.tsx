@@ -66,13 +66,13 @@ export default function AuthenticationPage() {
             className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
             variants={itemVariants}
             >
-            <div className="relative flex items-center justify-center w-24 h-24 rounded-full border border-primary/20 bg-card/60 backdrop-blur-md">
-                <motion.div custom={1} variants={iconVariants} className="absolute top-0 left-12"><BarChart className="h-5 w-5 text-blue-400"/></motion.div>
-                <motion.div custom={2} variants={iconVariants} className="absolute bottom-4 left-2"><TrendingUp className="h-5 w-5 text-green-400"/></motion.div>
-                <motion.div custom={3} variants={iconVariants} className="absolute top-4 right-2"><PieChart className="h-5 w-5 text-rose-400"/></motion.div>
+            <div className="relative flex items-center justify-center w-24 h-24">
+                <motion.div custom={1} variants={iconVariants} className="absolute top-0 left-12"><BarChart className="h-6 w-6 text-blue-400"/></motion.div>
+                <motion.div custom={2} variants={iconVariants} className="absolute bottom-4 left-2"><TrendingUp className="h-6 w-6 text-green-400"/></motion.div>
+                <motion.div custom={3} variants={iconVariants} className="absolute top-4 right-2"><PieChart className="h-6 w-6 text-rose-400"/></motion.div>
                 
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.5, type: 'spring' }}}>
-                    <Wallet className="h-10 w-10 text-primary" />
+                    <Wallet className="h-12 w-12 text-primary" />
                 </motion.div>
             </div>
             <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
