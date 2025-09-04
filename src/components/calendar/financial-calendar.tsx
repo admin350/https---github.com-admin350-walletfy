@@ -98,14 +98,14 @@ export function FinancialCalendar() {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="rounded-2xl shadow-lg bg-card/80">
-                <CardContent className="p-4 flex justify-center">
+                <CardContent className="flex justify-center">
                     <Calendar
                         mode="single"
                         month={currentMonth}
                         onMonthChange={setCurrentMonth}
                         selected={selectedDay as Date}
                         onSelect={(day) => setSelectedDay(day || null)}
-                        className="w-full max-w-sm"
+                        className="w-full"
                         classNames={{
                             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                             month: "space-y-4 w-full",
