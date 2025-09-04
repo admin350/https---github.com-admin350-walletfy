@@ -22,13 +22,13 @@ import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
 export function CashflowChart() {
-  const { transactions, isLoading, filters, profiles, formatCurrency } = useData();
+  const { transactions, isLoading, profiles, formatCurrency } = useData();
   
   const chartConfig = useMemo(() => {
     const config: any = {};
     profiles.forEach(p => {
-        config[`income-${p.name}`] = { label: `Ingreso (${p.name})`, color: p.color };
-        config[`expenses-${p.name}`] = { label: `Egreso (${p.name})`, color: p.color };
+        config[`income-${p.id}`] = { label: `Ingreso (${p.name})`, color: p.color };
+        config[`expenses-${p.id}`] = { label: `Egreso (${p.name})`, color: p.color };
     });
     return config;
   }, [profiles]);
@@ -44,8 +44,8 @@ export function CashflowChart() {
       };
 
       profiles.forEach(profile => {
-        const incomeKey = `income-${profile.name}`;
-        const expenseKey = `expenses-${profile.name}`;
+        const incomeKey = `income-${profile.id}`;
+        const expenseKey = `expenses-${profile.id}`;
         
         dataPoint[incomeKey] = transactions
           .filter(t => t.type === 'income' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year && t.profile === profile.name)
@@ -77,8 +77,8 @@ export function CashflowChart() {
       };
       
       profiles.forEach(profile => {
-          const incomeKey = `income-${profile.name}`;
-          const expenseKey = `expenses-${profile.name}`;
+          const incomeKey = `income-${profile.id}`;
+          const expenseKey = `expenses-${profile.id}`;
 
           if (!cumulativeTotals[incomeKey]) cumulativeTotals[incomeKey] = 0;
           if (!cumulativeTotals[expenseKey]) cumulativeTotals[expenseKey] = 0;
@@ -106,8 +106,8 @@ export function CashflowChart() {
   const isYearlyView = filters.month === -1;
   const currentChartData = isYearlyView ? yearlyChartData : monthlyChartData;
 
-  const incomeKeys = profiles.map(p => `income-${p.name}`);
-  const expenseKeys = profiles.map(p => `expenses-${p.name}`);
+  const incomeKeys = profiles.map(p => `income-${p.id}`);
+  const expenseKeys = profiles.map(p => `expenses-${p.id}`);
 
   return (
     <Card className="bg-card/50 border-border/50">
