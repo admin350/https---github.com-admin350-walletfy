@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
@@ -11,8 +12,7 @@ import { DataContext } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
 const COLORS = {
-  savings: "hsl(var(--chart-2))",
-  investments: "hsl(var(--chart-4))",
+  transfer: "hsl(var(--chart-5))",
 };
 
 
@@ -37,20 +37,13 @@ export function ExpenseChart() {
         return null;
     }).filter(d => d !== null) as { name: string; value: number; fill: string }[];
 
-    const savingsTotal = transactions
+    const transferTotal = transactions
         .filter(t => t.type === 'transfer')
         .reduce((sum, t) => sum + t.amount, 0);
         
-    const investmentsTotal = transactions
-        .filter(t => t.type === 'transfer-investment')
-        .reduce((sum, t) => sum + t.amount, 0);
-        
     const data = [...expenseData];
-    if (savingsTotal > 0) {
-        data.push({ name: "Ahorros", value: savingsTotal, fill: COLORS.savings });
-    }
-    if (investmentsTotal > 0) {
-        data.push({ name: "Inversiones", value: investmentsTotal, fill: COLORS.investments });
+    if (transferTotal > 0) {
+        data.push({ name: "Transferencias", value: transferTotal, fill: COLORS.transfer });
     }
     
     return { chartData: data, totalIncome };

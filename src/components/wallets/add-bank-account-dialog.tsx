@@ -35,6 +35,7 @@ const formSchema = z.object({
   accountNumber: z.string().min(1, { message: "El número de cuenta es requerido." }),
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
+  purpose: z.enum(["savings", "investment"]).optional(),
   color: z.string().optional(),
 });
 
@@ -64,6 +65,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             accountNumber: "",
             balance: 0,
             profile: "",
+            purpose: undefined,
             color: "#0ea5e9",
         },
     });
@@ -82,6 +84,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 accountNumber: "",
                 balance: 0,
                 profile: "",
+                purpose: undefined,
                 color: "#0ea5e9",
             });
         }
@@ -174,6 +177,28 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                             <SelectItem value="Cuenta Corriente">Cuenta Corriente</SelectItem>
                                             <SelectItem value="Cuenta Vista">Cuenta Vista</SelectItem>
                                             <SelectItem value="Cuenta de Ahorro">Cuenta de Ahorro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="purpose"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Propósito de la Cuenta (Opcional)</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Ninguno" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">Ninguno</SelectItem>
+                                            <SelectItem value="savings">Cartera de Ahorros</SelectItem>
+                                            <SelectItem value="investment">Cartera de Inversión</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

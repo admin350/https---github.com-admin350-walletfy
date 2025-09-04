@@ -1,15 +1,17 @@
 
 
 
+
 export type Transaction = {
   id: string;
-  type: 'income' | 'expense' | 'transfer' | 'transfer-investment';
+  type: 'income' | 'expense' | 'transfer';
   amount: number;
   description: string;
   category: string;
   profile: string;
   date: string; // ISO 8601 format
-  accountId: string;
+  accountId: string; // source account
+  destinationAccountId?: string; // destination account for transfers
   cardId?: string; // Optional: link to a BankCard for expenses
 };
 
@@ -21,6 +23,7 @@ export type BankAccount = {
   accountNumber: string;
   balance: number;
   profile: string;
+  purpose?: 'savings' | 'investment'; // Designate account for a specific purpose
   color?: string;
 }
 
@@ -137,7 +140,7 @@ export type Profile = {
 export type Category = {
     id: string;
     name: string;
-    type: 'Ingreso' | 'Gasto';
+    type: 'Ingreso' | 'Gasto' | 'Transferencia';
     color: string;
 }
 

@@ -1,4 +1,5 @@
 
+
 'use client'
 import {
     ColumnDef,
@@ -17,15 +18,17 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import type { Transaction } from "@/types";
 import { DataContext } from "@/context/data-context";
 import { format } from "date-fns";
 
 export function InvestmentsPortfolioDataTable() {
-    const { transactions } = useContext(DataContext);
+    const { transactions, bankAccounts } = useContext(DataContext);
     
-    const investmentTransactions = transactions.filter(t => t.type === 'transfer-investment');
+    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
+    
+    const investmentTransactions = transactions.filter(t => t.type === 'transfer' && t.destinationAccountId === investmentAccount?.id);
     
     const columns: ColumnDef<Transaction>[] = [
         {

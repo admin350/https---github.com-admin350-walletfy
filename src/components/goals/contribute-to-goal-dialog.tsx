@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useContext, useMemo } from 'react';
 import {
@@ -35,11 +36,10 @@ interface ContributeToGoalDialogProps {
 export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeToGoalDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addGoalContribution, transactions, goalContributions } = useContext(DataContext);
+    const { addGoalContribution, bankAccounts, goalContributions } = useContext(DataContext);
     
-    const totalSavings = useMemo(() => {
-        return transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
-    }, [transactions]);
+    const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
+    const totalSavings = savingsAccount?.balance ?? 0;
     
     const totalContributed = useMemo(() => {
         return goalContributions.reduce((acc, c) => acc + c.amount, 0);
@@ -50,7 +50,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
     const formSchema = z.object({
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en ahorros ($${availableSavings.toLocaleString('es-CL')}).` }),
+        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de ahorros ($${availableSavings.toLocaleString('es-CL')}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -61,6 +61,11 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        if (!savingsAccount) {
+            toast({ title: "Error", description: "No se ha configurado una cuenta de ahorros.", variant: "destructive" });
+            return;
+        }
+
         setIsLoading(true);
         try {
             await addGoalContribution({
@@ -68,6 +73,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 goalName: goal.name,
                 amount: values.amount,
                 date: new Date(),
+                sourceAccountId: savingsAccount.id,
             });
             toast({
                 title: "¡Aporte Exitoso!",

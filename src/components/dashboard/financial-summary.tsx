@@ -1,6 +1,7 @@
 
+
 'use client';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataContext } from '@/context/data-context';
 import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp } from 'lucide-react';
@@ -8,7 +9,7 @@ import { Skeleton } from '../ui/skeleton';
 
 export function FinancialSummary() {
     const { 
-        transactions, 
+        bankAccounts,
         goalContributions, 
         investmentContributions,
         debts,
@@ -16,13 +17,16 @@ export function FinancialSummary() {
         isLoading,
         formatCurrency
     } = useContext(DataContext);
+    
+    const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
+    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
 
     // Calculations now respect filters as they use filtered data from context
-    const totalSavings = transactions.filter(t => t.type === 'transfer').reduce((acc, t) => acc + t.amount, 0);
+    const totalSavings = savingsAccount?.balance ?? 0;
     const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
     const availableSavings = totalSavings - totalContributedToGoals;
 
-    const totalTransferredToInvestment = transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
+    const totalTransferredToInvestment = investmentAccount?.balance ?? 0;
     const totalContributedToAssets = investmentContributions.reduce((acc, c) => acc + c.amount, 0);
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 

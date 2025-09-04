@@ -42,14 +42,31 @@ import type { Transaction } from '@/types';
 
 
 const formSchema = z.object({
-  type: z.enum(["income", "expense", "transfer", "transfer-investment"], { required_error: "Tipo es requerido." }),
+  type: z.enum(["income", "expense", "transfer"], { required_error: "Tipo es requerido." }),
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
   description: z.string().min(2, { message: "Descripción es muy corta." }),
   category: z.string().min(1, { message: "Categoría es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido."}),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
+  destinationAccountId: z.string().optional(),
   cardId: z.string().optional(),
   date: z.date({ required_error: "Fecha es requerida." }),
+}).refine(data => {
+    if (data.type === 'transfer' && !data.destinationAccountId) {
+        return false;
+    }
+    return true;
+}, {
+    message: "La cuenta de destino es requerida para las transferencias.",
+    path: ["destinationAccountId"],
+}).refine(data => {
+    if (data.type === 'transfer' && data.accountId === data.destinationAccountId) {
+        return false;
+    }
+    return true;
+}, {
+    message: "La cuenta de origen y destino no pueden ser la misma.",
+    path: ["destinationAccountId"],
 });
 
 interface AddTransactionDialogProps {
@@ -79,6 +96,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             category: "",
             profile: "",
             accountId: "",
+            destinationAccountId: undefined,
             cardId: undefined,
             date: new Date(),
         },
@@ -99,6 +117,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 category: "",
                 profile: "",
                 accountId: "",
+                destinationAccountId: undefined,
                 cardId: undefined,
                 date: new Date(),
             });
@@ -108,15 +127,27 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
 
     const transactionType = form.watch("type");
     const selectedProfile = form.watch("profile");
+    const sourceAccountId = form.watch("accountId");
 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
-        if (transactionType === 'expense' || transactionType === 'transfer' || transactionType === 'transfer-investment') return c.type === 'Gasto';
+        if (transactionType === 'expense') return c.type === 'Gasto';
+        if (transactionType === 'transfer') return c.type === 'Transferencia';
         return true;
     });
 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
+    const availableDestinationAccounts = availableAccounts.filter(acc => acc.id !== sourceAccountId);
     const availableCards = bankCards.filter(card => !selectedProfile || card.profile === selectedProfile);
+
+    useEffect(() => {
+        if (transactionType === 'transfer') {
+            const transferCategory = categories.find(c => c.type === 'Transferencia');
+            if (transferCategory) {
+                form.setValue('category', transferCategory.name);
+            }
+        }
+    }, [transactionType, categories, form]);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
@@ -192,8 +223,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                                 <SelectContent>
                                     <SelectItem value="expense">Egreso</SelectItem>
                                     <SelectItem value="income">Ingreso</SelectItem>
-                                    <SelectItem value="transfer">Transferencia a Ahorros</SelectItem>
-                                    <SelectItem value="transfer-investment">Transferencia a Inversión</SelectItem>
+                                    <SelectItem value="transfer">Transferencia</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -253,7 +283,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                         name="accountId"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Cuenta de Origen / Afectada</FormLabel>
+                            <FormLabel>{transactionType === 'transfer' ? 'Cuenta de Origen' : 'Cuenta Afectada'}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
@@ -270,6 +300,30 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             </FormItem>
                         )}
                     />
+                    {transactionType === 'transfer' && (
+                         <FormField
+                            control={form.control}
+                            name="destinationAccountId"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Cuenta de Destino</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona cuenta de destino" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {availableDestinationAccounts.map(a => (
+                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     {transactionType === 'expense' && (
                         <FormField
                             control={form.control}
@@ -295,13 +349,13 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             )}
                         />
                     )}
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="category"
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={transactionType === 'transfer'}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona una categoría" />

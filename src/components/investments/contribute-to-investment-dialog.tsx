@@ -36,11 +36,10 @@ interface ContributeToInvestmentDialogProps {
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addInvestmentContribution, transactions, investmentContributions } = useContext(DataContext);
+    const { addInvestmentContribution, bankAccounts, investmentContributions } = useContext(DataContext);
     
-    const totalInvestmentTransfers = useMemo(() => {
-        return transactions.filter(t => t.type === 'transfer-investment').reduce((acc, t) => acc + t.amount, 0);
-    }, [transactions]);
+    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
+    const totalInvestmentTransfers = investmentAccount?.balance ?? 0;
     
     const totalContributedToInvestments = useMemo(() => {
         return investmentContributions.reduce((acc, c) => acc + c.amount, 0);
@@ -63,6 +62,11 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        if (!investmentAccount) {
+            toast({ title: "Error", description: "No se ha configurado una cuenta de inversión.", variant: "destructive" });
+            return;
+        }
+
         setIsLoading(true);
         try {
             await addInvestmentContribution({
@@ -70,6 +74,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 investmentName: investment.name,
                 amount: values.amount,
                 date: new Date(),
+                sourceAccountId: investmentAccount.id,
             });
             toast({
                 title: "¡Aporte Exitoso!",

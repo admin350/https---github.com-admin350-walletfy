@@ -1,4 +1,5 @@
 
+
 'use client'
 import {
     ColumnDef,
@@ -69,9 +70,15 @@ export function TransactionsDataTable() {
             accessorKey: "accountId",
             header: "Cuenta",
             cell: ({row}) => {
-                const accountId = row.getValue("accountId") as string;
-                const account = bankAccounts.find(a => a.id === accountId);
-                return account ? `${account.name} (${account.bank})` : 'N/A';
+                const transaction = row.original;
+                const sourceAccount = bankAccounts.find(a => a.id === transaction.accountId);
+                const destAccount = bankAccounts.find(a => a.id === transaction.destinationAccountId);
+
+                if (transaction.type === 'transfer' && sourceAccount && destAccount) {
+                    return `${sourceAccount.name} -> ${destAccount.name}`;
+                }
+                
+                return sourceAccount ? `${sourceAccount.name} (${sourceAccount.bank})` : 'N/A';
             }
         },
         {
@@ -114,12 +121,7 @@ export function TransactionsDataTable() {
                         break;
                     case 'transfer':
                         variant = 'secondary';
-                        text = 'Ahorro';
-                        className = 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20';
-                        break;
-                    case 'transfer-investment':
-                        variant = 'secondary';
-                        text = 'Inversión';
+                        text = 'Transferencia';
                         className = 'bg-blue-500/20 text-blue-500 border-blue-500/20';
                         break;
                     default:
