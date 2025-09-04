@@ -75,6 +75,9 @@ interface DataContextType {
     addReport: (report: MonthlyReport) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
     updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
+    addProfile: (profile: Profile) => Promise<void>;
+    updateProfile: (profile: Profile) => Promise<void>;
+    deleteProfile: (name: string) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
     formatCurrency: (value: number, withSymbol?: boolean, isCompact?: boolean) => string;
 }
@@ -137,6 +140,9 @@ export const DataContext = createContext<DataContextType>({
     addReport: async () => {},
     deleteReport: async () => {},
     updateSettings: async () => {},
+    addProfile: async () => {},
+    updateProfile: async () => {},
+    deleteProfile: async () => {},
     getAllDataForMonth: () => ({ transactions: [], goals: [], debts: [], investments: [], budgets: [] }),
     formatCurrency: () => '',
 });
@@ -567,6 +573,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const updateSettings = async (newSettings: Partial<AppSettings>) => await setDocWithId('settings', 'appSettings', newSettings);
     
+    const addProfile = async (profile: Profile) => await setDocWithId('profiles', profile.name, profile);
+    const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.name, profile);
+    const deleteProfile = async (name: string) => await deleteDocById('profiles', name);
+
     const availableYears = useMemo(() => {
         const years = new Set(allTransactions.map(t => getYear(new Date(t.date))));
         years.add(getYear(new Date())); // Ensure current year is always available
@@ -730,6 +740,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addReport,
             deleteReport,
             updateSettings,
+            addProfile,
+            updateProfile,
+            deleteProfile,
             getAllDataForMonth,
             formatCurrency,
         }}>

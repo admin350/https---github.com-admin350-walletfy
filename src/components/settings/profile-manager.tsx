@@ -2,23 +2,56 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { DataContext } from "@/context/data-context";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import type { Profile } from "@/types";
+import { AddProfileDialog } from "./add-profile-dialog";
 
 export function ProfileManager() {
-    const { profiles } = useContext(DataContext);
+    const { profiles, deleteProfile } = useContext(DataContext);
+    const { toast } = useToast();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
 
+    const handleEdit = (profile: Profile) => {
+        setProfileToEdit(profile);
+        setIsDialogOpen(true);
+    };
+
+    const handleAddNew = () => {
+        setProfileToEdit(undefined);
+        setIsDialogOpen(true);
+    };
+
+    const handleDelete = async (name: string) => {
+        try {
+            await deleteProfile(name);
+            toast({
+                title: "Perfil eliminado",
+                description: "El perfil ha sido eliminado exitosamente.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
+                variant: "destructive"
+            });
+        }
+    };
+    
     return (
         <Card>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Gestionar Perfiles</CardTitle>
-                        <CardDescription>Añade, edita o elimina perfiles de usuario para organizar tus finanzas.</CardDescription>
+                        <CardDescription>Añade, edita o elimina perfiles para organizar tus finanzas.</CardDescription>
                     </div>
-                    <Button size="icon" variant="outline">
+                    <Button onClick={handleAddNew} size="icon" variant="outline">
                         <PlusCircle className="h-6 w-6" />
                     </Button>
                 </div>
@@ -43,24 +76,51 @@ export function ProfileManager() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <span className="sr-only">Abrir menú</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                                            <DropdownMenuItem>Eliminar</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <AlertDialog>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <span className="sr-only">Abrir menú</span>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => handleEdit(profile)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Editar
+                                                </DropdownMenuItem>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem disabled={profiles.length <= 1}>
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Eliminar
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el perfil.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(profile.name)}>Continuar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </CardContent>
+             <AddProfileDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                profileToEdit={profileToEdit}
+            />
         </Card>
     );
 }
