@@ -97,23 +97,26 @@ export function FinancialCalendar() {
     
     return (
         <div className="flex flex-col gap-6">
-            <Card>
-                <CardContent className="p-0">
+            <Card className="rounded-2xl shadow-lg bg-card/80">
+                <CardContent className="p-4">
                     <Calendar
                         mode="single"
                         month={currentMonth}
                         onMonthChange={setCurrentMonth}
                         selected={selectedDay as Date}
                         onSelect={(day) => setSelectedDay(day || null)}
-                        className="p-0"
+                        className="w-full"
                         classNames={{
+                            months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                            month: "space-y-4 w-full",
                             table: "w-full border-collapse space-y-1",
+                            head_row: "flex justify-around",
                             head_cell: "text-muted-foreground rounded-md w-full font-normal text-sm",
-                            row: "flex w-full mt-2",
-                            cell: "h-20 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                            day: "h-full w-full p-1.5 flex flex-col items-start justify-start font-normal aria-selected:opacity-100",
-                            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-lg",
-                            day_today: "bg-accent text-accent-foreground rounded-lg",
+                            row: "flex w-full mt-2 justify-around",
+                            cell: "h-24 w-full text-center text-sm p-1 relative [&:has([aria-selected])]:bg-accent/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                            day: "h-full w-full p-1.5 flex flex-col items-start justify-start font-normal aria-selected:opacity-100 rounded-lg transition-colors hover:bg-accent/50",
+                            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                            day_today: "bg-accent text-accent-foreground",
                         }}
                         components={{
                             DayContent: ({ date, displayMonth }) => {
@@ -127,7 +130,7 @@ export function FinancialCalendar() {
                                         {dayEvents && isCurrentMonth && (
                                             <div className="flex-1 w-full overflow-hidden mt-1">
                                                 <div className="flex flex-col gap-1">
-                                                    {dayEvents.slice(0, 2).map((event, index) => {
+                                                    {dayEvents.slice(0, 3).map((event, index) => {
                                                         const colors = {
                                                             debt: 'bg-red-500',
                                                             subscription: 'bg-purple-500',
