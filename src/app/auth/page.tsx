@@ -44,82 +44,86 @@ const iconVariants = {
 };
 
 export default function AuthenticationPage() {
-
-  return (
-    <div 
-        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-zinc-900 text-white"
-    >
-        {/* Animated Background */}
-        <div className="absolute inset-0 -z-10 h-full w-full">
-            <div className="relative h-full w-full bg-zinc-900">
-                <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
-                <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
-            </div>
-        </div>
-
-
-      <motion.div
-        className="relative z-10 w-full max-w-md"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+    return (
         <div 
-            className="flex flex-col items-center justify-center p-4 sm:p-0"
+            className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background text-white"
         >
-            <motion.div
-            className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
-            variants={itemVariants}
-            >
-            <div className="relative flex items-center justify-center w-24 h-24">
-                <motion.div custom={1} variants={iconVariants} className="absolute top-0 left-12"><BarChart className="h-6 w-6 text-blue-400"/></motion.div>
-                <motion.div custom={2} variants={iconVariants} className="absolute bottom-4 left-2"><TrendingUp className="h-6 w-6 text-green-400"/></motion.div>
-                <motion.div custom={3} variants={iconVariants} className="absolute top-4 right-2"><PieChart className="h-6 w-6 text-rose-400"/></motion.div>
-                
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.5, type: 'spring' }}}>
-                    <Wallet className="h-12 w-12 text-primary" />
-                </motion.div>
+            <div className="absolute inset-0 -z-10 h-full w-full">
+                <div className="relative h-full w-full bg-zinc-900">
+                   <div className="absolute inset-0 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                   <div className="absolute -z-10 h-full w-full bg-gradient-to-t from-zinc-950 to-transparent"></div>
+                    <div className="blob-container">
+                        <div className="blob one"></div>
+                        <div className="blob two"></div>
+                        <div className="blob three"></div>
+                        <div className="blob four"></div>
+                        <div className="blob five"></div>
+                    </div>
+                </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                FA WALLET
-            </h1>
-            <p className="max-w-xs text-sm text-muted-foreground">
-                Toma el control de tus finanzas con una claridad y poder sin
-                precedentes.
-            </p>
-            </motion.div>
 
-            <motion.div 
-                className="w-full" 
-                variants={itemVariants}
+            <motion.div
+                className="relative z-10 w-full max-w-md"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
             >
-                <div className="w-full p-6 space-y-6 rounded-2xl border border-border/20 bg-card/60 backdrop-blur-lg">
-                    <UserAuthForm />
+                <div 
+                    className="flex flex-col items-center justify-center p-4 sm:p-0"
+                >
+                    <motion.div
+                        className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
+                        variants={itemVariants}
+                    >
+                        <div className="relative flex items-center justify-center w-24 h-24">
+                            <motion.div custom={1} variants={iconVariants} className="absolute top-0 left-12"><BarChart className="h-6 w-6 text-blue-400"/></motion.div>
+                            <motion.div custom={2} variants={iconVariants} className="absolute bottom-4 left-2"><TrendingUp className="h-6 w-6 text-green-400"/></motion.div>
+                            <motion.div custom={3} variants={iconVariants} className="absolute top-4 right-2"><PieChart className="h-6 w-6 text-rose-400"/></motion.div>
+                            
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.5, type: 'spring' }}}>
+                                <Wallet className="h-12 w-12 text-primary" />
+                            </motion.div>
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                            FA WALLET
+                        </h1>
+                        <p className="max-w-xs text-sm text-muted-foreground">
+                            Toma el control de tus finanzas con una claridad y poder sin
+                            precedentes.
+                        </p>
+                    </motion.div>
+
+                    <motion.div 
+                        className="w-full" 
+                        variants={itemVariants}
+                    >
+                        <div className="w-full p-6 space-y-6 rounded-2xl border border-border/20 bg-card/60 backdrop-blur-lg">
+                            <UserAuthForm />
+                        </div>
+                    </motion.div>
+
+                    <motion.p
+                        className="mt-8 px-8 text-center text-xs text-muted-foreground"
+                        variants={itemVariants}
+                    >
+                        Al continuar, aceptas nuestros{" "}
+                        <a
+                            href="/terms"
+                            className="underline underline-offset-4 hover:text-primary"
+                        >
+                            Términos de Servicio
+                        </a>{" "}
+                        y{" "}
+                        <a
+                            href="/privacy"
+                            className="underline underline-offset-4 hover:text-primary"
+                        >
+                            Política de Privacidad
+                        </a>
+                        .
+                    </motion.p>
                 </div>
             </motion.div>
-
-            <motion.p
-            className="mt-8 px-8 text-center text-xs text-muted-foreground"
-            variants={itemVariants}
-            >
-            Al continuar, aceptas nuestros{" "}
-            <a
-                href="/terms"
-                className="underline underline-offset-4 hover:text-primary"
-            >
-                Términos de Servicio
-            </a>{" "}
-            y{" "}
-            <a
-                href="/privacy"
-                className="underline underline-offset-4 hover:text-primary"
-            >
-                Política de Privacidad
-            </a>
-            .
-            </motion.p>
         </div>
-      </motion.div>
-    </div>
-  );
+    );
 }
