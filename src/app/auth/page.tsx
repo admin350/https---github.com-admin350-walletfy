@@ -44,8 +44,8 @@ const iconVariants = {
 };
 
 export default function AuthenticationPage() {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(250);
+  const mouseY = useMotionValue(150);
 
   const cardRef = React.useRef<HTMLDivElement>(null);
 
@@ -64,7 +64,9 @@ export default function AuthenticationPage() {
       "radial-gradient(400px circle at 100% 100%, hsl(var(--primary) / 0.1), transparent 80%)",
     ]
   );
-
+  
+  const dynamicMouseX = useSpring(mouseX, { stiffness: 400, damping: 90 });
+  const dynamicMouseY = useSpring(mouseY, { stiffness: 400, damping: 90 });
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white">
@@ -117,8 +119,9 @@ export default function AuthenticationPage() {
                  <motion.div
                     className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                     style={{
-                        background: useMotionValue(
-                        `radial-gradient(350px circle at ${mouseX.get()}px ${mouseY.get()}px, hsla(var(--primary), 0.15), transparent 80%)`
+                        background: useTransform(
+                            [dynamicMouseX, dynamicMouseY],
+                            ([latestX, latestY]) => `radial-gradient(350px circle at ${latestX}px ${latestY}px, hsla(var(--primary), 0.15), transparent 80%)`
                         ),
                     }}
                 />
