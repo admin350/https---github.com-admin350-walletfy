@@ -1,4 +1,3 @@
-
 'use client';
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
@@ -50,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
         try {
             await signInWithEmailAndPassword(auth, email, pass);
-            // onAuthStateChanged will handle user state, layout will handle redirect
+            router.push('/dashboard');
         } catch (e: any) {
             setError(mapFirebaseError(e.code));
             console.error(e);
@@ -61,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
         try {
             await createUserWithEmailAndPassword(auth, email, pass);
+            router.push('/dashboard');
         } catch (e: any) {
              if (e.code === 'auth/email-already-in-use') {
                 setError('auth/email-already-in-use');

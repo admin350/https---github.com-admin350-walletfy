@@ -12,10 +12,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    // Only redirect if loading is finished and there's no user.
     if (!loading && !user) {
       router.push('/auth');
     }
-    // This effect should run whenever user or loading state changes.
   }, [user, loading, router]);
   
   // While loading, or if there's no user after loading, show a loader.
