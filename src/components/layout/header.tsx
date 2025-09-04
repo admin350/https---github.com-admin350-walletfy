@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -101,7 +102,7 @@ export function Header() {
                         <SelectContent>
                             <SelectItem value="all">Todos los Perfiles</SelectItem>
                              {profiles.map(p => (
-                                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
+                                <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
