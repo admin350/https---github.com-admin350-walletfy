@@ -47,11 +47,16 @@ export default function AuthenticationPage() {
 
   return (
     <div 
-        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-t from-black via-zinc-900 to-zinc-800 text-white"
+        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-zinc-900 text-white"
     >
-      {/* Background Glows */}
-      <div className="absolute -top-1/4 left-0 w-96 h-96 bg-primary/10 rounded-full blur-[150px] animate-pulse"></div>
-      <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
+        {/* Animated Background */}
+        <div className="absolute inset-0 -z-10 h-full w-full">
+            <div className="relative h-full w-full bg-zinc-900">
+                <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+                <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+            </div>
+        </div>
+
 
       <motion.div
         className="relative z-10 w-full max-w-md"
