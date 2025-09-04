@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
@@ -221,6 +222,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const finishSetup = async (data: InitialSetupData) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
+        const userDocRef = doc(db, 'users', uid);
+    
+        // Ensure user document exists before batching writes
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+            // Set a placeholder or initial field to create the document
+            batch.set(userDocRef, { createdAt: new Date() });
+        }
 
         // Set profiles
         data.profiles.forEach(profile => {
@@ -238,9 +247,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
         batch.set(settingsRef, data.settings);
 
-        // Mark setup as complete
-        const userDocRef = doc(db, 'users', uid);
-        batch.set(userDocRef, { setupComplete: true });
+        // Mark setup as complete by updating the user document
+        batch.update(userDocRef, { setupComplete: true });
 
         await batch.commit();
         setNeedsSetup(false);
@@ -628,3 +636,4 @@ budgets: filteredBudgets,
         </DataContext.Provider>
     );
 };
+
