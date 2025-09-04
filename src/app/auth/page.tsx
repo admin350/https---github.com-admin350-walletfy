@@ -1,49 +1,109 @@
 
-import { UserAuthForm } from "@/components/auth/user-auth-form"
-import { Wallet } from "lucide-react"
+'use client';
+import { UserAuthForm } from "@/components/auth/user-auth-form";
+import { motion } from "framer-motion";
+import { PieChart, Wallet, BarChart, TrendingUp } from "lucide-react";
+
+// Framer Motion Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+    },
+  },
+};
+
+const iconVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: (i: number) => ({
+        scale: 1,
+        opacity: 0.7,
+        transition: {
+            delay: i * 0.2 + 0.8,
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+        },
+    }),
+};
 
 export default function AuthenticationPage() {
   return (
-    <>
-      <div className="container relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />
-          <div className="relative z-20 flex items-center text-3xl font-bold text-primary">
-            <Wallet className="h-8 w-8 mr-2" />
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-black">
+      {/* Background Glows */}
+      <div className="absolute -top-1/4 left-0 w-96 h-96 bg-primary/10 rounded-full blur-[150px] animate-pulse"></div>
+      <div className="absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[150px] animate-pulse animation-delay-4000"></div>
+
+      <motion.div
+        className="relative z-10 flex w-full max-w-md flex-col items-center justify-center p-4 sm:p-0"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          className="flex flex-col items-center justify-center space-y-4 text-center mb-10"
+          variants={itemVariants}
+        >
+          <div className="relative flex items-center justify-center w-24 h-24 rounded-full border border-primary/20 bg-card/60 backdrop-blur-md">
+             <motion.div custom={1} variants={iconVariants} className="absolute top-0 left-12"><BarChart className="h-5 w-5 text-blue-400"/></motion.div>
+             <motion.div custom={2} variants={iconVariants} className="absolute bottom-4 left-2"><TrendingUp className="h-5 w-5 text-green-400"/></motion.div>
+             <motion.div custom={3} variants={iconVariants} className="absolute top-4 right-2"><PieChart className="h-5 w-5 text-rose-400"/></motion.div>
+            
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.5, type: 'spring' }}}>
+                 <Wallet className="h-10 w-10 text-primary" />
+            </motion.div>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
             FA WALLET
+          </h1>
+          <p className="max-w-xs text-sm text-muted-foreground">
+            Toma el control de tus finanzas con una claridad y poder sin
+            precedentes.
+          </p>
+        </motion.div>
+
+        <motion.div className="w-full" variants={itemVariants}>
+          <div className="w-full p-6 space-y-6 rounded-2xl border border-border/20 bg-card/60 backdrop-blur-lg">
+             <UserAuthForm />
           </div>
-          <div className="relative z-20 mt-auto">
-            <blockquote className="space-y-2">
-              <p className="text-lg">
-                &ldquo;Toma el control de tus finanzas con una claridad y poder sin precedentes. Tu futuro financiero comienza hoy.&rdquo;
-              </p>
-              <footer className="text-sm">FA Vision Team</footer>
-            </blockquote>
-          </div>
-        </div>
-        <div className="lg:p-8 h-full flex items-center">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-            <UserAuthForm />
-            <p className="px-8 text-center text-sm text-muted-foreground">
-              Al hacer clic en continuar, aceptas nuestros{" "}
-              <a
-                href="/terms"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Términos de Servicio
-              </a>{" "}
-              y{" "}
-              <a
-                href="/privacy"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Política de Privacidad
-              </a>
-              .
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
-  )
+        </motion.div>
+
+        <motion.p
+          className="mt-8 px-8 text-center text-xs text-muted-foreground"
+          variants={itemVariants}
+        >
+          Al continuar, aceptas nuestros{" "}
+          <a
+            href="/terms"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Términos de Servicio
+          </a>{" "}
+          y{" "}
+          <a
+            href="/privacy"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Política de Privacidad
+          </a>
+          .
+        </motion.p>
+      </motion.div>
+    </div>
+  );
 }
