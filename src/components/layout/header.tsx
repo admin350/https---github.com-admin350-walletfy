@@ -64,6 +64,8 @@ export function Header() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+  
+  const isCalendarPage = pathname === '/dashboard/calendar';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -129,9 +131,9 @@ export function Header() {
                     </Select>
                  </div>
             )}
-           <Link href="/dashboard/calendar">
+           <Link href={isCalendarPage ? "/dashboard/dashboard" : "/dashboard/calendar"}>
                 <Button variant="ghost" size="icon">
-                    <Calendar className="h-5 w-5" />
+                    {isCalendarPage ? <LayoutDashboard className="h-5 w-5" /> : <Calendar className="h-5 w-5" />}
                 </Button>
             </Link>
            <Button variant="ghost" size="icon" onClick={logout}>
