@@ -8,13 +8,13 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  "projectId": "fa-vision",
+  "appId": "1:340465179002:web:f4c555150a25ea691d5ec3",
+  "storageBucket": "fa-vision.firebasestorage.app",
+  "apiKey": "AIzaSyBpEHk9J_35GMcHw38fjcHu7V4gG0-qNX8",
+  "authDomain": "fa-vision.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "340465179002"
 };
 
 // Initialize Firebase, checking if apps are already initialized.
