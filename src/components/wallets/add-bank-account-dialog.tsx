@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -37,6 +38,7 @@ const formSchema = z.object({
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   purpose: z.enum(["savings", "investment"]).optional(),
   color: z.string().optional(),
+  monthlyLimit: z.coerce.number().optional(),
 });
 
 interface AddBankAccountDialogProps {
@@ -67,14 +69,18 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             profile: "",
             purpose: undefined,
             color: "#0ea5e9",
+            monthlyLimit: undefined,
         },
     });
+
+    const accountType = form.watch("accountType");
 
     useEffect(() => {
         if (dialogOpen && accountToEdit) {
             form.reset({
                 ...accountToEdit,
-                color: accountToEdit.color || "#0ea5e9"
+                color: accountToEdit.color || "#0ea5e9",
+                monthlyLimit: accountToEdit.monthlyLimit || undefined,
             });
         } else if (dialogOpen && !accountToEdit) {
             form.reset({
@@ -86,6 +92,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 profile: "",
                 purpose: undefined,
                 color: "#0ea5e9",
+                monthlyLimit: undefined,
             });
         }
     }, [accountToEdit, form, dialogOpen]);
@@ -183,6 +190,21 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     </FormItem>
                                 )}
                             />
+                            {accountType === "Cuenta Vista" && (
+                                <FormField
+                                    control={form.control}
+                                    name="monthlyLimit"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Límite de Ingresos Mensuales</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="5000000" {...field} value={field.value ?? ''} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                             <FormField
                                 control={form.control}
                                 name="purpose"

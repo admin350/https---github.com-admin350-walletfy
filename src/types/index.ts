@@ -27,6 +27,7 @@ export type BankAccount = {
   profile: string;
   purpose?: 'savings' | 'investment'; // Designate account for a specific purpose
   color?: string;
+  monthlyLimit?: number; // For "Cuenta Vista" monthly deposit limit
 }
 
 export type BankCard = {
@@ -158,4 +159,14 @@ export type MonthlyReport = {
 
 export type AppSettings = {
     currency: 'CLP' | 'USD' | 'EUR';
+}
+
+export type AppNotification = {
+    id: string;
+    title: string;
+    description: string;
+    date: Date;
+    read: boolean;
+    type: 'warning' | 'info';
+    link?: string;
 }

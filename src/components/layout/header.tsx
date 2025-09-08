@@ -5,13 +5,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Badge } from "../ui/badge";
+import type { AppNotification } from "@/types";
 
 const navSections = [
     {
@@ -42,6 +45,29 @@ const navSections = [
 
 const allNavItems = navSections.flatMap(section => section.items);
 
+const NotificationPanel = ({ notifications }: { notifications: AppNotification[] }) => {
+    return (
+        <PopoverContent align="end" className="w-80">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="font-medium">Notificaciones</h3>
+                <Button variant="link" size="sm" className="h-auto p-0">Marcar como leídas</Button>
+            </div>
+            <div className="space-y-2">
+                {notifications.length > 0 ? (
+                    notifications.map(n => (
+                        <div key={n.id} className="text-sm p-2 rounded-md border border-l-4 border-l-amber-500 bg-amber-500/10">
+                            <p className="font-semibold">{n.title}</p>
+                            <p className="text-xs text-muted-foreground">{n.description}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">No tienes notificaciones</p>
+                )}
+            </div>
+        </PopoverContent>
+    )
+}
+
 export function Header() {
   const pathname = usePathname();
   const pageTitle = allNavItems.find(item => pathname.startsWith(item.href))?.label || "Panel";
@@ -51,7 +77,8 @@ export function Header() {
     profiles, 
     filters,
     setFilters,
-    availableYears 
+    availableYears,
+    notifications,
   } = useData();
   
   const months = Array.from({ length: 12 }, (_, i) => ({
@@ -64,6 +91,7 @@ export function Header() {
   }, []);
   
   const isCalendarPage = pathname === '/dashboard/calendar';
+  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -134,6 +162,17 @@ export function Header() {
                     {isCalendarPage ? <LayoutDashboard className="h-5 w-5" /> : <Calendar className="h-5 w-5" />}
                 </Button>
             </Link>
+             <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                        <Bell className="h-5 w-5" />
+                        {unreadNotificationsCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{unreadNotificationsCount}</Badge>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <NotificationPanel notifications={notifications} />
+            </Popover>
            <Link href="/dashboard/profile">
                 <Button variant="ghost" size="icon">
                     <User className="h-5 w-5" />

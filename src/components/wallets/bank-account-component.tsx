@@ -1,17 +1,20 @@
 
+
 'use client'
 
-import type { BankAccount } from "@/types";
+import type { BankAccount, Transaction } from "@/types";
 import { cn } from "@/lib/utils";
-import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check } from "lucide-react";
+import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import Link from "next/link";
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
+import { Progress } from "../ui/progress";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 
 interface BankAccountComponentProps {
@@ -19,11 +22,28 @@ interface BankAccountComponentProps {
 }
 
 export function BankAccountComponent({ account }: BankAccountComponentProps) {
-    const { deleteBankAccount, profiles, formatCurrency } = useData();
+    const { deleteBankAccount, profiles, formatCurrency, transactions } = useData();
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
     const [isCopied, setIsCopied] = useState(false);
     const profile = profiles.find(p => p.name === account.profile);
+
+    const monthlyIncome = useMemo(() => {
+        if (!account.monthlyLimit) return 0;
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        return transactions
+            .filter(t => 
+                (t.type === 'income' && t.accountId === account.id) ||
+                (t.type === 'transfer' && t.destinationAccountId === account.id)
+            )
+            .filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, t) => sum + t.amount, 0);
+    }, [transactions, account]);
 
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -65,6 +85,9 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
       '--tw-shadow-color': profile ? profile.color : '#ffffff',
     } as React.CSSProperties;
 
+    const hasLimit = account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0;
+    const limitUsage = hasLimit ? (monthlyIncome / account.monthlyLimit) * 100 : 0;
+
 
     return (
         <>
@@ -72,7 +95,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative aspect-video rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
+                    "relative rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
                 )}
             >
                  <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
@@ -125,16 +148,45 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                         </AlertDialog>
                     </div>
                 </div>
-
-                <div className="relative z-10 space-y-2">
-                     <div className="flex justify-between items-end">
-                        <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
-                        <Landmark className="h-8 w-8 text-white/50" />
-                     </div>
-                    <div className="font-mono tracking-wider text-sm opacity-80">
-                       •••• {account.accountNumber.slice(-4)}
+                <div className="relative z-10 mt-auto">
+                    {hasLimit && (
+                        <div className="space-y-1 mb-3">
+                           <TooltipProvider>
+                               <Tooltip>
+                                   <TooltipTrigger className="w-full">
+                                        <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                       <p>{`Cupo mensual: ${formatCurrency(monthlyIncome)} / ${formatCurrency(account.monthlyLimit!)} (${limitUsage.toFixed(1)}%)`}</p>
+                                   </TooltipContent>
+                               </Tooltip>
+                           </TooltipProvider>
+                        </div>
+                    )}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                            <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
+                            <div className="flex items-center gap-2">
+                                {limitUsage >= 80 && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <AlertTriangle className="h-5 w-5 text-amber-400" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>¡Cupo mensual casi al límite!</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
+                                <Landmark className="h-8 w-8 text-white/50" />
+                            </div>
+                        </div>
+                        <div className="font-mono tracking-wider text-sm opacity-80">
+                        •••• {account.accountNumber.slice(-4)}
+                        </div>
+                        <p className="text-xs font-light opacity-60">{account.accountType}</p>
                     </div>
-                     <p className="text-xs font-light opacity-60">{account.accountType}</p>
                 </div>
             </div>
         </Link>
