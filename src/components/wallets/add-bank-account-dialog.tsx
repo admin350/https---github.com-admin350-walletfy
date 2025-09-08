@@ -39,7 +39,6 @@ const formSchema = z.object({
   purpose: z.enum(["main", "savings", "investment"]),
   color: z.string().optional(),
   monthlyLimit: z.coerce.number().optional(),
-  lowBalanceThreshold: z.coerce.number().optional(),
 });
 
 interface AddBankAccountDialogProps {
@@ -71,7 +70,6 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             purpose: "main",
             color: "#0ea5e9",
             monthlyLimit: undefined,
-            lowBalanceThreshold: undefined,
         },
     });
 
@@ -83,7 +81,6 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 ...accountToEdit,
                 color: accountToEdit.color || "#0ea5e9",
                 monthlyLimit: accountToEdit.monthlyLimit || undefined,
-                lowBalanceThreshold: accountToEdit.lowBalanceThreshold || undefined,
             });
         } else if (dialogOpen && !accountToEdit) {
             form.reset({
@@ -96,7 +93,6 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 purpose: "main",
                 color: "#0ea5e9",
                 monthlyLimit: undefined,
-                lowBalanceThreshold: undefined,
             });
         }
     }, [accountToEdit, form, dialogOpen]);
@@ -209,19 +205,6 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     )}
                                 />
                             )}
-                             <FormField
-                                control={form.control}
-                                name="lowBalanceThreshold"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Umbral de Saldo Bajo (Opcional)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="Ej: 50000" {...field} value={field.value ?? ''} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                             <FormField
                                 control={form.control}
                                 name="purpose"

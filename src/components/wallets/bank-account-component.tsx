@@ -157,10 +157,13 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                         <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
                                    </TooltipTrigger>
                                    <TooltipContent>
-                                       <p>{`Cupo mensual: ${formatCurrency(monthlyIncome)} / ${formatCurrency(account.monthlyLimit!)} (${limitUsage.toFixed(1)}%)`}</p>
+                                       <p>{`Utilizado: ${formatCurrency(monthlyIncome, true, true)} de ${formatCurrency(account.monthlyLimit!, true, true)} (${limitUsage.toFixed(1)}%)`}</p>
                                    </TooltipContent>
                                </Tooltip>
                            </TooltipProvider>
+                           <div className="text-xs text-white/70">
+                             Cupo mensual: {formatCurrency(monthlyIncome)} / {formatCurrency(account.monthlyLimit!)}
+                           </div>
                         </div>
                     )}
                     <div className="space-y-2">

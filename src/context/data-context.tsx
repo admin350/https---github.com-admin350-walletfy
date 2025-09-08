@@ -585,7 +585,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         // 1. Bank Account Notifications
         allBankAccounts.forEach(account => {
-            // 1.1. Cuenta Vista Limit
             if (account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0) {
                 const monthlyIncome = allTransactions
                     .filter(t => (t.type === 'income' && t.accountId === account.id) || (t.type === 'transfer' && t.destinationAccountId === account.id))
@@ -603,14 +602,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     });
                 }
             }
-            // 1.2. Low Balance
-            if (account.lowBalanceThreshold && account.balance < account.lowBalanceThreshold) {
-                newNotifications.push({
-                    id: `low-balance-${account.id}`, title: `Alerta de Saldo Bajo`,
-                    description: `El saldo de tu cuenta "${account.name}" es inferior a ${formatCurrency(account.lowBalanceThreshold)}.`,
-                    date: new Date(), read: false, type: 'warning', link: `/dashboard/bank-accounts/${account.id}`
-                });
-            }
         });
 
         // 2. Debt Notifications
@@ -618,7 +609,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (debt.paidAmount < debt.totalAmount) {
                 const dueDate = debt.dueDate;
                 const notificationDate = subDays(dueDate, debt.dueNotificationDays || 3);
-                // 2.1. Due Soon
                 if (isSameDay(today, notificationDate) || (today > notificationDate && today < dueDate)) {
                     newNotifications.push({
                         id: `debt-due-${debt.id}`, title: `Deuda Próxima a Vencer`,
@@ -626,7 +616,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         date: new Date(), read: false, type: 'warning', link: `/dashboard/debts/${debt.id}`
                     });
                 }
-                // 2.2. Overdue
                 if (isPast(dueDate)) {
                      newNotifications.push({
                         id: `debt-overdue-${debt.id}`, title: `¡Pago de Deuda Atrasado!`,
@@ -660,8 +649,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     description: `¡Felicidades! Has alcanzado tu meta de ahorro para "${goal.name}".`,
                     date: new Date(), read: false, type: 'success', link: `/dashboard/goals`
                 });
-                // This should be followed by an update to the goal to set completionNotified to true
-                // updateGoal({ ...goal, completionNotified: true }); // This would cause a loop, needs to be handled carefully
             }
         });
 
@@ -687,6 +674,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             });
         });
 
+        // 6. Large Transaction Notification
+        if (settings.largeTransactionThreshold) {
+            allTransactions.forEach(t => {
+                if (t.amount > settings.largeTransactionThreshold!) {
+                    newNotifications.push({
+                        id: `large-tx-${t.id}`, title: `Transacción Grande Detectada`,
+                        description: `Se registró una transacción de ${formatCurrency(t.amount)}: "${t.description}".`,
+                        date: new Date(t.date), read: false, type: 'info', link: `/dashboard/transactions`
+                    });
+                }
+            });
+        }
 
         return newNotifications;
     }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency]);
