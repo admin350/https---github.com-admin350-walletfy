@@ -36,7 +36,7 @@ const formSchema = z.object({
   accountNumber: z.string().min(1, { message: "El número de cuenta es requerido." }),
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
-  purpose: z.enum(["savings", "investment"]).optional(),
+  purpose: z.enum(["main", "savings", "investment"]),
   color: z.string().optional(),
   monthlyLimit: z.coerce.number().optional(),
   lowBalanceThreshold: z.coerce.number().optional(),
@@ -68,7 +68,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             accountNumber: "",
             balance: 0,
             profile: "",
-            purpose: undefined,
+            purpose: "main",
             color: "#0ea5e9",
             monthlyLimit: undefined,
             lowBalanceThreshold: undefined,
@@ -93,7 +93,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 accountNumber: "",
                 balance: 0,
                 profile: "",
-                purpose: undefined,
+                purpose: "main",
                 color: "#0ea5e9",
                 monthlyLimit: undefined,
                 lowBalanceThreshold: undefined,
@@ -227,15 +227,15 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                 name="purpose"
                                 render={({ field }) => (
                                     <FormItem>
-                                    <FormLabel>Propósito de la Cuenta (Opcional)</FormLabel>
+                                    <FormLabel>Propósito Principal de la Cuenta</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Ninguno" />
+                                            <SelectValue placeholder="Selecciona un propósito" />
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="none">Ninguno</SelectItem>
+                                            <SelectItem value="main">Uso Principal</SelectItem>
                                             <SelectItem value="savings">Cartera de Ahorros</SelectItem>
                                             <SelectItem value="investment">Cartera de Inversión</SelectItem>
                                         </SelectContent>

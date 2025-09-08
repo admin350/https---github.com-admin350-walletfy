@@ -5,6 +5,7 @@
 
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -26,7 +27,7 @@ export type BankAccount = {
   accountNumber: string;
   balance: number;
   profile: string;
-  purpose?: 'savings' | 'investment'; // Designate account for a specific purpose
+  purpose: 'main' | 'savings' | 'investment'; // Designate account for a specific purpose
   color?: string;
   monthlyLimit?: number; // For "Cuenta Vista" monthly deposit limit
   lowBalanceThreshold?: number; // For low balance notifications
