@@ -22,7 +22,7 @@ import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
 
 export function CashflowChart() {
-  const { transactions, isLoading, profiles, formatCurrency } = useData();
+  const { transactions, isLoading, profiles, formatCurrency, filters } = useData();
   
   const chartConfig = useMemo(() => {
     const config: any = {};
