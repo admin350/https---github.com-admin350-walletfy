@@ -1,13 +1,9 @@
 
-
-
-
-
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
-import { getYear, getMonth, isPast } from "date-fns";
+import { getYear, getMonth, isPast, startOfMonth, endOfMonth } from "date-fns";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 
@@ -35,6 +31,7 @@ interface DataContextType {
     bankCards: BankCard[];
     reports: MonthlyReport[];
     settings: AppSettings;
+    notifications: AppNotification[];
     isLoading: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
@@ -544,6 +541,43 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [allTransactions, allGoals, allDebts, allInvestments, allBudgets]);
 
+    const notifications = useMemo(() => {
+        const newNotifications: AppNotification[] = [];
+        const today = new Date();
+        const currentMonthStart = startOfMonth(today);
+        const currentMonthEnd = endOfMonth(today);
+
+        allBankAccounts.forEach(account => {
+            if (account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0) {
+                const monthlyIncome = allTransactions
+                    .filter(t => 
+                        (t.type === 'income' && t.accountId === account.id) ||
+                        (t.type === 'transfer' && t.destinationAccountId === account.id)
+                    )
+                    .filter(t => {
+                        const transactionDate = new Date(t.date);
+                        return transactionDate >= currentMonthStart && transactionDate <= currentMonthEnd;
+                    })
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const usage = (monthlyIncome / account.monthlyLimit) * 100;
+                if (usage >= 80) {
+                    newNotifications.push({
+                        id: `limit-${account.id}`,
+                        title: `Límite de Cuenta Cercano`,
+                        description: `La cuenta "${account.name}" ha utilizado el ${usage.toFixed(0)}% de su cupo mensual.`,
+                        date: new Date(),
+                        read: false,
+                        type: 'warning',
+                        link: `/dashboard/bank-accounts/${account.id}`
+                    });
+                }
+            }
+        });
+
+        return newNotifications;
+    }, [allBankAccounts, allTransactions]);
+
 
     return (
         <DataContext.Provider value={{ 
@@ -558,11 +592,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             debtPayments: filteredDebtPayments,
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
-budgets: filteredBudgets,
+            budgets: filteredBudgets,
             bankAccounts: filteredBankAccounts,
             bankCards: filteredBankCards,
             reports: allReports,
             settings,
+            notifications,
             isLoading,
             filters,
             setFilters,
@@ -614,10 +649,3 @@ budgets: filteredBudgets,
         </DataContext.Provider>
     );
 };
-
-
-
-    
-
-    
-
