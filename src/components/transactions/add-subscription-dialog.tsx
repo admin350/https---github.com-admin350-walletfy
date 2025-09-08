@@ -35,7 +35,7 @@ import { useData } from '@/context/data-context';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
-  nextDueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
+  paymentDate: z.date({ required_error: "La fecha de pago es requerida." }),
   cardId: z.string().min(1, { message: "La tarjeta es requerida."}),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
@@ -51,7 +51,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         defaultValues: {
             name: "",
             amount: '' as any,
-            nextDueDate: new Date(),
+            paymentDate: new Date(),
             cardId: "",
             profile: "",
         },
@@ -63,16 +63,10 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            await addSubscription({
-                name: values.name,
-                amount: values.amount,
-                dueDate: values.nextDueDate,
-                cardId: values.cardId,
-                profile: values.profile,
-            });
+            await addSubscription(values);
             toast({
-                title: "Suscripción añadida",
-                description: "Tu suscripción ha sido registrada exitosamente.",
+                title: "Suscripción Registrada",
+                description: "Se ha creado el gasto y programado el próximo pago.",
             });
             setOpen(false);
             form.reset();
@@ -92,7 +86,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             form.reset({
                 name: "",
                 amount: '' as any,
-                nextDueDate: new Date(),
+                paymentDate: new Date(),
                 cardId: "",
                 profile: "",
             });
@@ -106,7 +100,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 <DialogHeader>
                     <DialogTitle>Añadir Nueva Suscripción</DialogTitle>
                     <DialogDescription>
-                        Registra un nuevo pago recurrente.
+                        Registra un nuevo pago recurrente. Se creará un gasto y se programará el próximo vencimiento.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
@@ -152,7 +146,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                 name="amount"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Monto</FormLabel>
+                                        <FormLabel>Monto Pagado</FormLabel>
                                         <FormControl>
                                             <Input type="number" placeholder="$15.990" {...field} value={field.value ?? ''} />
                                         </FormControl>
@@ -191,10 +185,10 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
 
                             <FormField
                                 control={form.control}
-                                name="nextDueDate"
+                                name="paymentDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel>Fecha Próximo Pago</FormLabel>
+                                        <FormLabel>Fecha de Pago</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
