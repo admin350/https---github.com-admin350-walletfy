@@ -23,11 +23,6 @@ export function CategoryManager() {
         setIsDialogOpen(true);
     };
 
-    const handleAddNew = () => {
-        setCategoryToEdit(undefined);
-        setIsDialogOpen(true);
-    };
-
     const handleDelete = async (id: string) => {
         try {
             await deleteCategory(id);
@@ -50,11 +45,8 @@ export function CategoryManager() {
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Gestionar Categorías</CardTitle>
-                        <CardDescription>Añade, edita o elimina categorías para tus transacciones.</CardDescription>
+                        <CardDescription>Edita o elimina categorías para tus transacciones.</CardDescription>
                     </div>
-                    <Button onClick={handleAddNew} size="icon" variant="outline">
-                        <PlusCircle className="h-6 w-6" />
-                    </Button>
                 </div>
             </CardHeader>
             <CardContent>

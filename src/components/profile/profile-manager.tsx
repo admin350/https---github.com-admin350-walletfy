@@ -22,11 +22,6 @@ export function ProfileManager() {
         setIsDialogOpen(true);
     };
 
-    const handleAddNew = () => {
-        setProfileToEdit(undefined);
-        setIsDialogOpen(true);
-    };
-
     const handleDelete = async (id: string) => {
         try {
             await deleteProfile(id);
@@ -49,11 +44,8 @@ export function ProfileManager() {
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Gestionar Perfiles</CardTitle>
-                        <CardDescription>Añade, edita o elimina perfiles para organizar tus finanzas.</CardDescription>
+                        <CardDescription>Edita o elimina perfiles para organizar tus finanzas.</CardDescription>
                     </div>
-                    <Button onClick={handleAddNew} size="icon" variant="outline">
-                        <PlusCircle className="h-6 w-6" />
-                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
