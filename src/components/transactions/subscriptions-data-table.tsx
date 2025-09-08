@@ -35,7 +35,7 @@ interface SubscriptionsDataTableProps {
 }
 
 export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
-    const { cancelSubscription, bankCards } = useData();
+    const { cancelSubscription, bankCards, deleteSubscription } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [subscriptionToUpdate, setSubscriptionToUpdate] = useState<Subscription | undefined>(undefined);
@@ -68,6 +68,22 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
         }
     };
     
+    const handleDeleteSubscription = async (id: string) => {
+        try {
+            await deleteSubscription(id);
+            toast({
+                title: "Suscripción Eliminada",
+                description: "La suscripción ha sido eliminada permanentemente.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "No se pudo eliminar la suscripción.",
+                variant: "destructive"
+            });
+        }
+    };
+
     const columns: ColumnDef<Subscription>[] = [
         {
             accessorKey: "name",
@@ -121,6 +137,31 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             cell: ({ row }) => {
                 const item = row.original;
                 const showPayButton = tab === 'overdue' || tab === 'this-month';
+
+                if (tab === 'cancelled') {
+                    return (
+                         <AlertDialog>
+                             <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar
+                                </Button>
+                             </AlertDialogTrigger>
+                             <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Eliminar suscripción permanentemente?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. El registro de la suscripción será eliminado por completo.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cerrar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteSubscription(item.id)}>Eliminar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )
+                }
 
                 return (
                      <div className="flex items-center justify-end gap-2">
