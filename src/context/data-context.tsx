@@ -1,6 +1,7 @@
 
 
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
@@ -8,12 +9,6 @@ import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, us
 import { getYear, getMonth, isPast } from "date-fns";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
-
-interface InitialSetupData {
-    profiles: Omit<Profile, 'id'>[];
-    categories: Omit<Category, 'id'>[];
-    settings: AppSettings;
-}
 
 interface IFilters {
     profile: string;
@@ -43,7 +38,6 @@ interface DataContextType {
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
     availableYears: number[];
-    finishSetup: (data: InitialSetupData) => Promise<void>;
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -196,7 +190,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(doc.exists()){
                 setSettings(doc.data() as AppSettings);
             } else {
-                // If settings don't exist, create them with default values
                 const defaultProfiles = [
                     { name: "Personal", color: "#3b82f6" },
                     { name: "Negocio", color: "#14b8a6" },
@@ -212,11 +205,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
                 ];
                 const defaultSettings = { currency: 'CLP' };
-                finishSetup({
-                    profiles: defaultProfiles,
-                    categories: defaultCategories,
-                    settings: defaultSettings,
+
+                const batch = writeBatch(db);
+                const userDocRef = doc(db, 'users', uid);
+                batch.set(userDocRef, { initialized: true }, { merge: true });
+
+                defaultProfiles.forEach(profile => {
+                    const profileRef = doc(collection(db, 'users', uid, 'profiles'));
+                    batch.set(profileRef, profile);
                 });
+                defaultCategories.forEach(category => {
+                    const categoryRef = doc(collection(db, 'users', uid, 'categories'));
+                    batch.set(categoryRef, category);
+                });
+                const newSettingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
+                batch.set(newSettingsRef, defaultSettings);
+
+                batch.commit().catch(e => console.error("Error committing initial batch:", e));
             }
         });
         unsubscribers.push(unsubSettings);
@@ -228,45 +233,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [uid]);
 
 
-    const finishSetup = async (data: InitialSetupData) => {
-        if (!uid) throw new Error("Usuario no autenticado");
-        const batch = writeBatch(db);
-    
-        // Ensure user document exists
-        const userDocRef = doc(db, 'users', uid);
-        batch.set(userDocRef, { initialized: true }, { merge: true });
-
-        // Set profiles
-        data.profiles.forEach(profile => {
-            const profileRef = doc(collection(db, 'users', uid, 'profiles'));
-            batch.set(profileRef, profile);
-        });
-
-        // Set categories
-        data.categories.forEach(category => {
-            const categoryRef = doc(collection(db, 'users', uid, 'categories'));
-            batch.set(categoryRef, category);
-        });
-
-        // Set settings
-        const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-        batch.set(settingsRef, data.settings);
-
-        await batch.commit();
-    };
-
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
         await addFirestoreDoc(collection(db, 'users', uid, collectionName), data);
     };
 
-    const setDocWithId = async <T>(collectionName: string, id: string, data: T) => {
+    const setDocWithId = async <T>(collectionName: string, id: string, data: T): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
         const docRef = doc(db, 'users', uid, collectionName, id);
         await setDoc(docRef, data, { merge: true });
     };
 
-    const deleteDocById = async (collectionName: string, id: string) => {
+    const deleteDocById = async (collectionName: string, id: string): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
         await deleteDoc(doc(db, 'users', uid, collectionName, id));
     };
@@ -588,7 +566,6 @@ budgets: filteredBudgets,
             filters,
             setFilters,
             availableYears,
-            finishSetup,
             addTransaction,
             updateTransaction,
             deleteTransaction,
