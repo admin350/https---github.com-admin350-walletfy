@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isPast } from "date-fns";
 
 export default function DebtsPage() {
-    const { debts, isLoading } = useData();
+    const { debts, isLoading, formatCurrency } = useData();
 
     const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
     const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
@@ -42,21 +42,21 @@ export default function DebtsPage() {
                     <>
                         <KpiCard 
                             title="Deuda Total" 
-                            value={<span className="text-red-500">${totalOwed.toLocaleString('es-CL')}</span>} 
+                            value={<span className="text-red-500">{formatCurrency(totalOwed)}</span>} 
                             icon={Scale} 
                             iconClassName="text-red-400"
                             description="Monto original de todas tus deudas"
                         />
                          <KpiCard 
                             title="Total Pagado" 
-                            value={<span className="text-green-500">${totalPaid.toLocaleString('es-CL')}</span>} 
+                            value={<span className="text-green-500">{formatCurrency(totalPaid)}</span>} 
                             icon={HandCoins}
                             iconClassName="text-green-400" 
                             description="Suma de todos los abonos realizados" 
                         />
                         <KpiCard
                             title="Saldo Restante"
-                            value={<span className="text-red-500">${remainingDebt.toLocaleString('es-CL')}</span>}
+                            value={<span className="text-red-500">{formatCurrency(remainingDebt)}</span>}
                             icon={Banknote}
                             iconClassName="text-red-400"
                             description="Lo que queda por pagar del total"
