@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Progress } from "../ui/progress";
 import Link from "next/link";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 
 
 interface BankCardComponentProps {
@@ -34,11 +35,14 @@ const MastercardLogo = () => (
 
 
 export function BankCardComponent({ card }: BankCardComponentProps) {
-    const { deleteBankCard } = useData();
+    const { deleteBankCard, formatCurrency } = useData();
     const { toast } = useToast();
     const [cardToEdit, setCardToEdit] = useState<BankCard | null>(null);
 
     const isCredit = card.cardType === 'credit';
+    const usedAmount = card.usedAmount || 0;
+    const creditLimit = card.creditLimit || 0;
+    const progress = creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0;
    
     const handleEdit = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -80,10 +84,10 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
     return (
         <>
         <Link href={`/dashboard/bank-cards/${card.id}`} className="block group">
-            <div 
+             <div 
                  style={cardStyle}
                  className={cn(
-                    "relative aspect-[1.586] rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)]"
+                    "relative rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] aspect-[1.586]"
                 )}
             >
                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
@@ -129,15 +133,36 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                     </AlertDialog>
                 </div>
 
-                <div className="relative z-10 space-y-2">
-                    <Cpu className="h-8 w-8 md:h-10 md:w-10 text-yellow-300/80" />
-                    <div className="font-mono tracking-widest text-lg md:text-xl">
-                        •••• •••• •••• {card.last4Digits}
-                    </div>
-                
-                    <div className="flex justify-between items-end pt-2">
-                         <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
-                        {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
+                 <div className="relative z-10 mt-auto">
+                    {isCredit && (
+                         <div className="space-y-1 mb-2">
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger className="w-full">
+                                        <Progress value={progress} className="h-1.5 [&>div]:bg-white/80" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{`Utilizado: ${formatCurrency(usedAmount)} de ${formatCurrency(creditLimit)} (${progress.toFixed(1)}%)`}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <div className="text-xs text-white/70 flex justify-between">
+                                <span>Cupo Usado: {formatCurrency(usedAmount)}</span>
+                                <span>Total: {formatCurrency(creditLimit)}</span>
+                            </div>
+                        </div>
+                    )}
+                     <div className="flex justify-between items-end pt-2">
+                        <div className="space-y-2">
+                             <Cpu className="h-8 w-8 md:h-10 md:w-10 text-yellow-300/80" />
+                             <div className="font-mono tracking-widest text-lg md:text-xl">
+                                •••• •••• •••• {card.last4Digits}
+                             </div>
+                        </div>
+                        <div className="flex flex-col items-center">
+                             <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
+                            {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
+                        </div>
                     </div>
                 </div>
             </div>
