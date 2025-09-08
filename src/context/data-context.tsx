@@ -1,11 +1,11 @@
 
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast } from "date-fns";
-import { useAuth } from "./auth-context";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 
@@ -40,7 +40,6 @@ interface DataContextType {
     reports: MonthlyReport[];
     settings: AppSettings;
     isLoading: boolean;
-    needsSetup: boolean;
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
     availableYears: number[];
@@ -102,8 +101,7 @@ export const useData = () => {
 
 // PROVIDER
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const { user } = useAuth();
-    const uid = user?.uid;
+    const uid = "guest_user";
 
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
     const [allGoals, setAllGoals] = useState<SavingsGoal[]>([]);
@@ -122,7 +120,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allReports, setAllReports] = useState<MonthlyReport[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP' });
     const [isLoading, setIsLoading] = useState(true);
-    const [needsSetup, setNeedsSetup] = useState(false);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
         month: getMonth(new Date()),
@@ -156,21 +153,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!uid) {
             setIsLoading(false);
-            setNeedsSetup(false);
             return;
         }
 
         setIsLoading(true);
-
-        const userDocRef = doc(db, 'users', uid);
-        const unsubscribeUserDoc = onSnapshot(userDocRef, (docSnap) => {
-            if (docSnap.exists() && docSnap.data().setupComplete) {
-                setNeedsSetup(false);
-            } else {
-                setNeedsSetup(true);
-                setIsLoading(false);
-            }
-        });
 
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
@@ -200,6 +186,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     return newItem;
                 });
                 dataSetters[collectionName]?.(processedData as any);
+            }, (error) => {
+                console.error(`Error fetching ${collectionName}: `, error);
             });
         });
         
@@ -207,10 +195,31 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const unsubSettings = onSnapshot(settingsRef, (doc) => {
             if(doc.exists()){
                 setSettings(doc.data() as AppSettings);
+            } else {
+                // If settings don't exist, create them with default values
+                const defaultProfiles = [
+                    { name: "Personal", color: "#3b82f6" },
+                    { name: "Negocio", color: "#14b8a6" },
+                ];
+                const defaultCategories = [
+                    { name: "Alimentación", type: "Gasto", color: "#f97316" },
+                    { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+                    { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+                    { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+                    { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+                    { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+                    { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+                    { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+                ];
+                const defaultSettings = { currency: 'CLP' };
+                finishSetup({
+                    profiles: defaultProfiles,
+                    categories: defaultCategories,
+                    settings: defaultSettings,
+                });
             }
         });
         unsubscribers.push(unsubSettings);
-        unsubscribers.push(unsubscribeUserDoc);
 
         setIsLoading(false);
 
@@ -222,7 +231,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const finishSetup = async (data: InitialSetupData) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-        const userDocRef = doc(db, 'users', uid);
 
         // Set profiles
         data.profiles.forEach(profile => {
@@ -240,12 +248,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
         batch.set(settingsRef, data.settings);
 
-        // Mark setup as complete by updating the user document
-        // Use set with merge true to create if it doesn't exist, or update if it does.
-        batch.set(userDocRef, { setupComplete: true }, { merge: true });
-
         await batch.commit();
-        setNeedsSetup(false);
     };
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<void> => {
@@ -578,7 +581,6 @@ budgets: filteredBudgets,
             reports: allReports,
             settings,
             isLoading,
-            needsSetup,
             filters,
             setFilters,
             availableYears,

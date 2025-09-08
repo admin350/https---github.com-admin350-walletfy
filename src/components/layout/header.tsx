@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -6,13 +7,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { format, getYear } from "date-fns";
 import { es } from "date-fns/locale";
-import { useAuth } from "@/context/auth-context";
 
 const navSections = [
     {
@@ -54,7 +53,6 @@ export function Header() {
     setFilters,
     availableYears 
   } = useData();
-  const { logout } = useAuth();
   
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
@@ -136,9 +134,11 @@ export function Header() {
                     {isCalendarPage ? <LayoutDashboard className="h-5 w-5" /> : <Calendar className="h-5 w-5" />}
                 </Button>
             </Link>
-           <Button variant="ghost" size="icon" onClick={logout}>
-            <LogOut className="h-5 w-5" />
-           </Button>
+           <Link href="/dashboard/profile">
+                <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                </Button>
+            </Link>
         </div>
       </div>
     </header>

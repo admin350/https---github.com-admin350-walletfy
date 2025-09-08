@@ -1,30 +1,13 @@
 'use client';
 import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
-import { DataProvider, useData } from "@/context/data-context";
-import { useAuth } from "@/context/auth-context";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useData } from "@/context/data-context";
 import { Loader2 } from "lucide-react";
 
 const AppContent = ({ children }: { children: ReactNode }) => {
-  const { user, loading: authLoading } = useAuth();
-  const { needsSetup, isLoading: dataLoading } = useData();
-  const router = useRouter();
+  const { isLoading: dataLoading } = useData();
 
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        router.push('/auth');
-      } else if (needsSetup) {
-        router.push('/dashboard/setup');
-      }
-    }
-  }, [user, authLoading, needsSetup, router]);
-
-  const isLoading = authLoading || (user && dataLoading);
-
-  if (isLoading || !user || (user && needsSetup)) {
+  if (dataLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -46,8 +29,6 @@ const AppContent = ({ children }: { children: ReactNode }) => {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <DataProvider>
       <AppContent>{children}</AppContent>
-    </DataProvider>
   );
 }
