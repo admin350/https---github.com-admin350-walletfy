@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -80,6 +72,8 @@ export type Debt = {
   accountId: string;
   // New field for notification settings
   dueNotificationDays?: number; // e.g., notify 3 days before due date
+  // New field to link to a transaction
+  sourceTransactionId?: string;
 };
 
 export type DebtPayment = {

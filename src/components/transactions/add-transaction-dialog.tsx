@@ -39,6 +39,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Transaction } from '@/types';
+import { Checkbox } from '../ui/checkbox';
 
 
 const formSchema = z.object({
@@ -51,6 +52,8 @@ const formSchema = z.object({
   destinationAccountId: z.string().optional(),
   cardId: z.string().optional(),
   date: z.date({ required_error: "Fecha es requerida." }),
+  isInstallment: z.boolean().default(false),
+  installments: z.coerce.number().optional(),
 }).refine(data => {
     if (data.type === 'transfer' && !data.destinationAccountId) {
         return false;
@@ -67,6 +70,14 @@ const formSchema = z.object({
 }, {
     message: "La cuenta de origen y destino no pueden ser la misma.",
     path: ["destinationAccountId"],
+}).refine(data => {
+    if (data.isInstallment && (!data.installments || data.installments < 2)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "El número de cuotas debe ser 2 o más.",
+    path: ["installments"],
 });
 
 interface AddTransactionDialogProps {
@@ -81,7 +92,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards } = useData();
+    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -99,6 +110,8 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             destinationAccountId: undefined,
             cardId: undefined,
             date: new Date(),
+            isInstallment: false,
+            installments: undefined,
         },
     });
 
@@ -107,7 +120,9 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             form.reset({
                 ...transactionToEdit,
                 amount: transactionToEdit.amount || ('' as any),
-                date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date()
+                date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
+                isInstallment: false, // Don't support editing installments for now
+                installments: undefined,
             });
         } else if (dialogOpen && !transactionToEdit) {
              form.reset({
@@ -120,6 +135,8 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 destinationAccountId: undefined,
                 cardId: undefined,
                 date: new Date(),
+                isInstallment: false,
+                installments: undefined,
             });
         }
     }, [transactionToEdit, form, dialogOpen]);
@@ -128,6 +145,10 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const transactionType = form.watch("type");
     const selectedProfile = form.watch("profile");
     const sourceAccountId = form.watch("accountId");
+    const selectedCardId = form.watch("cardId");
+    const isInstallment = form.watch("isInstallment");
+    
+    const selectedCard = bankCards.find(c => c.id === selectedCardId);
 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
@@ -138,7 +159,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
     const availableDestinationAccounts = availableAccounts.filter(acc => acc.id !== sourceAccountId);
-    const availableCards = bankCards.filter(card => !selectedProfile || card.profile === selectedProfile);
+    const availableCards = bankCards.filter(card => !sourceAccountId || card.accountId === sourceAccountId);
 
     useEffect(() => {
         if (transactionType === 'transfer') {
@@ -148,6 +169,16 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             }
         }
     }, [transactionType, categories, form]);
+    
+    useEffect(() => {
+        // Reset cardId if source account changes and the card is no longer valid
+        if (sourceAccountId && selectedCardId) {
+            const cardIsValid = availableCards.some(c => c.id === selectedCardId);
+            if (!cardIsValid) {
+                form.setValue('cardId', undefined);
+            }
+        }
+    }, [sourceAccountId, availableCards, selectedCardId, form]);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
@@ -184,10 +215,10 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
             });
             setDialogOpen(false);
             if(onFinish) onFinish();
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
+                description: error.message || `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
                 variant: 'destructive'
             });
         } finally {
@@ -292,7 +323,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                                 </FormControl>
                                 <SelectContent>
                                 {availableAccounts.map(a => (
-                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
+                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
@@ -315,7 +346,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                                     </FormControl>
                                     <SelectContent>
                                     {availableDestinationAccounts.map(a => (
-                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - ${a.balance.toLocaleString('es-CL')}</SelectItem>
+                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
@@ -333,21 +364,64 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                                 <FormLabel>Tarjeta Utilizada (Opcional)</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} >
                                     <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona una tarjeta si aplica" />
+                                    <SelectTrigger disabled={!sourceAccountId}>
+                                        <SelectValue placeholder={!sourceAccountId ? "Elige una cuenta primero" : "Efectivo / Transferencia"} />
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="ninguna">Ninguna (Transferencia/Efectivo)</SelectItem>
-                                        {availableCards.map(c => (
-                                            <SelectItem key={c.id} value={c.id}>{c.name} (**** {c.last4Digits})</SelectItem>
-                                        ))}
+                                        <SelectItem value="ninguna">Ninguna (Efectivo/Transferencia)</SelectItem>
+                                        {availableCards.map(c => {
+                                            const availableCredit = c.creditLimit ? c.creditLimit - (c.usedAmount || 0) : 0;
+                                            return (
+                                                <SelectItem key={c.id} value={c.id}>
+                                                    {c.name} (**** {c.last4Digits})
+                                                    {c.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
+                                                </SelectItem>
+                                            )
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
                                 </FormItem>
                             )}
                         />
+                    )}
+                    {selectedCard?.cardType === 'credit' && (
+                        <>
+                            <FormField
+                                control={form.control}
+                                name="isInstallment"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                         <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>¿Diferir como deuda en cuotas?</FormLabel>
+                                            <FormMessage />
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                            {isInstallment && (
+                                 <FormField
+                                    control={form.control}
+                                    name="installments"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Número de Cuotas</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="Ej: 3, 6, 12" {...field} value={field.value ?? ''} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                        </>
                     )}
                      <FormField
                         control={form.control}
