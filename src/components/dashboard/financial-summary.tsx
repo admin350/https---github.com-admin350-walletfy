@@ -75,36 +75,40 @@ export function FinancialSummary() {
             <CardContent className="grid gap-6">
                 
                 {/* Savings Portfolio */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 font-semibold text-emerald-400">
-                        <Landmark className="h-5 w-5" />
-                        <span>Cartera de Ahorro</span>
+                {savingsAccount && (
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 font-semibold text-emerald-400">
+                            <Landmark className="h-5 w-5" />
+                            <span>Cartera de Ahorro</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Disponible:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(availableSavings)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Destinado a Metas:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(totalContributedToGoals)}</span>
+                        </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Disponible:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(availableSavings)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Destinado a Metas:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(totalContributedToGoals)}</span>
-                    </div>
-                </div>
+                )}
 
                 {/* Investment Portfolio */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 font-semibold text-blue-400">
-                        <TrendingUp className="h-5 w-5" />
-                        <span>Cartera de Inversión</span>
+                {investmentAccount && (
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 font-semibold text-blue-400">
+                            <TrendingUp className="h-5 w-5" />
+                            <span>Cartera de Inversión</span>
+                        </div>
+                         <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Disponible:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(availableToInvest)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Invertido en Activos:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(totalContributedToAssets)}</span>
+                        </div>
                     </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Disponible:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(availableToInvest)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Invertido en Activos:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(totalContributedToAssets)}</span>
-                    </div>
-                </div>
+                )}
 
                 {/* Debts & Subscriptions */}
                 <div className="space-y-2">

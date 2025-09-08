@@ -2,6 +2,7 @@
 
 
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings } from "@/types";
@@ -619,3 +620,4 @@ budgets: filteredBudgets,
     
 
     
+
