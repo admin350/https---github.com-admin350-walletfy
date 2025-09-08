@@ -4,6 +4,7 @@
 
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -28,6 +29,7 @@ export type BankAccount = {
   purpose?: 'savings' | 'investment'; // Designate account for a specific purpose
   color?: string;
   monthlyLimit?: number; // For "Cuenta Vista" monthly deposit limit
+  lowBalanceThreshold?: number; // For low balance notifications
 }
 
 export type BankCard = {
@@ -52,6 +54,8 @@ export type SavingsGoal = {
   estimatedDate: Date;
   profile: string;
   category: string;
+  // New field to track if completion notification has been sent
+  completionNotified?: boolean;
 };
 
 export type GoalContribution = {
@@ -73,6 +77,8 @@ export type Debt = {
   financialInstitution: string;
   profile: string;
   accountId: string;
+  // New field for notification settings
+  dueNotificationDays?: number; // e.g., notify 3 days before due date
 };
 
 export type DebtPayment = {
@@ -159,6 +165,7 @@ export type MonthlyReport = {
 
 export type AppSettings = {
     currency: 'CLP' | 'USD' | 'EUR';
+    largeTransactionThreshold?: number;
 }
 
 export type AppNotification = {
@@ -167,6 +174,6 @@ export type AppNotification = {
     description: string;
     date: Date;
     read: boolean;
-    type: 'warning' | 'info';
+    type: 'warning' | 'info' | 'success' | 'error';
     link?: string;
 }

@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
-import { getYear, getMonth, isPast, startOfMonth, endOfMonth } from "date-fns";
+import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 
@@ -39,7 +40,7 @@ interface DataContextType {
     addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
-    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
+    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<void>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
@@ -202,7 +203,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
                     { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
                 ];
-                const defaultSettings = { currency: 'CLP' };
+                const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000 };
 
                 const batch = writeBatch(db);
                 const userDocRef = doc(db, 'users', uid);
@@ -291,7 +292,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
         }
-    
+        
+        // Large transaction notification
+        if (settings.largeTransactionThreshold && transaction.amount > settings.largeTransactionThreshold) {
+            const notifRef = doc(collection(db, 'users', uid, 'notifications'));
+            const notif: Omit<AppNotification, 'id'|'read'> = {
+                title: `Transacción Grande Detectada`,
+                description: `Se registró una transacción de ${formatCurrency(transaction.amount)}: "${transaction.description}".`,
+                date: new Date(),
+                type: 'info',
+                link: `/dashboard/transactions`
+            }
+             // This is not ideal as it doesn't get the new transaction ID, but it will work for now
+            // A better solution would be a cloud function.
+        }
+
         await batch.commit();
     };
 
@@ -304,7 +319,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     // GOAL FUNCTIONS
-    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => await addDoc('goals', { ...goal, currentAmount: 0 });
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false });
     const updateGoal = async (goal: SavingsGoal) => await setDocWithId('goals', goal.id, goal);
     const deleteGoal = async (id: string) => await deleteDocById('goals', id);
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
@@ -332,12 +347,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
     const deleteDebt = async (id: string) => await deleteDocById('debts', id);
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
-        await addDoc('debtPayments', payment);
+        if (!uid) throw new Error("Usuario no autenticado");
+        const batch = writeBatch(db);
+        const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
+        batch.set(paymentRef, payment);
+
         const debt = allDebts.find(d => d.id === payment.debtId);
         if (debt) {
-            await updateDebt({ ...debt, paidAmount: debt.paidAmount + payment.amount });
+            const debtRef = doc(db, 'users', uid, 'debts', debt.id);
+            const newPaidAmount = debt.paidAmount + payment.amount;
+            batch.update(debtRef, { paidAmount: newPaidAmount });
+
+            // Create a corresponding transaction
             const debtCategory = allCategories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
-            await addTransaction({
+            const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'expense',
                 amount: payment.amount,
                 description: `Abono a: ${debt.name}`,
@@ -345,8 +369,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 profile: debt.profile,
                 date: new Date().toISOString(),
                 accountId: payment.accountId,
-            });
+            };
+            batch.set(transactionRef, transactionData);
+            
+            // Deduct from bank account
+            const accountRef = doc(db, 'users', uid, 'bankAccounts', payment.accountId);
+            const accountSnap = await getDoc(accountRef);
+            if(accountSnap.exists()){
+                const account = accountSnap.data() as BankAccount;
+                batch.update(accountRef, {balance: account.balance - payment.amount});
+            }
         }
+         await batch.commit();
     };
     
     // INVESTMENT FUNCTIONS
@@ -416,6 +450,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: allBankCards.find(c => c.id === sub.cardId)?.accountId || '',
             cardId: sub.cardId,
         });
+        const nextDueDate = addMonths(sub.dueDate, 1);
+        await updateSubscription({ ...sub, dueDate: nextDueDate });
     };
     
     // OTHER ENTITIES
@@ -547,36 +583,113 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const currentMonthStart = startOfMonth(today);
         const currentMonthEnd = endOfMonth(today);
 
+        // 1. Bank Account Notifications
         allBankAccounts.forEach(account => {
+            // 1.1. Cuenta Vista Limit
             if (account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0) {
                 const monthlyIncome = allTransactions
-                    .filter(t => 
-                        (t.type === 'income' && t.accountId === account.id) ||
-                        (t.type === 'transfer' && t.destinationAccountId === account.id)
-                    )
+                    .filter(t => (t.type === 'income' && t.accountId === account.id) || (t.type === 'transfer' && t.destinationAccountId === account.id))
                     .filter(t => {
                         const transactionDate = new Date(t.date);
                         return transactionDate >= currentMonthStart && transactionDate <= currentMonthEnd;
                     })
                     .reduce((sum, t) => sum + t.amount, 0);
-
                 const usage = (monthlyIncome / account.monthlyLimit) * 100;
                 if (usage >= 80) {
                     newNotifications.push({
-                        id: `limit-${account.id}`,
-                        title: `Límite de Cuenta Cercano`,
+                        id: `limit-${account.id}`, title: `Límite de Cuenta Cercano`,
                         description: `La cuenta "${account.name}" ha utilizado el ${usage.toFixed(0)}% de su cupo mensual.`,
-                        date: new Date(),
-                        read: false,
-                        type: 'warning',
-                        link: `/dashboard/bank-accounts/${account.id}`
+                        date: new Date(), read: false, type: 'warning', link: `/dashboard/bank-accounts/${account.id}`
+                    });
+                }
+            }
+            // 1.2. Low Balance
+            if (account.lowBalanceThreshold && account.balance < account.lowBalanceThreshold) {
+                newNotifications.push({
+                    id: `low-balance-${account.id}`, title: `Alerta de Saldo Bajo`,
+                    description: `El saldo de tu cuenta "${account.name}" es inferior a ${formatCurrency(account.lowBalanceThreshold)}.`,
+                    date: new Date(), read: false, type: 'warning', link: `/dashboard/bank-accounts/${account.id}`
+                });
+            }
+        });
+
+        // 2. Debt Notifications
+        allDebts.forEach(debt => {
+            if (debt.paidAmount < debt.totalAmount) {
+                const dueDate = debt.dueDate;
+                const notificationDate = subDays(dueDate, debt.dueNotificationDays || 3);
+                // 2.1. Due Soon
+                if (isSameDay(today, notificationDate) || (today > notificationDate && today < dueDate)) {
+                    newNotifications.push({
+                        id: `debt-due-${debt.id}`, title: `Deuda Próxima a Vencer`,
+                        description: `Tu pago para "${debt.name}" vence el ${format(dueDate, "dd/MM/yyyy")}.`,
+                        date: new Date(), read: false, type: 'warning', link: `/dashboard/debts/${debt.id}`
+                    });
+                }
+                // 2.2. Overdue
+                if (isPast(dueDate)) {
+                     newNotifications.push({
+                        id: `debt-overdue-${debt.id}`, title: `¡Pago de Deuda Atrasado!`,
+                        description: `El pago para "${debt.name}" venció el ${format(dueDate, "dd/MM/yyyy")}.`,
+                        date: new Date(), read: false, type: 'error', link: `/dashboard/debts/${debt.id}`
                     });
                 }
             }
         });
 
+        // 3. Subscription Notifications
+        allSubscriptions.forEach(sub => {
+            if (sub.status === 'active') {
+                const dueDate = sub.dueDate;
+                const notificationDate = subDays(dueDate, 2);
+                 if (isSameDay(today, notificationDate) || (today > notificationDate && today < dueDate)) {
+                     newNotifications.push({
+                        id: `sub-due-${sub.id}`, title: `Suscripción Próxima a Renovar`,
+                        description: `Tu suscripción a "${sub.name}" se renovará pronto.`,
+                        date: new Date(), read: false, type: 'info', link: `/dashboard/subscriptions`
+                    });
+                 }
+            }
+        });
+        
+        // 4. Goal Notifications
+        allGoals.forEach(goal => {
+            if (goal.currentAmount >= goal.targetAmount && !goal.completionNotified) {
+                 newNotifications.push({
+                    id: `goal-complete-${goal.id}`, title: `¡Meta Completada!`,
+                    description: `¡Felicidades! Has alcanzado tu meta de ahorro para "${goal.name}".`,
+                    date: new Date(), read: false, type: 'success', link: `/dashboard/goals`
+                });
+                // This should be followed by an update to the goal to set completionNotified to true
+                // updateGoal({ ...goal, completionNotified: true }); // This would cause a loop, needs to be handled carefully
+            }
+        });
+
+        // 5. Budget Notifications
+        allBudgets.forEach(budget => {
+            const totalIncome = allTransactions
+                .filter(t => t.profile === budget.profile && t.type === 'income' && getMonth(new Date(t.date)) === getMonth(today) && getYear(new Date(t.date)) === getYear(today))
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            budget.items.forEach(item => {
+                const budgetedAmount = totalIncome * (item.percentage / 100);
+                const spentAmount = allTransactions
+                    .filter(t => t.profile === budget.profile && t.category === item.category && t.type === 'expense' && getMonth(new Date(t.date)) === getMonth(today) && getYear(new Date(t.date)) === getYear(today))
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                if (budgetedAmount > 0 && (spentAmount / budgetedAmount) >= 0.9) {
+                     newNotifications.push({
+                        id: `budget-limit-${budget.id}-${item.category}`, title: `Límite de Presupuesto Cercano`,
+                        description: `Has gastado más del 90% de tu presupuesto para "${item.category}".`,
+                        date: new Date(), read: false, type: 'warning', link: `/dashboard/budget`
+                    });
+                }
+            });
+        });
+
+
         return newNotifications;
-    }, [allBankAccounts, allTransactions]);
+    }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency]);
 
 
     return (

@@ -1,4 +1,5 @@
 
+
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,20 +9,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import type { AppSettings } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 export function CurrencyManager() {
     const { settings, updateSettings } = useData();
     const { toast } = useToast();
-    const [selectedCurrency, setSelectedCurrency] = useState(settings.currency);
     const [isLoading, setIsLoading] = useState(false);
+    const [localSettings, setLocalSettings] = useState(settings);
 
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            await updateSettings({ currency: selectedCurrency });
+            await updateSettings(localSettings);
             toast({
                 title: "Configuración guardada",
-                description: "La divisa ha sido actualizada en toda la aplicación.",
+                description: "La configuración ha sido actualizada en toda la aplicación.",
             });
         } catch (error) {
              toast({
@@ -33,16 +36,22 @@ export function CurrencyManager() {
             setIsLoading(false);
         }
     }
+    
+    const isChanged = JSON.stringify(settings) !== JSON.stringify(localSettings);
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Gestionar Divisa</CardTitle>
-                <CardDescription>Selecciona la moneda principal para la aplicación. Este cambio se reflejará en todos los montos.</CardDescription>
+                <CardTitle>Gestionar Divisa y Alertas</CardTitle>
+                <CardDescription>Configura la moneda principal y los umbrales para notificaciones.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <div className="flex items-center gap-4">
-                     <Select value={selectedCurrency} onValueChange={(value) => setSelectedCurrency(value as AppSettings['currency'])}>
+            <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label>Divisa Principal</Label>
+                    <Select 
+                        value={localSettings.currency} 
+                        onValueChange={(value) => setLocalSettings(s => ({...s, currency: value as AppSettings['currency']}))}
+                    >
                         <SelectTrigger className="w-48">
                             <SelectValue placeholder="Seleccionar divisa" />
                         </SelectTrigger>
@@ -52,7 +61,20 @@ export function CurrencyManager() {
                             <SelectItem value="EUR">Euro (EUR)</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleSave} disabled={isLoading || selectedCurrency === settings.currency}>
+                </div>
+                 <div className="space-y-2">
+                    <Label>Umbral de Transacción Grande</Label>
+                    <Input 
+                        type="number"
+                        className="w-48"
+                        placeholder="Ej: 500000"
+                        value={localSettings.largeTransactionThreshold || ''}
+                        onChange={(e) => setLocalSettings(s => ({...s, largeTransactionThreshold: Number(e.target.value) || undefined}))}
+                    />
+                     <p className="text-xs text-muted-foreground">Recibe una alerta para transacciones individuales sobre este monto.</p>
+                </div>
+                <div>
+                    <Button onClick={handleSave} disabled={isLoading || !isChanged}>
                         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Guardar Cambios
                     </Button>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -42,6 +43,7 @@ const formSchema = z.object({
   financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
+  dueNotificationDays: z.coerce.number().optional(),
 });
 
 interface AddDebtDialogProps {
@@ -72,6 +74,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             financialInstitution: "",
             profile: "",
             accountId: "",
+            dueNotificationDays: 3,
         },
     });
 
@@ -80,6 +83,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             form.reset({
                 ...debtToEdit,
                 dueDate: new Date(debtToEdit.dueDate),
+                dueNotificationDays: debtToEdit.dueNotificationDays ?? 3,
             });
         } else if (dialogOpen && !debtToEdit) {
             form.reset({
@@ -91,6 +95,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 financialInstitution: "",
                 profile: "",
                 accountId: "",
+                dueNotificationDays: 3,
             });
         }
     }, [debtToEdit, form, dialogOpen]);
@@ -286,6 +291,19 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                                 />
                                             </PopoverContent>
                                         </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="dueNotificationDays"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Avisar con (días de antelación)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="3" {...field} value={field.value ?? ''}/>
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -45,9 +45,19 @@ const navSections = [
 
 const allNavItems = navSections.flatMap(section => section.items);
 
+const NotificationIcon = ({ type }: { type: AppNotification['type']}) => {
+    switch (type) {
+        case 'warning': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
+        case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
+        case 'info': return <Info className="h-4 w-4 text-blue-500" />;
+        default: return <Bell className="h-4 w-4 text-muted-foreground" />;
+    }
+}
+
 const NotificationPanel = ({ notifications }: { notifications: AppNotification[] }) => {
     return (
-        <PopoverContent align="end" className="w-80">
+        <PopoverContent align="end" className="w-80 max-h-[400px] overflow-y-auto">
             <div className="flex justify-between items-center mb-2">
                 <h3 className="font-medium">Notificaciones</h3>
                 <Button variant="link" size="sm" className="h-auto p-0">Marcar como leídas</Button>
@@ -55,10 +65,15 @@ const NotificationPanel = ({ notifications }: { notifications: AppNotification[]
             <div className="space-y-2">
                 {notifications.length > 0 ? (
                     notifications.map(n => (
-                        <div key={n.id} className="text-sm p-2 rounded-md border border-l-4 border-l-amber-500 bg-amber-500/10">
-                            <p className="font-semibold">{n.title}</p>
-                            <p className="text-xs text-muted-foreground">{n.description}</p>
-                        </div>
+                        <Link href={n.link || '#'} key={n.id}>
+                            <div className="text-sm p-3 rounded-md border flex gap-3 items-start hover:bg-muted/50">
+                                <NotificationIcon type={n.type} />
+                                <div className="flex-1">
+                                    <p className="font-semibold leading-tight">{n.title}</p>
+                                    <p className="text-xs text-muted-foreground">{n.description}</p>
+                                </div>
+                            </div>
+                        </Link>
                     ))
                 ) : (
                     <p className="text-xs text-muted-foreground text-center py-4">No tienes notificaciones</p>
