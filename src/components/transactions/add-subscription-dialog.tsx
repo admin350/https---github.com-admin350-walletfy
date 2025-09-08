@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addSubscription, profiles, bankCards } = useData();
+    const { addSubscription, profiles, bankCards, formatCurrency } = useData();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -86,6 +86,18 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             setIsLoading(false);
         }
     }
+    
+     useEffect(() => {
+        if (!open) {
+            form.reset({
+                name: "",
+                amount: '' as any,
+                nextDueDate: new Date(),
+                cardId: "",
+                profile: "",
+            });
+        }
+    }, [open, form]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -161,11 +173,15 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                             </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {filteredCards.map(card => (
-                                                    <SelectItem key={card.id} value={card.id}>
-                                                      {card.name} (**** {card.last4Digits})
-                                                    </SelectItem>
-                                                ))}
+                                                {filteredCards.map(card => {
+                                                    const availableCredit = card.creditLimit ? card.creditLimit - (card.usedAmount || 0) : 0;
+                                                    return (
+                                                        <SelectItem key={card.id} value={card.id}>
+                                                        {card.name} (**** {card.last4Digits})
+                                                        {card.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
+                                                        </SelectItem>
+                                                    )
+                                                })}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
