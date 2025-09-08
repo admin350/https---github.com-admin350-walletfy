@@ -17,6 +17,11 @@ export function ProfileManager() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
 
+    const handleAdd = () => {
+        setProfileToEdit(undefined);
+        setIsDialogOpen(true);
+    };
+
     const handleEdit = (profile: Profile) => {
         setProfileToEdit(profile);
         setIsDialogOpen(true);
@@ -44,8 +49,11 @@ export function ProfileManager() {
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Gestionar Perfiles</CardTitle>
-                        <CardDescription>Edita o elimina perfiles para organizar tus finanzas.</CardDescription>
+                        <CardDescription>Añade, edita o elimina perfiles para organizar tus finanzas.</CardDescription>
                     </div>
+                     <Button size="icon" variant="outline" onClick={handleAdd}>
+                        <PlusCircle className="h-6 w-6" />
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>

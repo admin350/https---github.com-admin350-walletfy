@@ -18,6 +18,11 @@ export function CategoryManager() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [categoryToEdit, setCategoryToEdit] = useState<Category | undefined>(undefined);
 
+    const handleAdd = () => {
+        setCategoryToEdit(undefined);
+        setIsDialogOpen(true);
+    };
+
     const handleEdit = (category: Category) => {
         setCategoryToEdit(category);
         setIsDialogOpen(true);
@@ -45,8 +50,11 @@ export function CategoryManager() {
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Gestionar Categorías</CardTitle>
-                        <CardDescription>Edita o elimina categorías para tus transacciones.</CardDescription>
+                        <CardDescription>Añade, edita o elimina categorías para tus transacciones.</CardDescription>
                     </div>
+                     <Button size="icon" variant="outline" onClick={handleAdd}>
+                        <PlusCircle className="h-6 w-6" />
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
