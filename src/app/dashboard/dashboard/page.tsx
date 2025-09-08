@@ -23,7 +23,7 @@ import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading } = useData();
+  const { transactions, isLoading, formatCurrency } = useData();
 
   useEffect(() => {
     setIsClient(true);
@@ -66,21 +66,21 @@ export default function DashboardPage() {
                 <>
                     <KpiCard 
                         title="Ingresos del Período" 
-                        value={<span className="text-green-500">${totalIncome.toLocaleString('es-CL')}</span>} 
+                        value={<span className="text-green-500">{formatCurrency(totalIncome)}</span>} 
                         icon={TrendingUp} 
                         iconClassName="text-green-500"
                         description="Suma de ingresos en el período." 
                     />
                     <KpiCard 
                         title="Egresos del Período" 
-                        value={<span className="text-red-500">${totalExpenses.toLocaleString('es-CL')}</span>} 
+                        value={<span className="text-red-500">{formatCurrency(totalExpenses)}</span>} 
                         icon={TrendingDown}
                         iconClassName="text-red-500"
                         description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
                     />
                     <KpiCard 
                         title="Balance Neto" 
-                        value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>${netBalance.toLocaleString('es-CL')}</span>} 
+                        value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>{formatCurrency(netBalance)}</span>} 
                         icon={DollarSign}
                         iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
                         description="Ingresos - Egresos" 
@@ -93,7 +93,7 @@ export default function DashboardPage() {
                   <CardHeader>
                       <CardTitle>Destino Real de tus Ingresos</CardTitle>
                       <CardDescription>
-                          Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                          Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
                       </CardDescription>
                   </CardHeader>
                   <CardContent>

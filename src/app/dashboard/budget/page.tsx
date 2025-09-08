@@ -11,7 +11,7 @@ import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 export default function BudgetPage() {
-    const { budgets, isLoading, transactions } = useData();
+    const { budgets, isLoading, transactions, formatCurrency } = useData();
     
     const totalIncome = transactions
         .filter(t => t.type === 'income')
@@ -25,7 +25,7 @@ export default function BudgetPage() {
                     <CardHeader>
                         <CardTitle>Destino Real de tus Ingresos (Período Actual)</CardTitle>
                         <CardDescription>
-                            Ingresos del período: <span className="font-bold text-primary">${totalIncome.toLocaleString('es-CL')}</span>
+                            Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

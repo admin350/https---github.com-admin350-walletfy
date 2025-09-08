@@ -36,14 +36,14 @@ interface PayDebtDialogProps {
 export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addDebtPayment, bankAccounts } = useData();
+    const { addDebtPayment, bankAccounts, formatCurrency } = useData();
     
     const relevantAccount = bankAccounts.find(acc => acc.id === debt.accountId);
     
     const formSchema = z.object({
         amount: z.coerce.number()
           .positive({ message: "El monto debe ser positivo." })
-          .max(relevantAccount?.balance ?? 0, { message: `No puedes pagar más de tu balance disponible en la cuenta ($${relevantAccount?.balance.toLocaleString('es-CL')}).` }),
+          .max(relevantAccount?.balance ?? 0, { message: `No puedes pagar más de tu balance disponible en la cuenta (${formatCurrency(relevantAccount?.balance ?? 0)}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -65,7 +65,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
             });
             toast({
                 title: "¡Abono Exitoso!",
-                description: `Has abonado $${values.amount.toLocaleString('es-CL')} a tu deuda "${debt.name}".`,
+                description: `Has abonado ${formatCurrency(values.amount)} a tu deuda "${debt.name}".`,
             });
             form.reset();
             onOpenChange(false);
@@ -86,7 +86,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                 <DialogHeader>
                     <DialogTitle>Abonar a: {debt.name}</DialogTitle>
                     <DialogDescription>
-                       Pagando desde: <span className="font-bold text-primary">{relevantAccount?.name} (${relevantAccount?.balance.toLocaleString('es-CL')})</span>
+                       Pagando desde: <span className="font-bold text-primary">{relevantAccount?.name} ({formatCurrency(relevantAccount?.balance ?? 0)})</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -96,7 +96,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                             name="amount"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Monto a Abonar (Cuota: ${debt.monthlyPayment.toLocaleString('es-CL')})</FormLabel>
+                                    <FormLabel>Monto a Abonar (Cuota: {formatCurrency(debt.monthlyPayment)})</FormLabel>
                                     <FormControl>
                                         <Input type="number" {...field} value={field.value ?? ''} />
                                     </FormControl>

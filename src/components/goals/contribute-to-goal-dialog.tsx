@@ -35,7 +35,7 @@ interface ContributeToGoalDialogProps {
 export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeToGoalDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addGoalContribution, bankAccounts, goalContributions } = useData();
+    const { addGoalContribution, bankAccounts, goalContributions, formatCurrency } = useData();
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     const totalSavings = savingsAccount?.balance ?? 0;
@@ -49,7 +49,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
     const formSchema = z.object({
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de ahorros ($${availableSavings.toLocaleString('es-CL')}).` }),
+        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de ahorros (${formatCurrency(availableSavings)}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -76,7 +76,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
             });
             toast({
                 title: "¡Aporte Exitoso!",
-                description: `Has aportado $${values.amount.toLocaleString('es-CL')} a tu meta "${goal.name}".`,
+                description: `Has aportado ${formatCurrency(values.amount)} a tu meta "${goal.name}".`,
             });
             form.reset();
             onOpenChange(false);
@@ -97,7 +97,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 <DialogHeader>
                     <DialogTitle>Aportar a: {goal.name}</DialogTitle>
                     <DialogDescription>
-                       Ahorro disponible en cartera: <span className="font-bold text-primary">${availableSavings.toLocaleString('es-CL')}</span>
+                       Ahorro disponible en cartera: <span className="font-bold text-primary">{formatCurrency(availableSavings)}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -109,7 +109,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                                 <FormItem>
                                     <FormLabel>Monto a Aportar</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$50.000" {...field} value={field.value ?? ''} />
+                                        <Input type="number" placeholder={formatCurrency(50000)} {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

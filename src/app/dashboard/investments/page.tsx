@@ -11,7 +11,7 @@ import { InvestmentsWidget } from "@/components/investments/investments-widget";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 
 export default function InvestmentsPage() {
-    const { investments, isLoading } = useData();
+    const { investments, isLoading, formatCurrency } = useData();
     
     const totalInvested = investments.reduce((acc, investment) => acc + investment.initialAmount, 0);
     const totalCurrentValue = investments.reduce((acc, investment) => acc + investment.currentValue, 0);
@@ -38,21 +38,21 @@ export default function InvestmentsPage() {
                     <>
                         <KpiCard 
                             title="Total Invertido" 
-                            value={<span className="text-blue-400">${totalInvested.toLocaleString('es-CL')}</span>}
+                            value={<span className="text-blue-400">{formatCurrency(totalInvested)}</span>}
                             icon={Wallet} 
                             iconClassName="text-blue-400"
                             description="Suma de todo el capital inicial invertido."
                         />
                         <KpiCard 
                             title="Valor Actual del Portafolio" 
-                            value={<span className="text-green-400">${totalCurrentValue.toLocaleString('es-CL')}</span>} 
+                            value={<span className="text-green-400">{formatCurrency(totalCurrentValue)}</span>} 
                             icon={TrendingUp}
                             iconClassName="text-green-400"
                             description="Valor de mercado actual de tus inversiones."
                         />
                         <KpiCard
                             title="Ganancia / Pérdida"
-                             value={<span className={totalProfit >= 0 ? "text-green-400" : "text-red-400"}>${totalProfit.toLocaleString('es-CL')} ({profitPercentage.toFixed(2)}%)</span>}
+                             value={<span className={totalProfit >= 0 ? "text-green-400" : "text-red-400"}>{formatCurrency(totalProfit)} ({profitPercentage.toFixed(2)}%)</span>}
                             icon={BarChart}
                             iconClassName={totalProfit >= 0 ? "text-green-400" : "text-red-400"}
                             description="Rendimiento total de tu portafolio."

@@ -28,7 +28,7 @@ import { AddFixedExpenseDialog } from "./add-fixed-expense-dialog";
 import { Badge } from "../ui/badge";
 
 export function FixedExpensesDataTable() {
-    const { fixedExpenses, deleteFixedExpense } = useData();
+    const { fixedExpenses, deleteFixedExpense, formatCurrency } = useData();
     const { toast } = useToast();
     const [expenseToRegister, setExpenseToRegister] = useState<Partial<Transaction> | undefined>(undefined);
     const [expenseToEdit, setExpenseToEdit] = useState<FixedExpense | undefined>(undefined);
@@ -107,11 +107,7 @@ export function FixedExpensesDataTable() {
             header: "Monto Base",
             cell: ({ row }) => {
                 const amount = parseFloat(row.getValue("amount"))
-                const formatted = new Intl.NumberFormat("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                }).format(amount)
-                return <div className="font-medium">{formatted}</div>
+                return <div className="font-medium">{formatCurrency(amount)}</div>
             },
         },
         {

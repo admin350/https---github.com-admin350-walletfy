@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from "react";
 import type { Budget } from "@/types";
@@ -20,7 +21,7 @@ interface BudgetWidgetProps {
 }
 
 export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
-    const { deleteBudget, transactions, categories, profiles } = useData();
+    const { deleteBudget, transactions, categories, profiles, formatCurrency } = useData();
     const { toast } = useToast();
 
     const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
@@ -164,7 +165,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                                                 <span className="truncate" title={item.category}>{item.category}</span>
                                             </div>
                                             <div className="text-right flex-shrink-0">
-                                                <span className="font-medium">${estimatedAmount.toLocaleString('es-CL')}</span>
+                                                <span className="font-medium">{formatCurrency(estimatedAmount)}</span>
                                                 <span className="ml-2 text-muted-foreground">({item.percentage}%)</span>
                                             </div>
                                         </div>

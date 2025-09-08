@@ -21,7 +21,7 @@ import { useData } from "@/context/data-context";
 import { format } from "date-fns";
 
 export function InvestmentContributionsTable() {
-    const { investmentContributions } = useData();
+    const { investmentContributions, formatCurrency } = useData();
     
     const columns: ColumnDef<InvestmentContribution>[] = [
         {
@@ -38,11 +38,7 @@ export function InvestmentContributionsTable() {
             header: "Monto Aportado",
             cell: ({ row }) => {
                 const amount = parseFloat(row.getValue("amount"))
-                const formatted = new Intl.NumberFormat("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                }).format(amount)
-                return <div className={`font-medium text-red-400`}>{formatted}</div>
+                return <div className={`font-medium text-red-400`}>{formatCurrency(amount)}</div>
             },
         },
     ];

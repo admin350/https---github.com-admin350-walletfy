@@ -10,7 +10,7 @@ import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dial
 import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 
 export default function BankAccountsPage() {
-    const { bankAccounts, isLoading } = useData();
+    const { bankAccounts, isLoading, formatCurrency } = useData();
     
     const totalBalance = bankAccounts.reduce((acc, account) => acc + account.balance, 0);
     const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
@@ -36,21 +36,21 @@ export default function BankAccountsPage() {
                     <>
                         <KpiCard 
                             title="Balance Total" 
-                            value={<span className="text-primary">${totalBalance.toLocaleString('es-CL')}</span>}
+                            value={<span className="text-primary">{formatCurrency(totalBalance)}</span>}
                             icon={Wallet} 
                             iconClassName="text-primary"
                             description="Balance consolidado actual de tus cuentas."
                         />
                         <KpiCard 
                             title="Balance Personal" 
-                            value={<span className="text-blue-400">${personalBalance.toLocaleString('es-CL')}</span>} 
+                            value={<span className="text-blue-400">{formatCurrency(personalBalance)}</span>} 
                             icon={Banknote}
                             iconClassName="text-blue-400"
                             description="Balance actual de tus cuentas 'Personal'."
                         />
                         <KpiCard
                             title="Balance Negocio"
-                            value={<span className="text-teal-400">${businessBalance.toLocaleString('es-CL')}</span>}
+                            value={<span className="text-teal-400">{formatCurrency(businessBalance)}</span>}
                             icon={Landmark}
                             iconClassName="text-teal-400"
                             description="Balance actual de tus cuentas 'Negocio'."

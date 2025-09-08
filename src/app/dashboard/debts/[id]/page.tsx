@@ -90,7 +90,7 @@ export default function DebtDetailPage() {
                             {payments.length > 0 ? (
                                 payments.map(payment => (
                                     <TableRow key={payment.id}>
-                                        <TableCell>{format(payment.date, "dd/MM/yyyy")}</TableCell>
+                                        <TableCell>{format(new Date(payment.date), "dd/MM/yyyy")}</TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(payment.amount)}</TableCell>
                                     </TableRow>
                                 ))

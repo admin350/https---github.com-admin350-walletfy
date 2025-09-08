@@ -1,5 +1,4 @@
 
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -52,7 +51,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addBankAccount, updateBankAccount, profiles } = useData();
+    const { addBankAccount, updateBankAccount, profiles, formatCurrency } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -198,7 +197,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         <FormItem>
                                             <FormLabel>Límite de Ingresos Mensuales</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="5000000" {...field} value={field.value ?? ''} />
+                                                <Input type="number" placeholder={formatCurrency(5000000)} {...field} value={field.value ?? ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -263,7 +262,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     <FormItem>
                                         <FormLabel>Saldo Inicial</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
+                                            <Input type="number" placeholder={formatCurrency(1000000)} {...field} value={field.value ?? ''} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

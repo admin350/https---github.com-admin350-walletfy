@@ -36,7 +36,7 @@ interface SubscriptionsDataTableProps {
 }
 
 export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
-    const { cancelSubscription, bankCards, deleteSubscription } = useData();
+    const { cancelSubscription, bankCards, deleteSubscription, formatCurrency } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [subscriptionToUpdate, setSubscriptionToUpdate] = useState<Subscription | undefined>(undefined);
@@ -107,11 +107,7 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             header: "Monto",
             cell: ({ row }) => {
                 const amount = parseFloat(row.getValue("amount"))
-                const formatted = new Intl.NumberFormat("es-CL", {
-                    style: "currency",
-                    currency: "CLP",
-                }).format(amount)
-                return <div className="font-medium">{formatted}</div>
+                return <div className="font-medium">{formatCurrency(amount)}</div>
             },
         },
         {
@@ -122,11 +118,11 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                  const date = tab === 'cancelled' ? subscription.cancellationDate : subscription.dueDate;
                  if (!date) return null;
 
-                 const isDue = isPast(subscription.dueDate);
+                 const isDue = isPast(new Date(subscription.dueDate));
 
                  return (
                     <div className="flex items-center gap-2">
-                        <span>{format(date, "dd/MM/yyyy")}</span>
+                        <span>{format(new Date(date), "dd/MM/yyyy")}</span>
                         {isDue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
                         {tab === 'cancelled' && <Badge variant="outline">Cancelada</Badge>}
                     </div>

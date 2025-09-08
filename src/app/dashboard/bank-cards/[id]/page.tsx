@@ -42,7 +42,7 @@ function CardTransactionsTable({ cardId }: { cardId: string }) {
                             <TableCell>{t.description}</TableCell>
                             <TableCell>{t.category}</TableCell>
                             <TableCell className="text-right font-medium text-red-400">
-                                -{formatCurrency(t.amount, false)}
+                                -{formatCurrency(t.amount)}
                             </TableCell>
                         </TableRow>
                     ))

@@ -25,7 +25,7 @@ interface SavingsGoalsWidgetProps {
 
 
 export function SavingsGoalsWidget({ goals: goalsFromProps, isLoading: isLoadingFromProps, isDashboardWidget = false }: SavingsGoalsWidgetProps) {
-  const { deleteGoal, goals: goalsFromContext, isLoading: isLoadingFromContext } = useData();
+  const { deleteGoal, goals: goalsFromContext, isLoading: isLoadingFromContext, formatCurrency } = useData();
 
   const goals = goalsFromProps !== undefined ? goalsFromProps : goalsFromContext;
   const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : isLoadingFromContext;
@@ -91,7 +91,7 @@ export function SavingsGoalsWidget({ goals: goalsFromProps, isLoading: isLoading
                 <div>
                     <p className="text-base font-medium">{goal.name}</p>
                     <p className="text-sm text-muted-foreground">
-                    {`$${goal.currentAmount.toLocaleString('es-CL')} / $${goal.targetAmount.toLocaleString('es-CL')}`}
+                    {`${formatCurrency(goal.currentAmount)} / ${formatCurrency(goal.targetAmount)}`}
                     </p>
                 </div>
                   {!isDashboardWidget && (
@@ -146,7 +146,7 @@ export function SavingsGoalsWidget({ goals: goalsFromProps, isLoading: isLoading
                     <Badge variant='secondary'>
                         {goal.category}
                     </Badge>
-                     {!isDashboardWidget && <span>Fecha Límite: {format(goal.estimatedDate, "dd 'de' MMMM, yyyy", { locale: es })}</span>}
+                     {!isDashboardWidget && <span>Fecha Límite: {format(new Date(goal.estimatedDate), "dd 'de' MMMM, yyyy", { locale: es })}</span>}
                 </div>
                 {!isCompleted && !isDashboardWidget && (
                   <Button size="sm" variant="outline" onClick={() => handleContributeClick(goal)}>

@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
 
 export default function SubscriptionsPage() {
-    const { subscriptions, transactions, isLoading } = useData();
+    const { subscriptions, transactions, isLoading, formatCurrency } = useData();
     const today = startOfToday();
 
     const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
@@ -64,7 +64,7 @@ export default function SubscriptionsPage() {
                         />
                         <KpiCard
                             title="Gasto Mensual Total"
-                            value={`$${totalMonthlyCost.toLocaleString('es-CL')}`}
+                            value={formatCurrency(totalMonthlyCost)}
                             icon={CircleDollarSign}
                             iconClassName="text-purple-400"
                             description="Suma de todos tus gastos recurrentes."

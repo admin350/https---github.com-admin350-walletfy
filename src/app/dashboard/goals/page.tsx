@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GoalsPage() {
-    const { goals, isLoading } = useData();
+    const { goals, isLoading, formatCurrency } = useData();
     
     const totalGoals = goals.length;
     const totalTargetAmount = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
@@ -50,18 +50,18 @@ export default function GoalsPage() {
                             value={totalGoals} 
                             icon={Target} 
                             iconClassName="text-yellow-400"
-                            description={`Presupuesto Total: $${totalTargetAmount.toLocaleString('es-CL')}`}
+                            description={`Presupuesto Total: ${formatCurrency(totalTargetAmount)}`}
                         />
                         <KpiCard 
                             title="Metas Completadas" 
                             value={completedGoalsCount} 
                             icon={CheckCircle}
                             iconClassName="text-yellow-400"
-                            description={`Monto Cumplido: $${completedGoalsAmount.toLocaleString('es-CL')}`}
+                            description={`Monto Cumplido: ${formatCurrency(completedGoalsAmount)}`}
                         />
                         <KpiCard
                             title="Monto Restante"
-                            value={`$${remainingAmount.toLocaleString('es-CL')}`}
+                            value={formatCurrency(remainingAmount)}
                             icon={PiggyBank}
                             iconClassName="text-yellow-400"
                             description="Para alcanzar todas tus metas"

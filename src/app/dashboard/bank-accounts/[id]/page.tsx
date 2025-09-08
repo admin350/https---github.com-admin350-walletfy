@@ -48,7 +48,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
                                 {t.type === 'income' ? <ArrowUpRight className="h-5 w-5 text-green-500" /> : <ArrowDownLeft className="h-5 w-5 text-red-500" />}
                             </TableCell>
                             <TableCell className={`text-right font-medium ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, false)}
+                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                             </TableCell>
                         </TableRow>
                     ))

@@ -51,7 +51,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addBankCard, updateBankCard, profiles, bankAccounts } = useData();
+    const { addBankCard, updateBankCard, profiles, bankAccounts, formatCurrency } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -240,7 +240,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                         <FormItem>
                                             <FormLabel>Límite de Crédito</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="$2.000.000" {...field} value={field.value ?? ''} />
+                                                <Input type="number" placeholder={formatCurrency(2000000)} {...field} value={field.value ?? ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

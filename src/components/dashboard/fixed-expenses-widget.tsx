@@ -6,7 +6,7 @@ import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function FixedExpensesWidget() {
-  const { fixedExpenses, isLoading } = useData();
+  const { fixedExpenses, isLoading, formatCurrency } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function FixedExpensesWidget() {
                 <p className="font-medium">{expense.name}</p>
                 <p className="text-sm text-muted-foreground">{expense.category}</p>
               </div>
-              <p className="font-semibold text-base">${expense.amount.toLocaleString('es-CL')}</p>
+              <p className="font-semibold text-base">{formatCurrency(expense.amount)}</p>
             </li>
           ))}
         </ul>

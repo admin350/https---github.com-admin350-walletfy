@@ -8,14 +8,14 @@ import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
 export function UpcomingPaymentsWidget() {
-  const { subscriptions, isLoading } = useData();
+  const { subscriptions, isLoading, formatCurrency } = useData();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const sortedSubscriptions = subscriptions.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  const sortedSubscriptions = subscriptions.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
   return (
     <Card className="bg-card/50 border-border/50">
@@ -45,10 +45,10 @@ export function UpcomingPaymentsWidget() {
               <div>
                 <p className="font-medium">{payment.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  Vence: {format(payment.dueDate, "dd 'de' MMMM", { locale: es })}
+                  Vence: {format(new Date(payment.dueDate), "dd 'de' MMMM", { locale: es })}
                 </p>
               </div>
-              <p className="font-semibold text-base">${payment.amount.toLocaleString('es-CL')}</p>
+              <p className="font-semibold text-base">{formatCurrency(payment.amount)}</p>
             </li>
           ))}
         </ul>

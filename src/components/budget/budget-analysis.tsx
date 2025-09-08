@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { useData } from '@/context/data-context';
@@ -7,7 +8,7 @@ import { Badge } from '../ui/badge';
 import { Skeleton } from '../ui/skeleton';
 
 export function BudgetAnalysis() {
-    const { budgets, transactions, isLoading } = useData();
+    const { budgets, transactions, isLoading, formatCurrency } = useData();
     const [selectedBudgetId, setSelectedBudgetId] = useState<string | undefined>(budgets[0]?.id);
 
     const analysisData = useMemo(() => {
@@ -99,11 +100,11 @@ export function BudgetAnalysis() {
                                 <TableRow key={row.category}>
                                     <TableCell className="font-medium">{row.category}</TableCell>
                                     <TableCell className="text-right">{row.plannedPercentage.toFixed(1)}%</TableCell>
-                                    <TableCell className="text-right">${row.plannedAmount.toLocaleString('es-CL')}</TableCell>
-                                    <TableCell className="text-right">${row.spentAmount.toLocaleString('es-CL')}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(row.plannedAmount)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(row.spentAmount)}</TableCell>
                                     <TableCell className="text-right">
                                         <Badge variant={row.difference >= 0 ? "default" : "destructive"} className={row.difference >= 0 ? "bg-green-500/20 text-green-500 border-green-500/20" : "bg-red-500/20 text-red-500 border-red-500/20"}>
-                                            ${row.difference.toLocaleString('es-CL')}
+                                            {formatCurrency(row.difference)}
                                         </Badge>
                                     </TableCell>
                                 </TableRow>
