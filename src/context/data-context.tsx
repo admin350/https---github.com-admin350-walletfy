@@ -44,6 +44,7 @@ interface DataContextType {
     deleteGoal: (id: string) => Promise<void>;
     addSubscription: (subscription: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
+    updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
@@ -511,6 +512,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
+    const updateSubscriptionAmount = async (subscriptionId: string, newAmount: number) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const subRef = doc(db, 'users', uid, 'subscriptions', subscriptionId);
+        await updateDoc(subRef, { amount: newAmount });
+    };
     const cancelSubscription = async (id: string) => {
         const sub = allSubscriptions.find(s => s.id === id);
         if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
@@ -821,6 +827,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteGoal,
             addSubscription,
             updateSubscription,
+            updateSubscriptionAmount,
             cancelSubscription,
             addDebt,
             updateDebt,

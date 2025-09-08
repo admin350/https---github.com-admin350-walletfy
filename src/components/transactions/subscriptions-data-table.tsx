@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { PaySubscriptionDialog } from "./pay-subscription-dialog";
 import { Badge } from "../ui/badge";
+import { UpdateSubscriptionDialog } from "./update-subscription-dialog";
 
 interface SubscriptionsDataTableProps {
     subscriptions: Subscription[];
@@ -37,14 +38,13 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
     const { cancelSubscription, bankCards } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
+    const [subscriptionToUpdate, setSubscriptionToUpdate] = useState<Subscription | undefined>(undefined);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     
-    const handleEdit = (item: Subscription) => {
-        console.log("Editing subscription:", item);
-         toast({
-            title: "Función no implementada",
-            description: "La edición de suscripciones se añadirá en una futura actualización."
-        })
+    const handleUpdateAmount = (item: Subscription) => {
+        setSubscriptionToUpdate(item);
+        setIsUpdateModalOpen(true);
     };
 
     const handlePay = (item: Subscription) => {
@@ -139,9 +139,9 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                    <DropdownMenuItem onClick={() => handleUpdateAmount(item)}>
                                         <Pencil className="mr-2 h-4 w-4" />
-                                        Editar
+                                        Actualizar Monto
                                     </DropdownMenuItem>
                                     <AlertDialogTrigger asChild>
                                         <DropdownMenuItem disabled={item.status === 'cancelled'}>
@@ -186,6 +186,13 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                     open={isPayModalOpen}
                     onOpenChange={setIsPayModalOpen}
                     subscription={subscriptionToPay}
+                />
+            )}
+             {subscriptionToUpdate && (
+                <UpdateSubscriptionDialog
+                    open={isUpdateModalOpen}
+                    onOpenChange={setIsUpdateModalOpen}
+                    subscription={subscriptionToUpdate}
                 />
             )}
             <div className="rounded-md border">
