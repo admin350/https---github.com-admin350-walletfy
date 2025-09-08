@@ -28,6 +28,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PaySubscriptionDialog } from "./pay-subscription-dialog";
 import { Badge } from "../ui/badge";
 import { UpdateSubscriptionDialog } from "./update-subscription-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SubscriptionsDataTableProps {
     subscriptions: Subscription[];
@@ -141,12 +142,20 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                 if (tab === 'cancelled') {
                     return (
                          <AlertDialog>
-                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive" size="sm">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Eliminar
-                                </Button>
-                             </AlertDialogTrigger>
+                             <TooltipProvider>
+                                 <Tooltip>
+                                     <TooltipTrigger asChild>
+                                         <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                         </AlertDialogTrigger>
+                                     </TooltipTrigger>
+                                     <TooltipContent>
+                                         <p>Eliminar Permanentemente</p>
+                                     </TooltipContent>
+                                 </Tooltip>
+                             </TooltipProvider>
                              <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>¿Eliminar suscripción permanentemente?</AlertDialogTitle>
