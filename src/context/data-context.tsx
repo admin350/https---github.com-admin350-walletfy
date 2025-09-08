@@ -231,6 +231,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const finishSetup = async (data: InitialSetupData) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
+    
+        // Ensure user document exists
+        const userDocRef = doc(db, 'users', uid);
+        batch.set(userDocRef, { initialized: true }, { merge: true });
 
         // Set profiles
         data.profiles.forEach(profile => {
