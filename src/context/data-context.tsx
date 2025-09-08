@@ -248,7 +248,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setNeedsSetup(false);
     };
 
-    const addDoc = async <T extends { id?: string }>(collectionName: string, data: T): Promise<void> => {
+    const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
         await addFirestoreDoc(collection(db, 'users', uid, collectionName), data);
     };
@@ -632,5 +632,7 @@ budgets: filteredBudgets,
 };
 
 
+
+    
 
     
