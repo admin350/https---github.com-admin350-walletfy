@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
@@ -252,7 +251,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const addTransaction = async (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const { isInstallment, installments, ...transData } = transaction;
+        const { isInstallment, installments, ...formData } = transaction;
+
+        // Clean the object for Firestore
+        const transData: any = {
+            type: formData.type,
+            amount: formData.amount,
+            description: formData.description,
+            category: formData.category,
+            profile: formData.profile,
+            date: formData.date,
+            accountId: formData.accountId,
+        };
+        if (formData.destinationAccountId) {
+            transData.destinationAccountId = formData.destinationAccountId;
+        }
+        if (formData.cardId) {
+            transData.cardId = formData.cardId;
+        }
+
 
         const batch = writeBatch(db);
         const transRef = doc(collection(db, 'users', uid, 'transactions'));
@@ -793,3 +810,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
+    
