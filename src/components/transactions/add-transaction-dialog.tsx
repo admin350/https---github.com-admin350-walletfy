@@ -121,6 +121,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         action: async (values: FormValues) => {
              const transactionData = {
                 ...values,
+                date: values.date.toISOString(),
             };
             if (transactionToEdit && transactionToEdit.id) {
                  await addTransaction(transactionData);
@@ -147,7 +148,13 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     useEffect(() => {
         if (isSuccess) {
             setDialogOpen(false);
-            form.reset({
+        }
+    }, [isSuccess, setDialogOpen]);
+
+    useEffect(() => {
+        if(dialogOpen) {
+            const transferCategory = categories.find(c => c.type === 'Transferencia');
+            const initialValues: Partial<FormValues> = {
                 type: defaultType,
                 amount: '' as any,
                 description: "",
@@ -159,39 +166,24 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 date: new Date(),
                 isInstallment: false,
                 installments: undefined,
-            });
-        }
-    }, [isSuccess, setDialogOpen, form, defaultType]);
+            };
 
-    useEffect(() => {
-        if(dialogOpen) {
             if (transactionToEdit) {
-                 form.reset({
-                    ...(transactionToEdit as any),
-                    type: transactionToEdit.type || defaultType,
+                Object.assign(initialValues, {
+                    ...transactionToEdit,
                     amount: transactionToEdit.amount || ('' as any),
                     date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
-                    paymentMethod: transactionToEdit.cardId || 'account-balance',
-                    isInstallment: false,
-                    installments: undefined,
-                });
-            } else {
-                 form.reset({
-                    type: defaultType,
-                    amount: '' as any,
-                    description: "",
-                    category: "",
-                    profile: "",
-                    accountId: "",
-                    destinationAccountId: undefined,
-                    paymentMethod: 'account-balance',
-                    date: new Date(),
-                    isInstallment: false,
-                    installments: undefined,
+                    paymentMethod: transactionToEdit.cardId || 'account-balance'
                 });
             }
+            
+            if (initialValues.type === 'transfer' && transferCategory) {
+                initialValues.category = transferCategory.name;
+            }
+            
+            form.reset(initialValues as FormValues);
         }
-    }, [transactionToEdit, defaultType, form, dialogOpen]);
+    }, [transactionToEdit, defaultType, form, dialogOpen, categories]);
 
 
     const transactionType = form.watch("type");
@@ -206,9 +198,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
         if (transactionType === 'expense') return c.type === 'Gasto';
-        // For transfer, we will handle it internally, but let's filter here for consistency.
-        if (transactionType === 'transfer') return c.type === 'Transferencia';
-        return true;
+        return false; // Hide for transfer
     });
 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
@@ -220,13 +210,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
             const transferCategory = categories.find(c => c.type === 'Transferencia');
             if (transferCategory) {
                 form.setValue('category', transferCategory.name);
-            }
-        } else {
-            // Clear category if it was a transfer category and now it's not
-            const currentCategory = form.getValues('category');
-            const isTransferCategory = categories.find(c => c.name === currentCategory && c.type === 'Transferencia');
-            if (isTransferCategory) {
-                 form.setValue('category', '');
             }
         }
     }, [transactionType, categories, form]);
@@ -515,3 +498,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
+    
