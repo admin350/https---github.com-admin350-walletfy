@@ -2,13 +2,14 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Landmark, Wallet, Banknote, ArrowDownToDot } from "lucide-react";
+import { PlusCircle, Landmark, Wallet, Banknote, ArrowDownToDot, Coins } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 import { AddDepositDialog } from "@/components/wallets/add-deposit-dialog";
+import { AddWithdrawalDialog } from "@/components/wallets/add-withdrawal-dialog";
 
 export default function BankAccountsPage() {
     const { bankAccounts, isLoading, formatCurrency } = useData();
@@ -69,6 +70,12 @@ export default function BankAccountsPage() {
                         </CardDescription>
                     </div>
                      <div className="flex items-center gap-2">
+                         <AddWithdrawalDialog>
+                            <Button variant="outline">
+                                <Coins className="mr-2 h-4 w-4" />
+                                Retiro
+                            </Button>
+                        </AddWithdrawalDialog>
                         <AddDepositDialog>
                             <Button>
                                 <ArrowDownToDot className="mr-2 h-4 w-4" />
