@@ -89,20 +89,20 @@
   .theme-gradient {
      @apply bg-gradient-to-t from-gray-950 to-gray-900;
   }
-  .theme-noise {
-    background-image: url('/textures/noise.png');
+  .theme-aqua {
+    background-image: url('/textures/aqua.png');
     background-repeat: repeat;
   }
-  .theme-lines {
-    background-image: url('/textures/lines.svg');
+  .theme-blackmetal {
+    background-image: url('/textures/blackmetal.png');
     background-repeat: repeat;
   }
-  .theme-geometric {
-     background-image: url('/textures/geometric.png');
+  .theme-marmol {
+     background-image: url('/textures/marmol.png');
      background-repeat: repeat;
   }
-  .theme-dots {
-      background-image: url('/textures/dots.png');
+  .theme-marmol-gold {
+      background-image: url('/textures/marmol gold.png');
       background-repeat: repeat;
   }
 }

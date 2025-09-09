@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 
 const backgroundOptions = [
     { id: 'theme-gradient', name: 'Gradiente', style: { backgroundImage: 'linear-gradient(to top, #030712, #111827)'} },
-    { id: 'theme-noise', name: 'Ruido Sutil', style: { backgroundImage: 'url(/textures/noise.png)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-lines', name: 'Líneas', style: { backgroundImage: 'url(/textures/lines.svg)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-geometric', name: 'Geométrico', style: { backgroundImage: 'url(/textures/geometric.png)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-dots', name: 'Puntos', style: { backgroundImage: 'url(/textures/dots.png)', backgroundRepeat: 'repeat' } },
+    { id: 'theme-aqua', name: 'Aqua', style: { backgroundImage: 'url(/textures/aqua.png)', backgroundRepeat: 'repeat' } },
+    { id: 'theme-blackmetal', name: 'Metal Oscuro', style: { backgroundImage: 'url(/textures/blackmetal.png)', backgroundRepeat: 'repeat' } },
+    { id: 'theme-marmol', name: 'Mármol', style: { backgroundImage: 'url(/textures/marmol.png)', backgroundRepeat: 'repeat' } },
+    { id: 'theme-marmol-gold', name: 'Mármol Dorado', style: { backgroundImage: 'url(/textures/marmol%20gold.png)', backgroundRepeat: 'repeat' } },
 ]
 
 export function BackgroundManager() {
