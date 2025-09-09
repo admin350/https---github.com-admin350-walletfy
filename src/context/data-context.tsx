@@ -172,8 +172,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     // Subscribe to user data once UID is available
     useEffect(() => {
-        if (!uid) return;
+        if (!uid) {
+            setIsLoading(false); // Set loading to false if no user
+            return;
+        }
 
+        let isMounted = true;
+        
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
             'categories', 'goalContributions', 'debtPayments', 'investments', 
@@ -188,12 +193,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports,
         };
 
-        let loadedCount = 0;
-        const totalCollections = collections.length + 1; // +1 for settings
+        const unsubscribers: Unsubscribe[] = [];
 
-        const unsubscribers = collections.map(collectionName => {
+        collections.forEach(collectionName => {
             const collRef = collection(db, 'users', uid, collectionName);
-            return onSnapshot(collRef, (snapshot) => {
+            const unsub = onSnapshot(collRef, (snapshot) => {
+                if (!isMounted) return;
                 const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const processedData = data.map(item => {
                     const newItem: DocumentData = { ...item };
@@ -205,22 +210,29 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     return newItem;
                 });
                 dataSetters[collectionName]?.(processedData as any);
-                if (++loadedCount >= totalCollections) setIsLoading(false);
             }, (error) => {
                 console.error(`Error fetching ${collectionName}: `, error);
             });
+            unsubscribers.push(unsub);
         });
         
         const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
         const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+             if (!isMounted) return;
             if(docSnap.exists()){
                 setSettings(docSnap.data() as AppSettings);
             }
-            if (++loadedCount >= totalCollections) setIsLoading(false);
         });
         unsubscribers.push(unsubSettings);
 
-        return () => unsubscribers.forEach(unsub => unsub());
+        // All subscriptions are set up, so we can set loading to false.
+        setIsLoading(false);
+
+
+        return () => {
+            isMounted = false;
+            unsubscribers.forEach(unsub => unsub());
+        }
 
     }, [uid]);
 
@@ -407,9 +419,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
-        if (account) {
-            debtData.financialInstitution = account.bank;
-        }
+        // It's better to not set this here, but rather when displaying it, to avoid issues if the bank name changes.
+        // Let's remove the automatic assignment to prevent potential errors.
+        // if (account) {
+        //     debtData.financialInstitution = account.bank;
+        // }
         return await addDoc('debts', debtData);
     };
     const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
@@ -483,6 +497,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const accountData: Partial<BankAccount> = { ...account };
         if (account.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
+        }
+        if (!account.hasCreditLine) {
+            delete accountData.creditLineLimit;
+            delete accountData.creditLineUsed;
         }
         return await addDoc('bankAccounts', accountData);
     };
