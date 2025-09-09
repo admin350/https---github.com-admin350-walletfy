@@ -282,14 +282,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!sourceAccount) throw new Error("Source account not found");
     
         if (isInstallment && paymentIsCard) {
-            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
+            const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
                 name: `Compra: ${transData.description}`,
                 totalAmount: transData.amount,
                 monthlyPayment: transData.amount / (installments || 1),
                 installments: installments || 1,
                 dueDate: addMonths(new Date(transData.date), 1),
                 debtType: 'credit-card',
-                financialInstitution: allBankCards.find(c => c.id === transData.cardId)?.bank || 'Tarjeta de Crédito',
                 profile: transData.profile,
                 accountId: transData.accountId,
                 sourceTransactionId: transRef.id,
@@ -310,13 +309,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const creditLineDebtSnapshot = await getDocs(creditLineDebtQuery);
     
             if (creditLineDebtSnapshot.empty) {
-                const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
+                const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
                     name: `Línea de Crédito: ${sourceAccount.name}`,
                     totalAmount: sourceAccount.creditLineLimit || 0,
                     paidAmount: (sourceAccount.creditLineUsed || 0) + transData.amount,
                     monthlyPayment: 0, // Should be defined by user later
                     installments: 1,
-                    financialInstitution: sourceAccount.bank,
                     debtType: 'line-of-credit',
                     dueDate: addMonths(new Date(), 1), // Placeholder due date
                     profile: transData.profile,
@@ -390,7 +388,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     // DEBT FUNCTIONS
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
-        await addDoc('debts', { ...debt, paidAmount: 0 }); 
+        const debtData: Partial<Debt> = {...debt, paidAmount: 0};
+        // Omit financialInstitution if it's not provided or empty
+        if (!debt.financialInstitution) {
+            delete debtData.financialInstitution;
+        }
+        await addDoc('debts', debtData);
     };
     const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
     const deleteDebt = async (id: string) => await deleteDocById('debts', id);
@@ -628,13 +631,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [allTransactions]);
     
     const filteredTransactions = useMemo(() => {
-        return allTransactions.filter(t => {
-            const date = new Date(t.date);
-            const profileMatch = filters.profile === 'all' || t.profile === filters.profile;
-            const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
-            const yearMatch = getYear(date) === filters.year;
-            return profileMatch && monthMatch && yearMatch;
-        });
+        return allTransactions
+            .filter(t => {
+                const date = new Date(t.date);
+                const profileMatch = filters.profile === 'all' || t.profile === filters.profile;
+                const monthMatch = filters.month === -1 || getMonth(date) === filters.month;
+                const yearMatch = getYear(date) === filters.year;
+                return profileMatch && monthMatch && yearMatch;
+            })
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [allTransactions, filters]);
     
     const filteredBankAccounts = useMemo(() => {
