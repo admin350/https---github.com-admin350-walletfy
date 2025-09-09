@@ -294,7 +294,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string }) => {
+    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, ...formData } = transaction;
 
@@ -308,6 +308,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: formData.accountId,
             isCreditLinePayment: paymentMethod === 'credit-line',
         };
+
+        if (formData.destinationAccountId) {
+            transData.destinationAccountId = formData.destinationAccountId;
+        }
         
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
         if (paymentIsCard) {
@@ -338,44 +342,41 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 throw new Error("Destination account not found.");
             }
-        } else if (isInstallment && paymentIsCard) {
-            if (!transData.cardId) throw new Error("Card ID is required for installment payments.");
-            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
-                name: `Compra: ${transData.description}`,
-                totalAmount: transData.amount,
-                monthlyPayment: transData.amount / (installments || 1),
-                installments: installments || 1,
-                dueDate: addMonths(new Date(transData.date), 1),
-                debtType: 'credit-card',
-                profile: transData.profile,
-                accountId: transData.accountId,
-                financialInstitution: allBankCards.find(c => c.id === transData.cardId)?.bank || 'Tarjeta de Crédito',
-            };
-            const debtRef = doc(collection(db, 'users', uid, 'debts'));
-            batch.set(debtRef, { ...debtData, paidAmount: 0 });
-    
-            const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
-            const cardSnap = await getDoc(cardRef);
-            if (cardSnap.exists()) {
-                const card = cardSnap.data() as BankCard;
-                batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
-            }
-        } else if (paymentMethod === 'credit-line') {
-            batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
         } else if (transData.type === 'income') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance + transData.amount });
         } else if (transData.type === 'expense') {
-            batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
-            if (paymentIsCard) {
-                if (!transData.cardId) throw new Error("Card ID is required for card payments.");
+            // Logic for expenses
+            if (paymentMethod === 'credit-line') {
+                batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
+            } else if (paymentIsCard) {
+                 if (!transData.cardId) throw new Error("Card ID is required for card payments.");
                 const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
                 if (cardSnap.exists()) {
                     const card = cardSnap.data() as BankCard;
                     if (card.cardType === 'credit') {
                         batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
+                         if (isInstallment) {
+                            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
+                                name: `Compra: ${transData.description}`,
+                                totalAmount: transData.amount,
+                                monthlyPayment: transData.amount / (installments || 1),
+                                installments: installments || 1,
+                                dueDate: addMonths(new Date(transData.date), 1),
+                                debtType: 'credit-card',
+                                profile: transData.profile,
+                                accountId: transData.accountId,
+                                financialInstitution: card.bank,
+                            };
+                            const debtRef = doc(collection(db, 'users', uid, 'debts'));
+                            batch.set(debtRef, { ...debtData, paidAmount: 0 });
+                        }
+                    } else { // Debit or Prepaid
+                        batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
                     }
                 }
+            } else { // Default to account balance
+                 batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
             }
         }
     
