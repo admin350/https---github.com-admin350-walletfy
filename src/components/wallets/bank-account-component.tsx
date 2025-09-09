@@ -15,6 +15,7 @@ import { AddBankAccountDialog } from "./add-bank-account-dialog";
 import { Progress } from "../ui/progress";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { ManageCreditLineDialog } from "./manage-credit-line-dialog";
+import { getMonth, getYear } from 'date-fns';
 
 
 interface BankAccountComponentProps {
@@ -30,19 +31,18 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const profile = profiles.find(p => p.name === account.profile);
 
     const monthlyIncome = useMemo(() => {
-        if (!account.monthlyLimit) return 0;
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
+        if (account.accountType !== 'Cuenta Vista' || !account.monthlyLimit) return 0;
+        
+        const currentMonth = getMonth(new Date());
+        const currentYear = getYear(new Date());
 
         return transactions
             .filter(t => 
-                (t.type === 'income' && t.accountId === account.id) ||
-                (t.type === 'transfer' && t.destinationAccountId === account.id)
+                ((t.type === 'income' && t.accountId === account.id) ||
+                 (t.type === 'transfer' && t.destinationAccountId === account.id)) &&
+                 getMonth(new Date(t.date)) === currentMonth &&
+                 getYear(new Date(t.date)) === currentYear
             )
-            .filter(t => {
-                const transactionDate = new Date(t.date);
-                return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
-            })
             .reduce((sum, t) => sum + t.amount, 0);
     }, [transactions, account]);
 

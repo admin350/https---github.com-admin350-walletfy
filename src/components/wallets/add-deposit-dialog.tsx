@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, getMonth, getYear } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -49,7 +49,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, categories, bankAccounts, formatCurrency } = useData();
+    const { addTransaction, categories, bankAccounts, transactions, formatCurrency } = useData();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -63,15 +63,62 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     });
 
     const incomeCategories = categories.filter(c => c.type === 'Ingreso');
+    const selectedAccountId = form.watch("accountId");
+    const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
+
+    const currentMonthIncome = useMemo(() => {
+        if (!selectedAccount || selectedAccount.accountType !== 'Cuenta Vista' || !selectedAccount.monthlyLimit) return 0;
+        
+        const currentMonth = getMonth(new Date());
+        const currentYear = getYear(new Date());
+
+        return transactions
+            .filter(t => 
+                ((t.type === 'income' && t.accountId === selectedAccount.id) || 
+                 (t.type === 'transfer' && t.destinationAccountId === selectedAccount.id)) &&
+                 getMonth(new Date(t.date)) === currentMonth &&
+                 getYear(new Date(t.date)) === currentYear
+            )
+            .reduce((sum, t) => sum + t.amount, 0);
+    }, [selectedAccount, transactions]);
+
+
+    const dynamicFormSchema = formSchema.refine(data => {
+        if (selectedAccount && selectedAccount.accountType === 'Cuenta Vista' && selectedAccount.monthlyLimit) {
+            return (currentMonthIncome + data.amount) <= selectedAccount.monthlyLimit;
+        }
+        return true;
+    }, {
+        message: "Este depósito supera el límite de ingresos mensuales para esta cuenta.",
+        path: ["amount"],
+    });
+
+     const { control, handleSubmit, getValues, trigger } = form;
+
+    useEffect(() => {
+        if (selectedAccountId) {
+            trigger("amount");
+        }
+    }, [selectedAccountId, trigger]);
+    
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
             if (!selectedAccount) {
                 toast({ title: "Error", description: "Cuenta no encontrada.", variant: "destructive"});
                 setIsLoading(false);
                 return;
+            }
+
+            const validationResult = await dynamicFormSchema.safeParseAsync(values);
+            if (!validationResult.success) {
+                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
+                 if(amountError) {
+                      form.setError("amount", { type: "manual", message: amountError.message });
+                 }
+                 setIsLoading(false);
+                 return;
             }
 
             await addTransaction({
@@ -117,9 +164,9 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                              <FormField
-                                control={form.control}
+                                control={control}
                                 name="accountId"
                                 render={({ field }) => (
                                     <FormItem>
@@ -141,7 +188,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={form.control}
+                                control={control}
                                 name="amount"
                                 render={({ field }) => (
                                     <FormItem>
@@ -154,7 +201,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={form.control}
+                                control={control}
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
@@ -167,7 +214,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                              <FormField
-                                control={form.control}
+                                control={control}
                                 name="category"
                                 render={({ field }) => (
                                     <FormItem>
@@ -189,7 +236,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={form.control}
+                                control={control}
                                 name="date"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
