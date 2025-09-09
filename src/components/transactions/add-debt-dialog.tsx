@@ -40,7 +40,7 @@ const formSchema = z.object({
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
   installments: z.coerce.number().positive({ message: "El número de cuotas debe ser positivo." }),
   dueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
-  financialInstitution: z.string().min(2, { message: "Entidad financiera es requerida." }),
+  debtType: z.enum(['consumo', 'hipotecario', 'auto', 'line-of-credit', 'otro'], { required_error: "El tipo de deuda es requerido." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
   dueNotificationDays: z.coerce.number().optional(),
@@ -71,7 +71,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             monthlyPayment: '' as any,
             installments: '' as any,
             dueDate: new Date(),
-            financialInstitution: "",
+            debtType: 'consumo',
             profile: "",
             accountId: "",
             dueNotificationDays: 3,
@@ -92,7 +92,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 monthlyPayment: '' as any,
                 installments: '' as any,
                 dueDate: new Date(),
-                financialInstitution: "",
+                debtType: 'consumo',
                 profile: "",
                 accountId: "",
                 dueNotificationDays: 3,
@@ -158,6 +158,30 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={form.control}
+                                name="debtType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tipo de Deuda</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona un tipo" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="consumo">Crédito de Consumo</SelectItem>
+                                                <SelectItem value="hipotecario">Crédito Hipotecario</SelectItem>
+                                                <SelectItem value="auto">Crédito Automotriz</SelectItem>
+                                                <SelectItem value="line-of-credit">Línea de Crédito</SelectItem>
+                                                <SelectItem value="otro">Otro Préstamo</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name="profile"
@@ -185,7 +209,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                 name="accountId"
                                 render={({ field }) => (
                                     <FormItem>
-                                    <FormLabel>Cuenta de Origen</FormLabel>
+                                    <FormLabel>Cuenta de Origen de los Pagos</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                         <SelectTrigger>
@@ -199,19 +223,6 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="financialInstitution"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Entidad Financiera / Banco</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Ej: Banco Santander" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
