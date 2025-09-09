@@ -441,8 +441,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // BANK ACCOUNT/CARD FUNCTIONS
-    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => { await addDoc('bankAccounts', account); };
-    const updateBankAccount = async (account: BankAccount) => await setDocWithId('bankAccounts', account.id, account);
+    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => { 
+        if (!uid) throw new Error("Usuario no autenticado");
+        const accountData = { ...account };
+        if (accountData.accountType !== 'Cuenta Vista') {
+            delete accountData.monthlyLimit;
+        }
+        await addDoc('bankAccounts', accountData); 
+    };
+    const updateBankAccount = async (account: BankAccount) => {
+        const accountData = { ...account };
+        if (accountData.accountType !== 'Cuenta Vista') {
+            delete accountData.monthlyLimit;
+        }
+        await setDocWithId('bankAccounts', account.id, accountData);
+    };
     const deleteBankAccount = async (id: string) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
@@ -872,4 +885,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
