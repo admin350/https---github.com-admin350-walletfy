@@ -2,17 +2,63 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, CreditCard, Banknote, Landmark } from "lucide-react";
 import { AddBankCardDialog } from "@/components/wallets/add-bank-card-dialog";
 import { useData } from "@/context/data-context";
 import { BankCardComponent } from "@/components/wallets/bank-card-component";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 
 export default function BankCardsPage() {
-    const { bankCards, isLoading } = useData();
+    const { bankCards, isLoading, formatCurrency } = useData();
+
+    const creditCards = bankCards.filter(c => c.cardType === 'credit');
+    const totalCreditLimit = creditCards.reduce((acc, card) => acc + (card.creditLimit || 0), 0);
+    const totalUsedAmount = creditCards.reduce((acc, card) => acc + (card.usedAmount || 0), 0);
+    const totalAvailableCredit = totalCreditLimit - totalUsedAmount;
     
+    const KpiSkeleton = () => (
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+    )
+
     return (
         <div className="space-y-6">
+             <div className="grid gap-4 md:grid-cols-3">
+                {isLoading ? (
+                    <>
+                        <KpiCard title="Cupo Total en Tarjetas" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
+                        <KpiCard title="Deuda Total en Tarjetas" value={<KpiSkeleton />} icon={Banknote} description="Cargando..." />
+                        <KpiCard title="Crédito Disponible Total" value={<KpiSkeleton />} icon={CreditCard} description="Cargando..." />
+                    </>
+                ) : (
+                    <>
+                        <KpiCard 
+                            title="Cupo Total en Tarjetas" 
+                            value={<span className="text-blue-400">{formatCurrency(totalCreditLimit)}</span>}
+                            icon={Landmark} 
+                            iconClassName="text-blue-400"
+                            description="Suma de los límites de todas tus tarjetas."
+                        />
+                        <KpiCard 
+                            title="Deuda Total en Tarjetas" 
+                            value={<span className="text-red-400">{formatCurrency(totalUsedAmount)}</span>} 
+                            icon={Banknote}
+                            iconClassName="text-red-400"
+                            description="Suma de los cupos utilizados en tus tarjetas."
+                        />
+                        <KpiCard
+                            title="Crédito Disponible Total"
+                            value={<span className="text-green-400">{formatCurrency(totalAvailableCredit)}</span>}
+                            icon={CreditCard}
+                            iconClassName="text-green-400"
+                            description="Cupo disponible consolidado para compras."
+                        />
+                    </>
+                )}
+            </div>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
