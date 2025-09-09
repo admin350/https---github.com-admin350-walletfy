@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -141,8 +142,6 @@ export function Header() {
     setIsClient(true);
   }, []);
   
-  const isCalendarPage = pathname === '/dashboard/calendar';
-
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <div className="flex w-full items-center justify-between">
@@ -207,9 +206,14 @@ export function Header() {
                     </Select>
                  </div>
             )}
-           <Link href={isCalendarPage ? "/dashboard/dashboard" : "/dashboard/calendar"}>
+           <Link href="/dashboard/dashboard">
                 <Button variant="ghost" size="icon">
-                    {isCalendarPage ? <LayoutDashboard className="h-5 w-5" /> : <Calendar className="h-5 w-5" />}
+                    <LayoutDashboard className="h-5 w-5" />
+                </Button>
+            </Link>
+           <Link href="/dashboard/calendar">
+                <Button variant="ghost" size="icon">
+                    <Calendar className="h-5 w-5" />
                 </Button>
             </Link>
              <NotificationPanel />
@@ -282,3 +286,5 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
         </div>
     )
 }
+
+    
