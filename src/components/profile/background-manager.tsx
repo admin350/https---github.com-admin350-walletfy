@@ -7,6 +7,7 @@ import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSubmitAction } from "@/hooks/use-submit-action";
 
 const darkBackgroundOptions = [
     { id: 'theme-gradient', name: 'Original', style: { backgroundImage: 'linear-gradient(to top, #030712, #111827)'} },
@@ -25,7 +26,24 @@ const darkBackgroundOptions = [
 export function BackgroundManager() {
     const { settings, updateSettings, previewBackground, setPreviewBackground } = useData();
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    
+    const { performAction, isLoading } = useSubmitAction({
+        action: async (themeId: string) => updateSettings({ background: themeId }),
+        onSuccess: () => {
+            setPreviewBackground(null);
+            toast({
+                title: "Fondo actualizado",
+                description: "Tu nuevo fondo se ha guardado.",
+            });
+        },
+        onError: () => {
+            toast({
+                title: "Error",
+                description: "No se pudo guardar el fondo.",
+                variant: "destructive"
+            });
+        }
+    });
     
     const selectedTheme = previewBackground || settings.background || 'theme-gradient';
 
@@ -34,23 +52,7 @@ export function BackgroundManager() {
     };
 
     const handleSave = async () => {
-        setIsLoading(true);
-        try {
-            await updateSettings({ background: selectedTheme });
-            setPreviewBackground(null);
-            toast({
-                title: "Fondo actualizado",
-                description: "Tu nuevo fondo se ha guardado.",
-            });
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: "No se pudo guardar el fondo.",
-                variant: "destructive"
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        await performAction(selectedTheme);
     }
     
     const isChanged = selectedTheme !== (settings.background || 'theme-gradient');

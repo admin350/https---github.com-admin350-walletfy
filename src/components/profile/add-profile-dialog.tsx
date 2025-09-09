@@ -12,11 +12,14 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Profile } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre es muy corto."),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal válido."),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddProfileDialogProps {
     profileToEdit?: Profile;
@@ -25,12 +28,10 @@ interface AddProfileDialogProps {
 }
 
 export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfileDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addProfile, updateProfile } = useData();
     
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -38,15 +39,37 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
         },
     });
 
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (profileToEdit) {
+                await updateProfile({ ...values, id: profileToEdit.id });
+            } else {
+                await addProfile(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: profileToEdit ? "Perfil actualizado" : "Perfil añadido",
+                description: `El perfil ha sido ${profileToEdit ? 'actualizado' : 'creado'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${profileToEdit ? 'actualizar' : 'añadir'} el perfil.`,
+                variant: "destructive"
+            });
+        }
+    });
+
     useEffect(() => {
-        if (isSuccess && !isLoading) {
+        if (isSuccess) {
             onOpenChange(false);
         }
-    }, [isSuccess, isLoading, onOpenChange]);
+    }, [isSuccess, onOpenChange]);
 
     useEffect(() => {
         if (open) {
-            setIsSuccess(false);
             if (profileToEdit) {
                 form.reset({
                     name: profileToEdit.name,
@@ -59,35 +82,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                 });
             }
         }
-    }, [profileToEdit, form, open]);
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(profileToEdit) {
-                await updateProfile({ ...values, id: profileToEdit.id });
-                 toast({
-                    title: "Perfil actualizado",
-                    description: "El perfil ha sido actualizado exitosamente.",
-                });
-            } else {
-                await addProfile(values);
-                toast({
-                    title: "Perfil añadido",
-                    description: "El nuevo perfil ha sido creado.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error: any) {
-             toast({
-                title: "Error",
-                description: error.message || `No se pudo ${profileToEdit ? 'actualizar' : 'añadir'} el perfil.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
+    }, [profileToEdit, open, form]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,7 +94,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="name"

@@ -1,21 +1,40 @@
+
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import type { Profile } from "@/types";
 import { AddProfileDialog } from "./add-profile-dialog";
+import { useSubmitAction } from "@/hooks/use-submit-action";
 
 export function ProfileManager() {
     const { profiles, deleteProfile } = useData();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
+
+    const { performAction: performDelete } = useSubmitAction({
+        action: deleteProfile,
+        onSuccess: () => {
+            toast({
+                title: "Perfil eliminado",
+                description: "El perfil ha sido eliminado exitosamente.",
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
+                variant: "destructive"
+            });
+        }
+    });
 
     const handleAdd = () => {
         setProfileToEdit(undefined);
@@ -28,19 +47,7 @@ export function ProfileManager() {
     };
 
     const handleDelete = async (id: string) => {
-        try {
-            await deleteProfile(id);
-            toast({
-                title: "Perfil eliminado",
-                description: "El perfil ha sido eliminado exitosamente.",
-            });
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
-                variant: "destructive"
-            });
-        }
+        await performDelete(id);
     };
     
     return (
