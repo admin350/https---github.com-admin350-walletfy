@@ -48,7 +48,7 @@ interface DataContextType {
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
@@ -266,7 +266,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: formData.accountId,
             isCreditLinePayment: paymentMethod === 'credit-line',
         };
-    
+        
+        if (formData.destinationAccountId) {
+            transData.destinationAccountId = formData.destinationAccountId;
+        }
+
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
         if (paymentIsCard) {
             transData.cardId = paymentMethod;
@@ -281,7 +285,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const sourceAccount = sourceAccountSnap.exists() ? sourceAccountSnap.data() as BankAccount : null;
         if (!sourceAccount) throw new Error("Source account not found");
     
-        if (isInstallment && paymentIsCard) {
+        if (transData.type === 'transfer') {
+            if (!transData.destinationAccountId) throw new Error("Destination account is required for transfers.");
+            
+            // Debit from source
+            batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
+    
+            // Credit to destination
+            const destAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.destinationAccountId);
+            const destAccountSnap = await getDoc(destAccountRef);
+            if (destAccountSnap.exists()) {
+                const destAccount = destAccountSnap.data() as BankAccount;
+                batch.update(destAccountRef, { balance: destAccount.balance + transData.amount });
+            } else {
+                throw new Error("Destination account not found.");
+            }
+        } else if (isInstallment && paymentIsCard) {
             const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
                 name: `Compra: ${transData.description}`,
                 totalAmount: transData.amount,
@@ -313,10 +332,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     name: `Línea de Crédito: ${sourceAccount.name}`,
                     totalAmount: sourceAccount.creditLineLimit || 0,
                     paidAmount: (sourceAccount.creditLineUsed || 0) + transData.amount,
-                    monthlyPayment: 0, // Should be defined by user later
+                    monthlyPayment: 0,
                     installments: 1,
                     debtType: 'line-of-credit',
-                    dueDate: addMonths(new Date(), 1), // Placeholder due date
+                    dueDate: addMonths(new Date(), 1),
                     profile: transData.profile,
                     accountId: transData.accountId,
                 };
@@ -325,14 +344,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 const debtDoc = creditLineDebtSnapshot.docs[0];
                 batch.update(debtDoc.ref, { paidAmount: debtDoc.data().paidAmount + transData.amount });
-            }
-        } else if (transData.type === 'transfer' && transData.destinationAccountId) {
-            batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
-            const destAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.destinationAccountId);
-            const destAccountSnap = await getDoc(destAccountRef);
-            if (destAccountSnap.exists()) {
-                const destAccount = destAccountSnap.data() as BankAccount;
-                batch.update(destAccountRef, { balance: destAccount.balance + transData.amount });
             }
         } else if (transData.type === 'income') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance + transData.amount });
@@ -387,7 +398,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     // DEBT FUNCTIONS
-    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
+    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
         if (account) {
@@ -913,3 +924,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
