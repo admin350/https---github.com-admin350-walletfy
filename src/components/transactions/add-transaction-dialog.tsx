@@ -121,7 +121,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         action: async (values: FormValues) => {
              const transactionData = {
                 ...values,
-                date: values.date.toISOString(),
             };
             if (transactionToEdit && transactionToEdit.id) {
                  await addTransaction(transactionData);
@@ -221,6 +220,13 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
             const transferCategory = categories.find(c => c.type === 'Transferencia');
             if (transferCategory) {
                 form.setValue('category', transferCategory.name);
+            }
+        } else {
+            // Clear category if it was a transfer category and now it's not
+            const currentCategory = form.getValues('category');
+            const isTransferCategory = categories.find(c => c.name === currentCategory && c.type === 'Transferencia');
+            if (isTransferCategory) {
+                 form.setValue('category', '');
             }
         }
     }, [transactionType, categories, form]);
@@ -509,4 +515,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
-
