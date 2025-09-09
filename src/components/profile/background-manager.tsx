@@ -2,7 +2,7 @@
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check } from "lucide-react";
@@ -28,7 +28,7 @@ export function BackgroundManager() {
     const { toast } = useToast();
     
     const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: (themeId: string) => updateSettings({ background: themeId }),
+        action: updateSettings,
         onSuccess: () => {
             toast({
                 title: "Fondo actualizado",
@@ -58,7 +58,7 @@ export function BackgroundManager() {
 
     const handleSave = async () => {
         if (selectedTheme !== (settings.background || 'theme-gradient')) {
-           await performAction(selectedTheme);
+           await performAction({ background: selectedTheme });
         }
     }
     

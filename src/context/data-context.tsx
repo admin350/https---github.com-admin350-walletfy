@@ -419,11 +419,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
-        // It's better to not set this here, but rather when displaying it, to avoid issues if the bank name changes.
-        // Let's remove the automatic assignment to prevent potential errors.
-        // if (account) {
-        //     debtData.financialInstitution = account.bank;
-        // }
+        if (account && !debtData.financialInstitution) {
+            debtData.financialInstitution = account.bank;
+        }
         return await addDoc('debts', debtData);
     };
     const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
@@ -497,10 +495,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const accountData: Partial<BankAccount> = { ...account };
         if (account.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
+        } else if (!accountData.monthlyLimit) {
+             accountData.monthlyLimit = 0;
         }
         if (!account.hasCreditLine) {
             delete accountData.creditLineLimit;
             delete accountData.creditLineUsed;
+        } else {
+             if (!accountData.creditLineLimit) accountData.creditLineLimit = 0;
+             if (!accountData.creditLineUsed) accountData.creditLineUsed = 0;
         }
         return await addDoc('bankAccounts', accountData);
     };
