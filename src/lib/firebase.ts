@@ -1,4 +1,3 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -24,12 +23,11 @@ try {
     enableIndexedDbPersistence(db, {
         cacheSizeBytes: CACHE_SIZE_UNLIMITED
     });
-    console.log("Firebase offline persistence enabled.");
 } catch (err: any) {
     if (err.code === 'failed-precondition') {
-        console.warn("Firebase offline persistence could not be enabled: failed-precondition. This can happen with multiple tabs open.");
+        // This can happen with multiple tabs open.
     } else if (err.code === 'unimplemented') {
-        console.warn("Firebase offline persistence could not be enabled: unimplemented. The current browser does not support it.");
+        // The current browser does not support it.
     }
 }
 

@@ -1,12 +1,11 @@
-
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
+import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 interface IFilters {
     profile: string;
@@ -16,6 +15,7 @@ interface IFilters {
 
 // CONTEXT
 interface DataContextType {
+    user: User | null;
     transactions: Transaction[];
     goals: SavingsGoal[];
     subscriptions: Subscription[];
@@ -37,6 +37,9 @@ interface DataContextType {
     filters: IFilters;
     setFilters: React.Dispatch<React.SetStateAction<IFilters>>;
     availableYears: number[];
+    login: (email: string, pass: string) => Promise<void>;
+    signup: (email: string, pass: string) => Promise<void>;
+    logout: () => Promise<void>;
     addTransaction: (transaction: Omit<Transaction, 'id' | 'cardId'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -96,8 +99,8 @@ export const useData = () => {
 
 // PROVIDER
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const uid = "clean_slate_user";
-
+    const [user, setUser] = useState<User | null>(null);
+    const [uid, setUid] = useState<string | null>(null);
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
     const [allGoals, setAllGoals] = useState<SavingsGoal[]>([]);
     const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
@@ -146,6 +149,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     // Subscribe to all data collections for the logged-in user
     useEffect(() => {
+        const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setUid(currentUser ? currentUser.uid : null);
+            if (!currentUser) {
+                // Clear all data when user logs out
+                setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
+                setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
+                setAllDebtPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); setAllBudgets([]);
+                setAllBankAccounts([]); setAllBankCards([]); setAllReports([]);
+                setSettings({ currency: 'CLP' });
+                setIsLoading(false);
+            }
+        });
+        return () => authUnsubscribe();
+    }, []);
+
+    useEffect(() => {
         if (!uid) {
             setIsLoading(false);
             return;
@@ -190,49 +210,53 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
             if(docSnap.exists()){
                 setSettings(docSnap.data() as AppSettings);
-            } else {
-                const defaultProfiles = [
-                    { name: "Personal", color: "#3b82f6" },
-                    { name: "Negocio", color: "#14b8a6" },
-                ];
-                const defaultCategories = [
-                    { name: "Alimentación", type: "Gasto", color: "#f97316" },
-                    { name: "Transporte", type: "Gasto", color: "#3b82f6" },
-                    { name: "Vivienda", type: "Gasto", color: "#84cc16" },
-                    { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-                    { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-                    { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-                    { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-                    { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
-                ];
-                const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000 };
-
-                const batch = writeBatch(db);
-                const userDocRef = doc(db, 'users', uid);
-                batch.set(userDocRef, { initialized: true }, { merge: true });
-
-                defaultProfiles.forEach(profile => {
-                    const profileRef = doc(collection(db, 'users', uid, 'profiles'));
-                    batch.set(profileRef, profile);
-                });
-                defaultCategories.forEach(category => {
-                    const categoryRef = doc(collection(db, 'users', uid, 'categories'));
-                    batch.set(categoryRef, category);
-                });
-                const newSettingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-                batch.set(newSettingsRef, defaultSettings);
-
-                batch.commit().catch(e => console.error("Error committing initial batch:", e));
             }
         });
         unsubscribers.push(unsubSettings);
 
-        setIsLoading(false);
+        // A slight delay to ensure all data has had a chance to be fetched
+        const timer = setTimeout(() => setIsLoading(false), 1500);
+        unsubscribers.push(() => clearTimeout(timer));
+
 
         return () => unsubscribers.forEach(unsub => unsub());
 
     }, [uid]);
 
+    const initializeUserData = async (newUid: string) => {
+        const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
+        const defaultCategories = [ { name: "Alimentación", type: "Gasto", color: "#f97316" }, { name: "Transporte", type: "Gasto", color: "#3b82f6" }, { name: "Vivienda", type: "Gasto", color: "#84cc16" }, { name: "Sueldo", type: "Ingreso", color: "#22c55e" }, { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"}, { name: "Suscripciones", type: "Gasto", color: "#a855f7"}, { name: "Otros Gastos", type: "Gasto", color: "#6b7280"}, { name: "Transferencia", type: "Transferencia", color: "#06b6d4"}, ];
+        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000 };
+
+        const batch = writeBatch(db);
+        const userDocRef = doc(db, 'users', newUid);
+        batch.set(userDocRef, { initialized: true, createdAt: new Date() }, { merge: true });
+
+        defaultProfiles.forEach(profile => {
+            const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
+            batch.set(profileRef, profile);
+        });
+        defaultCategories.forEach(category => {
+            const categoryRef = doc(collection(db, 'users', newUid, 'categories'));
+            batch.set(categoryRef, category);
+        });
+        const newSettingsRef = doc(db, 'users', newUid, 'settings', 'appSettings');
+        batch.set(newSettingsRef, defaultSettings);
+
+        await batch.commit();
+    };
+
+
+    const login = async (email: string, pass: string) => {
+        await signInWithEmailAndPassword(auth, email, pass);
+    }
+    const signup = async (email: string, pass: string) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        await initializeUserData(userCredential.user.uid);
+    }
+    const logout = async () => {
+        await signOut(auth);
+    }
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<string> => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -628,7 +652,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addReport = async (report: MonthlyReport) => await setDocWithId('reports', report.id, report);
     const deleteReport = async (id: string) => await deleteDocById('reports', id);
     
-    const updateSettings = async (newSettings: Partial<AppSettings>) => await setDocWithId('settings', 'appSettings', newSettings);
+    const updateSettings = async (newSettings: Partial<AppSettings>) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        await setDocWithId('settings', 'appSettings', newSettings);
+    }
     
     const addProfile = async (profile: Omit<Profile, 'id'>) => { await addDoc('profiles', profile); };
     const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.id, profile);
@@ -854,6 +881,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <DataContext.Provider value={{ 
+            user,
             transactions: filteredTransactions,
             goals: filteredGoals,
             subscriptions: filteredSubscriptions,
@@ -875,6 +903,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             filters,
             setFilters,
             availableYears,
+            login,
+            signup,
+            logout,
             addTransaction,
             updateTransaction,
             deleteTransaction,

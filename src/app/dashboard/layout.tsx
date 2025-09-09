@@ -3,11 +3,19 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
 import { useData } from "@/context/data-context";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { redirect } from "next/navigation";
 
 const AppContent = ({ children }: { children: ReactNode }) => {
-  const { isLoading: dataLoading } = useData();
+  const { isLoading, user } = useData();
 
-  if (dataLoading) {
+  useEffect(() => {
+    if (!isLoading && !user) {
+      redirect('/login');
+    }
+  }, [isLoading, user]);
+
+  if (isLoading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

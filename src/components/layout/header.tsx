@@ -1,11 +1,9 @@
-
-
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -15,6 +13,7 @@ import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Badge } from "../ui/badge";
 import type { AppNotification } from "@/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 const navSections = [
     {
@@ -130,6 +129,7 @@ export function Header() {
     filters,
     setFilters,
     availableYears,
+    logout
   } = useData();
   
   const months = Array.from({ length: 12 }, (_, i) => ({
@@ -213,11 +213,25 @@ export function Header() {
                 </Button>
             </Link>
              <NotificationPanel />
-           <Link href="/dashboard/profile">
-                <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                </Button>
-            </Link>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                        <Link href="/dashboard/profile">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Perfil y Configuración</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Cerrar Sesión</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </div>
     </header>
@@ -226,6 +240,7 @@ export function Header() {
 
 export function MobileSidebar({ navSections }: { navSections: any[] }) {
     const pathname = usePathname();
+    const { logout } = useData();
 
     return (
         <div className="p-4 flex flex-col h-full overflow-y-auto">
@@ -259,6 +274,10 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
                     <User className="h-5 w-5" />
                     Perfil y Configuración
                 </Link>
+                <Button variant="ghost" className="justify-start px-3 py-2.5" onClick={logout}>
+                    <LogOut className="h-5 w-5 mr-4" />
+                    Cerrar Sesión
+                </Button>
             </div>
         </div>
     )
