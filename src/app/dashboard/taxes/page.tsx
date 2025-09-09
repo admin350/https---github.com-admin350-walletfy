@@ -113,23 +113,28 @@ export default function TaxesPage() {
                                 <TableRow>
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Descripción</TableHead>
-                                    <TableHead className="text-right">Monto Total</TableHead>
+                                    <TableHead className="text-right">Monto Neto</TableHead>
                                     <TableHead className="text-right">Monto Impuesto</TableHead>
+                                    <TableHead className="text-right">Monto Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {taxData.incomeWithTax.length > 0 ? (
-                                    taxData.incomeWithTax.map(t => (
-                                        <TableRow key={t.id}>
-                                            <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
-                                            <TableCell>{t.description}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(t.amount)}</TableCell>
-                                            <TableCell className="text-right font-medium">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
-                                        </TableRow>
-                                    ))
+                                    taxData.incomeWithTax.map(t => {
+                                        const netAmount = t.amount - (t.taxDetails?.amount || 0);
+                                        return (
+                                            <TableRow key={t.id}>
+                                                <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
+                                                <TableCell>{t.description}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(netAmount)}</TableCell>
+                                                <TableCell className="text-right font-medium text-red-400">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
+                                                <TableCell className="text-right font-semibold">{formatCurrency(t.amount)}</TableCell>
+                                            </TableRow>
+                                        )
+                                    })
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24">No hay ingresos con impuestos registrados.</TableCell>
+                                        <TableCell colSpan={5} className="text-center h-24">No hay ingresos con impuestos registrados.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -146,23 +151,28 @@ export default function TaxesPage() {
                                 <TableRow>
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Descripción</TableHead>
-                                    <TableHead className="text-right">Monto Total</TableHead>
+                                    <TableHead className="text-right">Monto Neto</TableHead>
                                     <TableHead className="text-right">Monto Impuesto</TableHead>
+                                    <TableHead className="text-right">Monto Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                  {taxData.expensesWithTax.length > 0 ? (
-                                    taxData.expensesWithTax.map(t => (
-                                        <TableRow key={t.id}>
-                                            <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
-                                            <TableCell>{t.description}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(t.amount)}</TableCell>
-                                            <TableCell className="text-right font-medium">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
-                                        </TableRow>
-                                    ))
+                                    taxData.expensesWithTax.map(t => {
+                                        const netAmount = t.amount - (t.taxDetails?.amount || 0);
+                                        return (
+                                            <TableRow key={t.id}>
+                                                <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
+                                                <TableCell>{t.description}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(netAmount)}</TableCell>
+                                                <TableCell className="text-right font-medium text-green-400">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
+                                                <TableCell className="text-right font-semibold">{formatCurrency(t.amount)}</TableCell>
+                                            </TableRow>
+                                        )
+                                    })
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24">No hay egresos con impuestos registrados.</TableCell>
+                                        <TableCell colSpan={5} className="text-center h-24">No hay egresos con impuestos registrados.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
