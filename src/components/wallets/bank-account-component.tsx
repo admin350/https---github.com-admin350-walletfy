@@ -124,11 +124,11 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" onSelect={e => e.preventDefault()}>
-                                    <DropdownMenuItem onClick={handleEdit}>
+                                    <DropdownMenuItem onClick={handleEdit} onSelect={(e) => e.preventDefault()}>
                                         <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
                                     </DropdownMenuItem>
                                      {account.accountType === "Cuenta Corriente" && (
-                                        <DropdownMenuItem onClick={handleManageCreditLine}>
+                                        <DropdownMenuItem onClick={handleManageCreditLine} onSelect={(e) => e.preventDefault()}>
                                             <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
                                         </DropdownMenuItem>
                                     )}
@@ -143,13 +143,15 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:
-                                        <ul className="list-disc list-inside mt-2 text-yellow-400/80">
-                                            <li>Tarjetas de crédito y débito vinculadas</li>
-                                            <li>Deudas y préstamos asociados</li>
-                                        </ul>
-                                        ¿Deseas continuar?
+                                    <AlertDialogDescription asChild>
+                                        <div>
+                                            <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
+                                            <ul className="list-disc list-inside mt-2 text-yellow-400/80">
+                                                <li>Tarjetas de crédito y débito vinculadas</li>
+                                                <li>Deudas y préstamos asociados</li>
+                                            </ul>
+                                             <p className="mt-2">¿Deseas continuar?</p>
+                                        </div>
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
