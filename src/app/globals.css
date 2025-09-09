@@ -83,6 +83,26 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-b from-gray-900 to-gray-950 text-foreground;
+    @apply bg-gradient-to-t from-gray-950 to-gray-900 text-foreground;
+  }
+
+  .theme-gradient {
+     @apply bg-gradient-to-t from-gray-950 to-gray-900;
+  }
+  .theme-noise {
+    background-image: url('/textures/noise.png');
+    background-repeat: repeat;
+  }
+  .theme-lines {
+    background-image: url('/textures/lines.svg');
+    background-repeat: repeat;
+  }
+  .theme-geometric {
+     background-image: url('/textures/geometric.png');
+     background-repeat: repeat;
+  }
+  .theme-dots {
+      background-image: url('/textures/dots.png');
+      background-repeat: repeat;
   }
 }

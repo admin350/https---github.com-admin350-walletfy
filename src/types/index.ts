@@ -168,6 +168,7 @@ export type MonthlyReport = {
 export type AppSettings = {
     currency: 'CLP' | 'USD' | 'EUR';
     largeTransactionThreshold?: number;
+    background?: string; // e.g., 'theme-noise', 'theme-lines'
 }
 
 export type AppNotification = {
