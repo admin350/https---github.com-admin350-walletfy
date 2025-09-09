@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
-import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp } from 'lucide-react';
+import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function FinancialSummary() {
@@ -13,6 +13,7 @@ export function FinancialSummary() {
         investmentContributions,
         debts,
         subscriptions,
+        transactions,
         isLoading,
         formatCurrency
     } = useData();
@@ -33,6 +34,18 @@ export function FinancialSummary() {
     const totalMonthlySubscriptionCost = subscriptions
         .filter(s => s.status === 'active')
         .reduce((acc, sub) => acc + sub.amount, 0);
+        
+    const taxData = useMemo(() => {
+        const incomeWithTax = transactions.filter(t => t.type === 'income' && t.taxDetails);
+        const expensesWithTax = transactions.filter(t => t.type === 'expense' && t.taxDetails);
+
+        const totalDebit = incomeWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalCredit = expensesWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        const netTax = totalDebit - totalCredit;
+
+        return { totalDebit, totalCredit, netTax };
+    }, [transactions]);
+
 
     const SummarySkeleton = () => (
         <div className="space-y-4">
@@ -125,6 +138,29 @@ export function FinancialSummary() {
                         <span className="font-medium text-foreground">{formatCurrency(totalMonthlySubscriptionCost)}</span>
                     </div>
                 </div>
+
+                {/* Taxes Summary */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-teal-400">
+                        <Scale className="h-5 w-5" />
+                        <span>Resumen de Impuestos (IVA)</span>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Débito Fiscal (Ventas):</span>
+                        <span className="font-medium text-foreground">{formatCurrency(taxData.totalDebit)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Crédito Fiscal (Compras):</span>
+                        <span className="font-medium text-foreground">{formatCurrency(taxData.totalCredit)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold">
+                        <span className="text-muted-foreground">{taxData.netTax >= 0 ? 'Impuesto a Pagar:' : 'Saldo a Favor:'}</span>
+                        <span className={taxData.netTax >= 0 ? 'text-primary' : 'text-green-400'}>
+                            {formatCurrency(Math.abs(taxData.netTax))}
+                        </span>
+                    </div>
+                </div>
+
             </CardContent>
         </Card>
     );
