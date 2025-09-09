@@ -21,6 +21,7 @@ import { DebtsOverviewChart } from "@/components/dashboard/debts-overview-chart"
 import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { QuickAccess } from "@/components/dashboard/quick-access";
 
 
 export default function DashboardPage() {
@@ -142,6 +143,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
+              <QuickAccess />
               <FinancialSummary />
               <RecentTransactions />
           </div>
