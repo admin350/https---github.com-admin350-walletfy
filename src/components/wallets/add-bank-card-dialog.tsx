@@ -32,6 +32,7 @@ import { useSubmitAction } from '@/hooks/use-submit-action';
 const formSchema = z.object({
   name: z.string().min(2, { message: "El alias es muy corto." }),
   bank: z.string().min(2, { message: "El banco es requerido." }),
+  brand: z.enum(["visa", "mastercard", "amex", "other"], { required_error: "La marca es requerida." }),
   cardType: z.enum(["credit", "debit", "prepaid"], { required_error: "El tipo es requerido."}),
   last4Digits: z.string().length(4, { message: "Debe contener 4 dígitos." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
@@ -64,6 +65,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
         defaultValues: {
             name: "",
             bank: "",
+            brand: "visa",
             cardType: "credit",
             last4Digits: "",
             profile: "",
@@ -110,12 +112,14 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                     ...cardToEdit,
                     creditLimit: cardToEdit.creditLimit ?? undefined,
                     cardLevel: cardToEdit.cardLevel ?? "",
-                    cardColor: cardToEdit.cardColor ?? "#374151"
+                    cardColor: cardToEdit.cardColor ?? "#374151",
+                    brand: cardToEdit.brand ?? "visa",
                 });
             } else {
                 form.reset({
                     name: "",
                     bank: "",
+                    brand: "visa",
                     cardType: "credit",
                     last4Digits: "",
                     profile: "",
@@ -168,6 +172,29 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                             <Input placeholder="Ej: Banco de Chile" {...field} />
                                         </FormControl>
                                         <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="brand"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Marca</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona una marca" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="visa">Visa</SelectItem>
+                                            <SelectItem value="mastercard">Mastercard</SelectItem>
+                                            <SelectItem value="amex">American Express</SelectItem>
+                                            <SelectItem value="other">Otra</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
                                     </FormItem>
                                 )}
                             />

@@ -45,6 +45,7 @@ export type BankCard = {
     usedAmount?: number; // Only for credit cards
     cardLevel?: string; // e.g., 'Gold', 'Black', 'Premium'
     cardColor?: string; // hex color code
+    brand?: 'visa' | 'mastercard' | 'amex' | 'other';
 };
 
 export type SavingsGoal = {

@@ -33,6 +33,12 @@ const MastercardLogo = () => (
     </div>
 )
 
+const AmexLogo = () => (
+    <div className="flex h-8 items-center justify-center rounded bg-[#006fcf] px-2 text-white">
+        <span className="font-bold text-sm">AMEX</span>
+    </div>
+);
+
 
 export function BankCardComponent({ card }: BankCardComponentProps) {
     const { deleteBankCard, formatCurrency } = useData();
@@ -79,6 +85,19 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
       '--tw-gradient-to': 'rgb(0 0 0 / 1)',
       '--tw-shadow-color': card.cardColor || '#ffffff',
     } as React.CSSProperties;
+
+    const renderBrandLogo = () => {
+        switch (card.brand) {
+            case 'visa':
+                return <VisaLogo />;
+            case 'mastercard':
+                return <MastercardLogo />;
+            case 'amex':
+                return <AmexLogo />;
+            default:
+                return <span className="text-xs font-semibold uppercase">{card.brand || 'Card'}</span>;
+        }
+    };
 
 
     return (
@@ -161,7 +180,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                         </div>
                         <div className="flex flex-col items-center">
                              <span className="text-xs font-light opacity-80">{cardTypeText[card.cardType]}</span>
-                            {card.cardType === 'credit' ? <MastercardLogo /> : <VisaLogo />}
+                            {renderBrandLogo()}
                         </div>
                     </div>
                 </div>
