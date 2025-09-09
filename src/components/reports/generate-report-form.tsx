@@ -39,7 +39,6 @@ export function GenerateReportForm() {
                     description: "No hay transacciones registradas para el período seleccionado. No se puede generar un informe.",
                     variant: "destructive"
                 });
-                setIsLoading(false);
                 return;
             }
 

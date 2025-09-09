@@ -35,7 +35,7 @@ interface ContributeToInvestmentDialogProps {
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addInvestmentContribution, bankAccounts, investmentContributions } = useData();
+    const { addInvestmentContribution, bankAccounts, investmentContributions, formatCurrency } = useData();
     
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
     const totalInvestmentTransfers = investmentAccount?.balance ?? 0;
@@ -50,7 +50,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
     const formSchema = z.object({
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableToInvest, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de inversión ($${availableToInvest.toLocaleString('es-CL')}).` }),
+        .max(availableToInvest, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de inversión (${formatCurrency(availableToInvest)}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -77,7 +77,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
             });
             toast({
                 title: "¡Aporte Exitoso!",
-                description: `Has aportado $${values.amount.toLocaleString('es-CL')} a tu inversión "${investment.name}".`,
+                description: `Has aportado ${formatCurrency(values.amount)} a tu inversión "${investment.name}".`,
             });
             form.reset();
             onOpenChange(false);
@@ -98,7 +98,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 <DialogHeader>
                     <DialogTitle>Aportar a: {investment.name}</DialogTitle>
                     <DialogDescription>
-                       Saldo disponible para invertir: <span className="font-bold text-primary">${availableToInvest.toLocaleString('es-CL')}</span>
+                       Saldo disponible para invertir: <span className="font-bold text-primary">{formatCurrency(availableToInvest)}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -110,7 +110,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                                 <FormItem>
                                     <FormLabel>Monto a Aportar</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="$50.000" {...field} value={field.value ?? ''} />
+                                        <Input type="number" placeholder={formatCurrency(50000)} {...field} value={field.value ?? ''} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

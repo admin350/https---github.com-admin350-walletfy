@@ -63,7 +63,6 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
                 ...account,
                 hasCreditLine: true,
                 creditLineLimit: values.creditLineLimit,
-                creditLineUsed: account.creditLineUsed || 0,
             });
              toast({
                 title: "Línea de Crédito Actualizada",
@@ -116,4 +115,3 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
         </Dialog>
     );
 }
-

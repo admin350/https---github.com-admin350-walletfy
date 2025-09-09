@@ -101,8 +101,8 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
         try {
             if(accountToEdit) {
                 await updateBankAccount({
+                    ...accountToEdit,
                     ...values,
-                    id: accountToEdit.id,
                 });
                  toast({
                     title: "Cuenta actualizada",
