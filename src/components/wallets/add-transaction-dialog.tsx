@@ -424,7 +424,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={transactionType === 'transfer'}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona una categoría" />
@@ -493,3 +493,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
+    
