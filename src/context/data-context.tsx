@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
@@ -230,7 +231,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         const batch = writeBatch(db);
         const userDocRef = doc(db, 'users', newUid);
-        batch.set(userDocRef, { initialized: true, createdAt: new Date() });
+        batch.set(userDocRef, { createdAt: new Date() });
 
         defaultProfiles.forEach(profile => {
             const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
@@ -248,11 +249,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
 
     const login = async (email: string, pass: string) => {
-        return signInWithEmailAndPassword(auth, email, pass).then(() => {});
+        await signInWithEmailAndPassword(auth, email, pass);
     }
     const signup = async (email: string, pass: string) => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        await initializeUserData(userCredential.user.uid);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+            await initializeUserData(userCredential.user.uid);
+        } catch (error: any) {
+            // Forward the error to be handled by the UI component
+            throw error;
+        }
     }
     const logout = async () => {
         await signOut(auth);
@@ -344,29 +350,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         } else if (paymentMethod === 'credit-line') {
             batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
-    
-            const creditLineDebtQuery = query(collection(db, 'users', uid, 'debts'), where('accountId', '==', transData.accountId), where('debtType', '==', 'line-of-credit'));
-            const creditLineDebtSnapshot = await getDocs(creditLineDebtQuery);
-    
-            if (creditLineDebtSnapshot.empty) {
-                const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
-                    name: `Línea de Crédito: ${sourceAccount.name}`,
-                    totalAmount: sourceAccount.creditLineLimit || 0,
-                    paidAmount: (sourceAccount.creditLineUsed || 0) + transData.amount,
-                    monthlyPayment: 0,
-                    installments: 1,
-                    debtType: 'line-of-credit',
-                    dueDate: addMonths(new Date(), 1),
-                    profile: transData.profile,
-                    accountId: transData.accountId,
-                    financialInstitution: sourceAccount.bank,
-                };
-                const debtRef = doc(collection(db, 'users', uid, 'debts'));
-                batch.set(debtRef, debtData);
-            } else {
-                const debtDoc = creditLineDebtSnapshot.docs[0];
-                batch.update(debtDoc.ref, { paidAmount: debtDoc.data().paidAmount + transData.amount });
-            }
         } else if (transData.type === 'income') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance + transData.amount });
         } else if (transData.type === 'expense') {
