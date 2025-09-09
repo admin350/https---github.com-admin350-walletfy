@@ -14,6 +14,7 @@ const quickAccessItems = [
     { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400", shadow: "hover:shadow-[0_0_15px_#fb7185]" },
     { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400", shadow: "hover:shadow-[0_0_15px_#34d399]" },
     { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Inversión", color: "text-blue-400", shadow: "hover:shadow-[0_0_15px_#60a5fa]" },
+    { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400", shadow: "hover:shadow-[0_0_15px_#818cf8]" },
 ];
 
 export function QuickAccess() {
