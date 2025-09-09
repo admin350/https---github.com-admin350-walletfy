@@ -124,28 +124,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     });
 
      const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
-            const { includesTax, taxRate, ...restOfValues } = values;
-            
-            let taxDetails: Transaction['taxDetails'] | undefined = undefined;
-            if (includesTax && taxRate && restOfValues.amount) {
-                const total = restOfValues.amount;
-                const taxAmount = total - (total / (1 + taxRate / 100));
-                taxDetails = { rate: taxRate, amount: taxAmount };
-            }
-
-            const transactionData: Omit<Transaction, 'id' | 'cardId'> & { paymentMethod?: string } = {
-                ...restOfValues,
-                date: values.date.toISOString(),
-                taxDetails: taxDetails,
-            };
-            
-            if (transactionToEdit?.id) {
-                 await updateTransaction({ ...transactionData, id: transactionToEdit.id });
-            } else {
-                await addTransaction(transactionData);
-            }
-        },
+        action: addTransaction,
         onSuccess: () => {
             toast({
                 title: transactionToEdit?.id ? "Transacción actualizada" : "Transacción añadida",
@@ -563,3 +542,4 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
