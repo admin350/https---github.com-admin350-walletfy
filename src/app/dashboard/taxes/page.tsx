@@ -13,6 +13,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function TaxesPage() {
     const { transactions, formatCurrency, isLoading } = useData();
 
+    // The 'transactions' from useData are already filtered by the global filters.
+    // We just need to perform the tax calculations on this pre-filtered array.
     const taxData = useMemo(() => {
         const incomeWithTax = transactions.filter(t => t.type === 'income' && t.taxDetails);
         const expensesWithTax = transactions.filter(t => t.type === 'expense' && t.taxDetails);
@@ -22,7 +24,7 @@ export default function TaxesPage() {
         const netTax = totalDebit - totalCredit;
 
         return { incomeWithTax, expensesWithTax, totalDebit, totalCredit, netTax };
-    }, [transactions]);
+    }, [transactions]); // The dependency on 'transactions' ensures this recalculates when filters change.
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
