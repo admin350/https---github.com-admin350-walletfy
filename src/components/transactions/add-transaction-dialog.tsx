@@ -178,7 +178,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                 form.setValue('cardId', undefined);
             }
         }
-    }, [sourceAccountId, availableCards, selectedCardId, form]);
+    }, [sourceAccountId, selectedCardId, form]);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
