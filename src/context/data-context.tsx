@@ -389,9 +389,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // DEBT FUNCTIONS
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
-        // Omit financialInstitution if it's not provided or empty
-        if (!debt.financialInstitution) {
-            delete debtData.financialInstitution;
+        const account = allBankAccounts.find(acc => acc.id === debt.accountId);
+        if (account) {
+            debtData.financialInstitution = account.bank;
         }
         await addDoc('debts', debtData);
     };
@@ -399,6 +399,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteDebt = async (id: string) => await deleteDocById('debts', id);
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
+        if (!payment.accountId) throw new Error("accountId is missing");
         const batch = writeBatch(db);
         const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
         batch.set(paymentRef, payment);
@@ -409,7 +410,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const newPaidAmount = debt.paidAmount + payment.amount;
             batch.update(debtRef, { paidAmount: newPaidAmount });
 
-            // Create a corresponding transaction
             const debtCategory = allCategories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
             const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
             const transactionData: Omit<Transaction, 'id'> = {
@@ -423,7 +423,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             };
             batch.set(transactionRef, transactionData);
             
-            // Deduct from bank account
             const accountRef = doc(db, 'users', uid, 'bankAccounts', payment.accountId);
             const accountSnap = await getDoc(accountRef);
             if(accountSnap.exists()){

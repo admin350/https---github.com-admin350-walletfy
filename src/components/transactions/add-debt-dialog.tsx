@@ -40,7 +40,7 @@ const formSchema = z.object({
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
   installments: z.coerce.number().positive({ message: "El número de cuotas debe ser positivo." }),
   dueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
-  debtType: z.enum(['consumo', 'hipotecario', 'auto', 'line-of-credit', 'otro'], { required_error: "El tipo de deuda es requerido." }),
+  debtType: z.enum(['consumo', 'hipotecario', 'auto', 'line-of-credit', 'credit-card', 'otro'], { required_error: "El tipo de deuda es requerido." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
   dueNotificationDays: z.coerce.number().optional(),
@@ -131,6 +131,9 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             setIsLoading(false);
         }
     }
+    
+    const selectedProfile = form.watch("profile");
+    const filteredAccounts = bankAccounts.filter(acc => acc.profile === selectedProfile);
 
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -175,6 +178,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                                 <SelectItem value="hipotecario">Crédito Hipotecario</SelectItem>
                                                 <SelectItem value="auto">Crédito Automotriz</SelectItem>
                                                 <SelectItem value="line-of-credit">Línea de Crédito</SelectItem>
+                                                <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
                                                 <SelectItem value="otro">Otro Préstamo</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -210,14 +214,14 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>Cuenta de Origen de los Pagos</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProfile}>
                                         <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona una cuenta" />
+                                            <SelectValue placeholder={!selectedProfile ? "Elige un perfil primero" : "Selecciona una cuenta"} />
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {bankAccounts.map(a => (
+                                            {filteredAccounts.map(a => (
                                                 <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank})</SelectItem>
                                             ))}
                                         </SelectContent>
