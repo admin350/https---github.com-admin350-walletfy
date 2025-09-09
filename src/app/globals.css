@@ -83,26 +83,22 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-t from-gray-950 to-gray-900 text-foreground;
+    @apply bg-background text-foreground;
   }
 
   .theme-gradient {
-     @apply bg-gradient-to-t from-gray-950 to-gray-900;
+     @apply bg-gradient-to-t from-gray-900 to-gray-950;
   }
-  .theme-aqua {
-    background-image: url('/textures/aqua.png');
-    background-repeat: repeat;
+  .theme-gradient-midnight {
+    @apply bg-gradient-to-br from-gray-900 via-gray-950 to-indigo-950;
   }
-  .theme-blackmetal {
-    background-image: url('/textures/blackmetal.png');
-    background-repeat: repeat;
+  .theme-gradient-dusk {
+    @apply bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900;
   }
-  .theme-marmol {
-     background-image: url('/textures/marmol.png');
-     background-repeat: repeat;
+  .theme-gradient-forest {
+     @apply bg-gradient-to-br from-gray-900 via-gray-950 to-emerald-950;
   }
-  .theme-marmol-gold {
-      background-image: url('/textures/marmol gold.png');
-      background-repeat: repeat;
+  .theme-gradient-metal {
+      @apply bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950;
   }
 }

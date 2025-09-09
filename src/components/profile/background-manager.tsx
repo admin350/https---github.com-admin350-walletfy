@@ -9,11 +9,11 @@ import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const backgroundOptions = [
-    { id: 'theme-gradient', name: 'Gradiente', style: { backgroundImage: 'linear-gradient(to top, #030712, #111827)'} },
-    { id: 'theme-aqua', name: 'Aqua', style: { backgroundImage: 'url(/textures/aqua.png)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-blackmetal', name: 'Metal Oscuro', style: { backgroundImage: 'url(/textures/blackmetal.png)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-marmol', name: 'Mármol', style: { backgroundImage: 'url(/textures/marmol.png)', backgroundRepeat: 'repeat' } },
-    { id: 'theme-marmol-gold', name: 'Mármol Dorado', style: { backgroundImage: 'url(/textures/marmol%20gold.png)', backgroundRepeat: 'repeat' } },
+    { id: 'theme-gradient', name: 'Original', style: { backgroundImage: 'linear-gradient(to top, #111827, #030712)'} },
+    { id: 'theme-gradient-midnight', name: 'Medianoche', style: { backgroundImage: 'linear-gradient(to bottom right, #111827, #1e1b4b)' } },
+    { id: 'theme-gradient-dusk', name: 'Ocaso', style: { backgroundImage: 'linear-gradient(to bottom right, #0f172a, #2e1065, #0f172a)' } },
+    { id: 'theme-gradient-forest', name: 'Bosque', style: { backgroundImage: 'linear-gradient(to bottom right, #111827, #064e3b)' } },
+    { id: 'theme-gradient-metal', name: 'Acero', style: { backgroundImage: 'linear-gradient(to bottom right, #1e293b, #0f172a)' } },
 ]
 
 export function BackgroundManager() {
