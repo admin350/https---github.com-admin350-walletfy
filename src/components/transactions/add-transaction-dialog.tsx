@@ -158,7 +158,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     });
 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
-    const availableDestinationAccounts = availableAccounts.filter(acc => acc.id !== sourceAccountId);
+    const availableDestinationAccounts = bankAccounts.filter(acc => acc.id !== sourceAccountId);
     const availableCards = bankCards.filter(card => !sourceAccountId || card.accountId === sourceAccountId);
 
     useEffect(() => {
@@ -268,7 +268,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                             <FormItem>
                             <FormLabel>Monto</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="$0" {...field} value={field.value ?? ''}/>
+                                <Input type="number" placeholder={formatCurrency(0)} {...field} value={field.value ?? ''}/>
                             </FormControl>
                             <FormMessage />
                             </FormItem>
