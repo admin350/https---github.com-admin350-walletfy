@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { BankAccount } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   creditLineLimit: z.coerce.number().positive({ message: "El cupo debe ser un número positivo." }),
@@ -37,8 +38,6 @@ interface ManageCreditLineDialogProps {
 }
 
 export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCreditLineDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { updateBankAccount, formatCurrency } = useData();
     
@@ -49,44 +48,43 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
         },
     });
 
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
+            await updateBankAccount({
+                ...account,
+                hasCreditLine: true,
+                creditLineLimit: values.creditLineLimit,
+            });
+        },
+        onSuccess: (result, values) => {
+             toast({
+                title: "Línea de Crédito Actualizada",
+                description: `Se ha establecido un cupo de ${formatCurrency(values.creditLineLimit)} para tu cuenta.`,
+            });
+        },
+        onError: (error) => {
+             toast({
+                title: "Error",
+                description: `No se pudo actualizar la línea de crédito.`,
+                variant: "destructive"
+            })
+        }
+    });
+
     useEffect(() => {
-        if(isSuccess && !isLoading){
+        if(isSuccess){
             onOpenChange(false);
         }
-    }, [isSuccess, isLoading, onOpenChange]);
+    }, [isSuccess, onOpenChange]);
 
     useEffect(() => {
         if (open) {
-            setIsSuccess(false);
             form.reset({
                 creditLineLimit: account.creditLineLimit || 0,
             });
         }
     }, [account, form, open]);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            await updateBankAccount({
-                ...account,
-                hasCreditLine: true,
-                creditLineLimit: values.creditLineLimit,
-            });
-             toast({
-                title: "Línea de Crédito Actualizada",
-                description: `Se ha establecido un cupo de ${formatCurrency(values.creditLineLimit)} para tu cuenta.`,
-            });
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo actualizar la línea de crédito.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,7 +96,7 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="creditLineLimit"

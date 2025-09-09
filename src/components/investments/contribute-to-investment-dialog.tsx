@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Investment } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface ContributeToInvestmentDialogProps {
     investment: Investment;
@@ -33,7 +34,6 @@ interface ContributeToInvestmentDialogProps {
 }
 
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addInvestmentContribution, bankAccounts, investmentContributions, formatCurrency } = useData();
     
@@ -60,14 +60,11 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
         },
     });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!investmentAccount) {
-            toast({ title: "Error", description: "No se ha configurado una cuenta de inversión.", variant: "destructive" });
-            return;
-        }
-
-        setIsLoading(true);
-        try {
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
+            if (!investmentAccount) {
+                throw new Error("No se ha configurado una cuenta de inversión.");
+            }
             await addInvestmentContribution({
                 investmentId: investment.id,
                 investmentName: investment.name,
@@ -75,22 +72,29 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 date: new Date(),
                 sourceAccountId: investmentAccount.id,
             });
+        },
+        onSuccess: (result, values) => {
             toast({
                 title: "¡Aporte Exitoso!",
                 description: `Has aportado ${formatCurrency(values.amount)} a tu inversión "${investment.name}".`,
             });
-            form.reset();
-            onOpenChange(false);
-        } catch (error) {
-             toast({
+        },
+        onError: (error) => {
+            toast({
                 title: "Error",
-                description: "No se pudo registrar el aporte a la inversión.",
+                description: error.message || "No se pudo registrar el aporte a la inversión.",
                 variant: "destructive"
             })
-        } finally {
-            setIsLoading(false);
         }
-    }
+    });
+
+    useEffect(() => {
+        if(isSuccess) {
+            onOpenChange(false);
+            form.reset();
+        }
+    }, [isSuccess, onOpenChange, form]);
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,7 +106,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

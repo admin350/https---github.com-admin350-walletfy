@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Debt } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface PayDebtDialogProps {
     debt: Debt;
@@ -33,7 +34,6 @@ interface PayDebtDialogProps {
 }
 
 export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addDebtPayment, bankAccounts, formatCurrency } = useData();
     
@@ -52,32 +52,38 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
         },
     });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            await addDebtPayment({
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
+             await addDebtPayment({
                 debtId: debt.id,
                 debtName: debt.name,
                 amount: values.amount,
                 date: new Date(),
                 accountId: debt.accountId,
             });
+        },
+        onSuccess: (result, values) => {
             toast({
                 title: "¡Abono Exitoso!",
                 description: `Has abonado ${formatCurrency(values.amount)} a tu deuda "${debt.name}".`,
             });
-            form.reset();
-            onOpenChange(false);
-        } catch (error) {
-             toast({
+        },
+        onError: (error) => {
+            toast({
                 title: "Error",
                 description: "No se pudo registrar el abono.",
                 variant: "destructive"
             })
-        } finally {
-            setIsLoading(false);
         }
-    }
+    });
+
+    useEffect(() => {
+        if(isSuccess) {
+            onOpenChange(false);
+            form.reset();
+        }
+    }, [isSuccess, onOpenChange, form]);
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,7 +95,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

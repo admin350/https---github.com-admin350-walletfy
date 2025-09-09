@@ -31,6 +31,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 
 const formSchema = z.object({
@@ -47,8 +48,6 @@ interface AddWithdrawalDialogProps {
 
 export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, formatCurrency } = useData();
 
@@ -63,13 +62,6 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
         },
     });
 
-    useEffect(() => {
-        if (isSuccess && !isLoading) {
-            setOpen(false);
-        }
-    }, [isSuccess, isLoading]);
-
-    const expenseCategories = categories.filter(c => c.type === 'Gasto');
     const selectedAccountId = form.watch("accountId");
     const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
 
@@ -83,52 +75,65 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
         path: ["amount"],
     });
 
-    form.control.register('amount', {
-        validate: async (value) => {
-            const result = await dynamicFormSchema.safeParseAsync(form.getValues());
-            if (!result.success) {
-                const amountError = result.error.errors.find(e => e.path.includes('amount'));
-                return amountError ? amountError.message : true;
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
+             if (!selectedAccount) {
+                throw new Error("Cuenta no encontrada.");
             }
-            return true;
-        }
-    });
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if (!selectedAccount) {
-                toast({ title: "Error", description: "Cuenta no encontrada.", variant: "destructive"});
-                setIsLoading(false);
-                return;
+             const validationResult = await dynamicFormSchema.safeParseAsync(values);
+            if (!validationResult.success) {
+                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
+                 if(amountError) {
+                      form.setError("amount", { type: "manual", message: amountError.message });
+                 }
+                 throw new Error(amountError?.message || "Validation failed");
             }
-
-            await addTransaction({
+             await addTransaction({
                 ...values,
                 type: 'expense',
                 date: values.date.toISOString(),
                 profile: selectedAccount.profile,
             });
-            
+        },
+        onSuccess: (result, values) => {
             toast({
                 title: "Retiro Registrado",
-                description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount.name}.`,
+                description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount?.name}.`,
             });
-            
-            setIsSuccess(true);
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || `No se pudo añadir el retiro.`,
-                variant: 'destructive'
-            });
-        } finally {
-            setIsLoading(false);
+        },
+        onError: (error) => {
+            if (!form.formState.errors.amount) {
+                toast({
+                    title: "Error",
+                    description: error.message || `No se pudo añadir el retiro.`,
+                    variant: 'destructive'
+                });
+            }
         }
-    }
+    });
 
+    useEffect(() => {
+        if (isSuccess) {
+            setOpen(false);
+        }
+    }, [isSuccess]);
+
+    useEffect(() => {
+        if(!open) {
+            form.reset({
+                 amount: '' as any,
+                description: "Retiro en Efectivo",
+                category: "",
+                accountId: "",
+                date: new Date(),
+            });
+        }
+    }, [open, form]);
+
+    const expenseCategories = categories.filter(c => c.type === 'Gasto');
+    
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) { setIsSuccess(false); form.reset(); } }}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -139,7 +144,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                              <FormField
                                 control={form.control}
                                 name="accountId"

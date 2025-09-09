@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Subscription } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface UpdateSubscriptionDialogProps {
     subscription: Subscription;
@@ -33,7 +34,6 @@ interface UpdateSubscriptionDialogProps {
 }
 
 export function UpdateSubscriptionDialog({ subscription, open, onOpenChange }: UpdateSubscriptionDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { updateSubscriptionAmount, formatCurrency } = useData();
 
@@ -49,30 +49,36 @@ export function UpdateSubscriptionDialog({ subscription, open, onOpenChange }: U
         },
     });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (values.amount === subscription.amount) {
-             onOpenChange(false);
-             return;
-        }
-        setIsLoading(true);
-        try {
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
+            if (values.amount === subscription.amount) {
+                 return;
+            }
             await updateSubscriptionAmount(subscription.id, values.amount);
-            toast({
-                title: "¡Monto Actualizado!",
-                description: `El nuevo monto para "${subscription.name}" es ${formatCurrency(values.amount)}.`,
-            });
-            form.reset();
-            onOpenChange(false);
-        } catch (error) {
+        },
+        onSuccess: (result, values) => {
+            if (values.amount !== subscription.amount) {
+                toast({
+                    title: "¡Monto Actualizado!",
+                    description: `El nuevo monto para "${subscription.name}" es ${formatCurrency(values.amount)}.`,
+                });
+            }
+        },
+        onError: (error) => {
              toast({
                 title: "Error",
                 description: "No se pudo actualizar el monto.",
                 variant: "destructive"
             })
-        } finally {
-            setIsLoading(false);
         }
-    }
+    });
+    
+    useEffect(() => {
+        if(isSuccess) {
+            onOpenChange(false);
+            form.reset();
+        }
+    }, [isSuccess, onOpenChange, form]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,7 +90,7 @@ export function UpdateSubscriptionDialog({ subscription, open, onOpenChange }: U
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

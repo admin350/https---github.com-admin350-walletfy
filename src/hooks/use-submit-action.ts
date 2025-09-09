@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 
 interface UseSubmitActionOptions<T, R> {
   action: (args: T) => Promise<R>;
-  onSuccess?: (result: R) => void;
+  onSuccess?: (result: R, args: T) => void;
   onError?: (error: Error) => void;
 }
 
@@ -26,7 +26,7 @@ export function useSubmitAction<T, R>({
       const result = await action(args);
       setIsSuccess(true);
       if (onSuccess) {
-        onSuccess(result);
+        onSuccess(result, args);
       }
     } catch (e) {
       const err = e instanceof Error ? e : new Error('An unknown error occurred');

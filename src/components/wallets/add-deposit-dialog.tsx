@@ -31,6 +31,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 
 const formSchema = z.object({
@@ -47,8 +48,6 @@ interface AddDepositDialogProps {
 
 export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, transactions, formatCurrency } = useData();
 
@@ -63,17 +62,9 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
         },
     });
 
-    useEffect(() => {
-        if (isSuccess && !isLoading) {
-            setOpen(false);
-        }
-    }, [isSuccess, isLoading]);
-
-
-    const incomeCategories = categories.filter(c => c.type === 'Ingreso');
     const selectedAccountId = form.watch("accountId");
     const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
-
+    
     const currentMonthIncome = useMemo(() => {
         if (!selectedAccount || selectedAccount.accountType !== 'Cuenta Vista' || !selectedAccount.monthlyLimit) return 0;
         
@@ -101,60 +92,61 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
         path: ["amount"],
     });
 
-     const { control, handleSubmit, trigger } = form;
-
-    useEffect(() => {
-        if (selectedAccountId) {
-            trigger("amount");
-        }
-    }, [selectedAccountId, trigger]);
-    
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: z.infer<typeof formSchema>) => {
             if (!selectedAccount) {
-                toast({ title: "Error", description: "Cuenta no encontrada.", variant: "destructive"});
-                setIsLoading(false);
-                return;
+                throw new Error("Cuenta no encontrada.");
             }
-
+            
             const validationResult = await dynamicFormSchema.safeParseAsync(values);
             if (!validationResult.success) {
                  const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
                  if(amountError) {
                       form.setError("amount", { type: "manual", message: amountError.message });
                  }
-                 setIsLoading(false);
-                 return;
+                 throw new Error(amountError?.message || "Validation failed");
             }
-
+            
             await addTransaction({
                 ...values,
                 type: 'income',
                 date: values.date.toISOString(),
                 profile: selectedAccount.profile,
             });
-            
+        },
+        onSuccess: (result, values) => {
             toast({
                 title: "Depósito Registrado",
-                description: `Se ha añadido un ingreso de ${formatCurrency(values.amount)} a la cuenta ${selectedAccount.name}.`,
+                description: `Se ha añadido un ingreso de ${formatCurrency(values.amount)} a la cuenta ${selectedAccount?.name}.`,
             });
-            
-            setIsSuccess(true);
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || `No se pudo añadir el depósito.`,
-                variant: 'destructive'
-            });
-        } finally {
-            setIsLoading(false);
+        },
+        onError: (error) => {
+            if (!form.formState.errors.amount) {
+                toast({
+                    title: "Error",
+                    description: error.message || `No se pudo añadir el depósito.`,
+                    variant: 'destructive'
+                });
+            }
         }
-    }
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
+            setOpen(false);
+        }
+    }, [isSuccess]);
+
+    useEffect(() => {
+        if(!open) {
+            form.reset();
+        }
+    }, [open, form]);
+
+    const incomeCategories = categories.filter(c => c.type === 'Ingreso');
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) { setIsSuccess(false); form.reset(); } }}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -165,9 +157,9 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                              <FormField
-                                control={control}
+                                control={form.control}
                                 name="accountId"
                                 render={({ field }) => (
                                     <FormItem>
@@ -189,7 +181,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={control}
+                                control={form.control}
                                 name="amount"
                                 render={({ field }) => (
                                     <FormItem>
@@ -202,7 +194,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={control}
+                                control={form.control}
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
@@ -215,7 +207,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                              <FormField
-                                control={control}
+                                control={form.control}
                                 name="category"
                                 render={({ field }) => (
                                     <FormItem>
@@ -237,7 +229,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                 )}
                             />
                             <FormField
-                                control={control}
+                                control={form.control}
                                 name="date"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
