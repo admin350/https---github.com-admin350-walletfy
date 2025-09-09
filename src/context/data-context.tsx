@@ -187,9 +187,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
         
         const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-        const unsubSettings = onSnapshot(settingsRef, (doc) => {
-            if(doc.exists()){
-                setSettings(doc.data() as AppSettings);
+        const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+            if(docSnap.exists()){
+                setSettings(docSnap.data() as AppSettings);
             } else {
                 const defaultProfiles = [
                     { name: "Personal", color: "#3b82f6" },
@@ -924,5 +924,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
-
