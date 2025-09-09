@@ -38,16 +38,18 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
     });
 
     useEffect(() => {
-        if (open && profileToEdit) {
-            form.reset({
-                name: profileToEdit.name,
-                color: profileToEdit.color,
-            });
-        } else if (open && !profileToEdit) {
-            form.reset({
-                name: "",
-                color: "#6b7280",
-            });
+        if (open) {
+            if (profileToEdit) {
+                form.reset({
+                    name: profileToEdit.name,
+                    color: profileToEdit.color,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    color: "#6b7280",
+                });
+            }
         }
     }, [profileToEdit, form, open]);
 

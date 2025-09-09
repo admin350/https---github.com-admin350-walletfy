@@ -9,7 +9,7 @@ import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const darkBackgroundOptions = [
-    { id: 'theme-gradient', name: 'Original', style: { backgroundImage: 'linear-gradient(to top, #111827, #030712)'} },
+    { id: 'theme-gradient', name: 'Original', style: { backgroundImage: 'linear-gradient(to top, #030712, #111827)'} },
     { id: 'theme-gradient-midnight', name: 'Medianoche', style: { backgroundImage: 'linear-gradient(to bottom right, #111827, #1e1b4b)' } },
     { id: 'theme-gradient-dusk', name: 'Ocaso', style: { backgroundImage: 'linear-gradient(to bottom right, #0f172a, #2e1065, #0f172a)' } },
     { id: 'theme-gradient-forest', name: 'Bosque', style  : { backgroundImage: 'linear-gradient(to bottom right, #111827, #064e3b)' } },
@@ -27,7 +27,6 @@ export function BackgroundManager() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     
-    // The selected theme for preview is now handled by the context's previewBackground state.
     const selectedTheme = previewBackground || settings.background || 'theme-gradient';
 
     const handleSelectTheme = (themeId: string) => {
@@ -38,7 +37,7 @@ export function BackgroundManager() {
         setIsLoading(true);
         try {
             await updateSettings({ background: selectedTheme });
-            setPreviewBackground(null); // Clear preview after saving
+            setPreviewBackground(null);
             toast({
                 title: "Fondo actualizado",
                 description: "Tu nuevo fondo se ha guardado.",
@@ -54,9 +53,8 @@ export function BackgroundManager() {
         }
     }
     
-    const isChanged = selectedTheme !== settings.background;
+    const isChanged = selectedTheme !== (settings.background || 'theme-gradient');
 
-    // Reset preview if component unmounts (e.g., user navigates away)
     useEffect(() => {
         return () => {
             setPreviewBackground(null);

@@ -75,24 +75,26 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     const accountType = form.watch("accountType");
 
     useEffect(() => {
-        if (dialogOpen && accountToEdit) {
-            form.reset({
-                ...accountToEdit,
-                color: accountToEdit.color || "#0ea5e9",
-                monthlyLimit: accountToEdit.monthlyLimit || undefined,
-            });
-        } else if (dialogOpen && !accountToEdit) {
-            form.reset({
-                name: "",
-                bank: "",
-                accountType: "Cuenta Corriente",
-                accountNumber: "",
-                balance: 0,
-                profile: "",
-                purpose: "main",
-                color: "#0ea5e9",
-                monthlyLimit: undefined,
-            });
+        if (dialogOpen) {
+            if (accountToEdit) {
+                form.reset({
+                    ...accountToEdit,
+                    color: accountToEdit.color || "#0ea5e9",
+                    monthlyLimit: accountToEdit.monthlyLimit || undefined,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    bank: "",
+                    accountType: "Cuenta Corriente",
+                    accountNumber: "",
+                    balance: 0,
+                    profile: "",
+                    purpose: "main",
+                    color: "#0ea5e9",
+                    monthlyLimit: undefined,
+                });
+            }
         }
     }, [accountToEdit, form, dialogOpen]);
 

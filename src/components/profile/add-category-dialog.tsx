@@ -41,14 +41,16 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
     });
 
     useEffect(() => {
-        if (open && categoryToEdit) {
-            form.reset(categoryToEdit);
-        } else if (open && !categoryToEdit) {
-            form.reset({
-                name: "",
-                type: "Gasto",
-                color: "#6b7280",
-            });
+        if (open) {
+            if (categoryToEdit) {
+                form.reset(categoryToEdit);
+            } else {
+                form.reset({
+                    name: "",
+                    type: "Gasto",
+                    color: "#6b7280",
+                });
+            }
         }
     }, [categoryToEdit, form, open]);
 
