@@ -2,7 +2,7 @@
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat, Wallet, Landmark } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, PlusCircle, CreditCard, Receipt, Repeat } from "lucide-react";
 import { CashflowChart } from "@/components/dashboard/cashflow-chart";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
