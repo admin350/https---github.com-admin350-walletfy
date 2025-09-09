@@ -1,11 +1,10 @@
 
-
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
 import { cn } from "@/lib/utils";
-import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check, AlertTriangle } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Landmark, MoreVertical, Pencil, Trash2, Copy, Check, AlertTriangle, Library } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useState, useMemo } from "react";
 import { useData } from "@/context/data-context";
@@ -15,6 +14,7 @@ import Link from "next/link";
 import { AddBankAccountDialog } from "./add-bank-account-dialog";
 import { Progress } from "../ui/progress";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { ManageCreditLineDialog } from "./manage-credit-line-dialog";
 
 
 interface BankAccountComponentProps {
@@ -25,6 +25,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const { deleteBankAccount, profiles, formatCurrency, transactions } = useData();
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
+    const [manageCreditLineAccount, setManageCreditLineAccount] = useState<BankAccount | null>(null);
     const [isCopied, setIsCopied] = useState(false);
     const profile = profiles.find(p => p.name === account.profile);
 
@@ -50,6 +51,12 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
         e.preventDefault();
         setAccountToEdit(account);
     };
+    
+    const handleManageCreditLine = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setManageCreditLineAccount(account);
+    }
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -87,6 +94,9 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
 
     const hasLimit = account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0;
     const limitUsage = hasLimit ? (monthlyIncome / account.monthlyLimit) * 100 : 0;
+    
+    const creditLineAvailable = (account.creditLineLimit || 0) - (account.creditLineUsed || 0);
+    const creditLineProgress = account.creditLineLimit ? ((account.creditLineUsed || 0) / account.creditLineLimit) * 100 : 0;
 
 
     return (
@@ -119,10 +129,16 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={handleEdit}>
-                                        <Pencil className="mr-2 h-4 w-4" /> Editar
+                                        <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
                                     </DropdownMenuItem>
+                                     {account.accountType === "Cuenta Corriente" && (
+                                        <DropdownMenuItem onClick={handleManageCreditLine}>
+                                            <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                        <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}} className="text-red-400 focus:text-red-500">
                                             <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
@@ -166,6 +182,23 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                            </div>
                         </div>
                     )}
+                    {account.hasCreditLine && account.creditLineLimit && (
+                         <div className="space-y-1 mb-3">
+                           <TooltipProvider>
+                               <Tooltip>
+                                   <TooltipTrigger className="w-full">
+                                        <Progress value={creditLineProgress} className="h-1.5 [&>div]:bg-red-400/80" />
+                                   </TooltipTrigger>
+                                   <TooltipContent>
+                                       <p>{`Utilizado: ${formatCurrency(account.creditLineUsed || 0)} de ${formatCurrency(account.creditLineLimit)} (${creditLineProgress.toFixed(1)}%)`}</p>
+                                   </TooltipContent>
+                               </Tooltip>
+                           </TooltipProvider>
+                           <div className="text-xs text-white/70">
+                             Línea de Crédito Disponible: {formatCurrency(creditLineAvailable)}
+                           </div>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <div className="flex justify-between items-end">
                             <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
@@ -199,6 +232,13 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                 open={!!accountToEdit}
                 onOpenChange={(isOpen) => !isOpen && setAccountToEdit(null)}
                 accountToEdit={accountToEdit}
+            />
+        )}
+        {manageCreditLineAccount && (
+            <ManageCreditLineDialog
+                open={!!manageCreditLineAccount}
+                onOpenChange={(isOpen) => !isOpen && setManageCreditLineAccount(null)}
+                account={manageCreditLineAccount}
             />
         )}
         </>

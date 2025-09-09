@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
@@ -441,21 +440,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // BANK ACCOUNT/CARD FUNCTIONS
-    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => { 
+    const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const accountData = { ...account };
         if (accountData.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
         }
-        await addDoc('bankAccounts', accountData); 
+        await addDoc('bankAccounts', accountData);
     };
+
     const updateBankAccount = async (account: BankAccount) => {
-        const accountData = { ...account };
+        const accountData: Partial<BankAccount> = { ...account };
         if (accountData.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
         }
+        if (accountData.hasCreditLine === false) {
+             delete accountData.hasCreditLine;
+             delete accountData.creditLineLimit;
+             delete accountData.creditLineUsed;
+        }
         await setDocWithId('bankAccounts', account.id, accountData);
     };
+
     const deleteBankAccount = async (id: string) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
