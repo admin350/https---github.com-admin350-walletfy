@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddDebtDialog } from "@/components/transactions/add-debt-dialog";
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,11 +19,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ExpenseChart } from "@/components/dashboard/expense-chart";
 import { DebtsOverviewChart } from "@/components/dashboard/debts-overview-chart";
 import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading, formatCurrency } = useData();
+  const { transactions, isLoading, formatCurrency, filters } = useData();
 
   useEffect(() => {
     setIsClient(true);
@@ -39,6 +41,14 @@ export default function DashboardPage() {
 
   const netBalance = totalIncome - totalExpenses;
 
+  const pageTitle = useMemo(() => {
+    if (filters.month === -1) {
+      return `Resumen Anual: ${filters.year}`;
+    }
+    const monthName = format(new Date(filters.year, filters.month), 'MMMM', { locale: es });
+    return `Resumen de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}, ${filters.year}`;
+  }, [filters]);
+
   const KpiSkeleton = () => (
     <div className="space-y-2">
       <Skeleton className="h-6 w-3/4" />
@@ -50,7 +60,7 @@ export default function DashboardPage() {
     <>
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">Panel Principal</h1>
+              <h1 className="text-2xl font-bold">{pageTitle}</h1>
           </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
