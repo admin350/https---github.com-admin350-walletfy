@@ -27,10 +27,9 @@ export function BackgroundManager() {
     const { settings, updateSettings, previewBackground, setPreviewBackground } = useData();
     const { toast } = useToast();
     
-    const { performAction, isLoading } = useSubmitAction({
-        action: async (themeId: string) => updateSettings({ background: themeId }),
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: (themeId: string) => updateSettings({ background: themeId }),
         onSuccess: () => {
-            setPreviewBackground(null);
             toast({
                 title: "Fondo actualizado",
                 description: "Tu nuevo fondo se ha guardado.",
@@ -44,6 +43,12 @@ export function BackgroundManager() {
             });
         }
     });
+
+    useEffect(() => {
+        if (isSuccess) {
+            setPreviewBackground(null);
+        }
+    }, [isSuccess, setPreviewBackground]);
     
     const selectedTheme = previewBackground || settings.background || 'theme-gradient';
 
@@ -52,7 +57,9 @@ export function BackgroundManager() {
     };
 
     const handleSave = async () => {
-        await performAction(selectedTheme);
+        if (selectedTheme !== (settings.background || 'theme-gradient')) {
+           await performAction(selectedTheme);
+        }
     }
     
     const isChanged = selectedTheme !== (settings.background || 'theme-gradient');
