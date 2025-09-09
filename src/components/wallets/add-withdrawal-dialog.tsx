@@ -66,7 +66,6 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const selectedAccountId = form.watch("accountId");
     const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
 
-    // Dynamic validation schema to check against selected account's balance
     const dynamicFormSchema = formSchema.refine(data => {
         if (selectedAccount && data.amount > selectedAccount.balance) {
             return false;

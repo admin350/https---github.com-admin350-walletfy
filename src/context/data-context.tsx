@@ -151,31 +151,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [settings.currency]);
     
     
-    // Subscribe to all data collections for the logged-in user
+    // Subscribe to auth state changes
     useEffect(() => {
         const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setUid(currentUser ? currentUser.uid : null);
-            if (!currentUser) {
+            setIsLoading(!currentUser); // Stop loading once user state is determined
+             if (!currentUser) {
                 // Clear all data when user logs out
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); setAllBudgets([]);
                 setAllBankAccounts([]); setAllBankCards([]); setAllReports([]);
                 setSettings({ currency: 'CLP' });
-                setIsLoading(false);
             }
         });
         return () => authUnsubscribe();
     }, []);
 
+    // Subscribe to user data once UID is available
     useEffect(() => {
-        if (!uid) {
-            setIsLoading(false);
-            return;
-        }
-
-        setIsLoading(true);
+        if (!uid) return;
 
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
@@ -217,11 +213,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         });
         unsubscribers.push(unsubSettings);
-
-        // A slight delay to ensure all data has had a chance to be fetched
-        const timer = setTimeout(() => setIsLoading(false), 1500);
-        unsubscribers.push(() => clearTimeout(timer));
-
 
         return () => unsubscribers.forEach(unsub => unsub());
 

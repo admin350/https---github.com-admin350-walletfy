@@ -56,6 +56,7 @@ export function BackgroundManager() {
     const isChanged = selectedTheme !== (settings.background || 'theme-gradient');
 
     useEffect(() => {
+        // Cleanup function to reset preview when component unmounts
         return () => {
             setPreviewBackground(null);
         };

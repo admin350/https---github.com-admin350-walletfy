@@ -38,6 +38,9 @@ const formSchema = z.object({
   purpose: z.enum(["main", "savings", "investment"]),
   color: z.string().optional(),
   monthlyLimit: z.coerce.number().optional(),
+  hasCreditLine: z.boolean().default(false),
+  creditLineLimit: z.coerce.number().optional(),
+  creditLineUsed: z.coerce.number().optional(),
 });
 
 interface AddBankAccountDialogProps {
@@ -51,7 +54,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const { addBankAccount, updateBankAccount, profiles, formatCurrency } = useData();
+    const { addBankAccount, updateBankAccount, profiles } = useData();
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -69,6 +72,9 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             purpose: "main",
             color: "#0ea5e9",
             monthlyLimit: undefined,
+            hasCreditLine: false,
+            creditLineLimit: undefined,
+            creditLineUsed: 0,
         },
     });
 
@@ -81,6 +87,9 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                     ...accountToEdit,
                     color: accountToEdit.color || "#0ea5e9",
                     monthlyLimit: accountToEdit.monthlyLimit || undefined,
+                    hasCreditLine: accountToEdit.hasCreditLine || false,
+                    creditLineLimit: accountToEdit.creditLineLimit || undefined,
+                    creditLineUsed: accountToEdit.creditLineUsed || 0,
                 });
             } else {
                 form.reset({
@@ -93,6 +102,9 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                     purpose: "main",
                     color: "#0ea5e9",
                     monthlyLimit: undefined,
+                    hasCreditLine: false,
+                    creditLineLimit: undefined,
+                    creditLineUsed: 0,
                 });
             }
         }
@@ -199,7 +211,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         <FormItem>
                                             <FormLabel>Límite de Ingresos Mensuales</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder={formatCurrency(5000000)} {...field} value={field.value ?? ''} />
+                                                <Input type="number" placeholder="5000000" {...field} value={field.value ?? ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -264,7 +276,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     <FormItem>
                                         <FormLabel>Saldo Inicial</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder={formatCurrency(1000000)} {...field} value={field.value ?? ''} />
+                                            <Input type="number" placeholder="1000000" {...field} value={field.value ?? ''} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
