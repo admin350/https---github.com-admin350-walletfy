@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
@@ -46,6 +47,7 @@ interface DataContextType {
     updateSubscription: (subscription: Subscription) => Promise<void>;
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
+    deleteSubscription: (id: string) => Promise<void>;
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
@@ -253,7 +255,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, ...formData } = transaction;
-
+    
         // Clean the object for Firestore
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
@@ -267,7 +269,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (formData.destinationAccountId) {
             transData.destinationAccountId = formData.destinationAccountId;
         }
-        if (formData.cardId) {
+        if (formData.cardId && formData.cardId !== 'ninguna') {
             transData.cardId = formData.cardId;
         }
 
@@ -521,6 +523,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const sub = allSubscriptions.find(s => s.id === id);
         if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
     };
+    const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
+    
     const paySubscription = async (sub: Subscription) => {
         const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
         const card = allBankCards.find(c => c.id === sub.cardId);
@@ -829,6 +833,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             updateSubscription,
             updateSubscriptionAmount,
             cancelSubscription,
+            deleteSubscription,
             addDebt,
             updateDebt,
             deleteDebt,
@@ -867,3 +872,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
