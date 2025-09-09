@@ -124,8 +124,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 date: values.date.toISOString(),
             };
             if (transactionToEdit && transactionToEdit.id) {
-                // Update logic can be complex, for now we only support adding.
-                // await updateTransaction({ ...transactionData, id: transactionToEdit.id });
                  await addTransaction(transactionData);
             } else {
                 await addTransaction(transactionData);
@@ -430,7 +428,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={transactionType === 'transfer'}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona una categoría" />
@@ -499,3 +497,4 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
