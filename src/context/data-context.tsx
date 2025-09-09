@@ -48,7 +48,7 @@ interface DataContextType {
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
@@ -96,7 +96,7 @@ export const useData = () => {
 
 // PROVIDER
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const uid = "guest_user";
+    const uid = "clean_slate_user";
 
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
     const [allGoals, setAllGoals] = useState<SavingsGoal[]>([]);
@@ -267,10 +267,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             isCreditLinePayment: paymentMethod === 'credit-line',
         };
         
-        if (formData.destinationAccountId) {
-            transData.destinationAccountId = formData.destinationAccountId;
-        }
-
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
         if (paymentIsCard) {
             transData.cardId = paymentMethod;
@@ -301,7 +297,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 throw new Error("Destination account not found.");
             }
         } else if (isInstallment && paymentIsCard) {
-            const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
+            if (!transData.cardId) throw new Error("Card ID is required for installment payments.");
+            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
                 name: `Compra: ${transData.description}`,
                 totalAmount: transData.amount,
                 monthlyPayment: transData.amount / (installments || 1),
@@ -311,11 +308,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 profile: transData.profile,
                 accountId: transData.accountId,
                 sourceTransactionId: transRef.id,
+                financialInstitution: allBankCards.find(c => c.id === transData.cardId)?.bank || 'Tarjeta de Crédito',
             };
             const debtRef = doc(collection(db, 'users', uid, 'debts'));
             batch.set(debtRef, { ...debtData, paidAmount: 0 });
     
-            const cardRef = doc(db, 'users', uid, 'bankCards', paymentMethod);
+            const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
             const cardSnap = await getDoc(cardRef);
             if (cardSnap.exists()) {
                 const card = cardSnap.data() as BankCard;
@@ -328,7 +326,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const creditLineDebtSnapshot = await getDocs(creditLineDebtQuery);
     
             if (creditLineDebtSnapshot.empty) {
-                const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
+                const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
                     name: `Línea de Crédito: ${sourceAccount.name}`,
                     totalAmount: sourceAccount.creditLineLimit || 0,
                     paidAmount: (sourceAccount.creditLineUsed || 0) + transData.amount,
@@ -338,6 +336,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     dueDate: addMonths(new Date(), 1),
                     profile: transData.profile,
                     accountId: transData.accountId,
+                    financialInstitution: sourceAccount.bank,
                 };
                 const debtRef = doc(collection(db, 'users', uid, 'debts'));
                 batch.set(debtRef, debtData);
@@ -350,7 +349,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         } else if (transData.type === 'expense') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
             if (paymentIsCard) {
-                const cardRef = doc(db, 'users', uid, 'bankCards', paymentMethod);
+                if (!transData.cardId) throw new Error("Card ID is required for card payments.");
+                const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
                 if (cardSnap.exists()) {
                     const card = cardSnap.data() as BankCard;
@@ -398,7 +398,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     // DEBT FUNCTIONS
-    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => {
+    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
         if (account) {
@@ -924,4 +924,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
 
