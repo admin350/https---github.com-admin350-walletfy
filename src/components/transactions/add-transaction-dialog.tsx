@@ -207,6 +207,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
         if (transactionType === 'expense') return c.type === 'Gasto';
+        // For transfer, we will handle it internally, but let's filter here for consistency.
         if (transactionType === 'transfer') return c.type === 'Transferencia';
         return true;
     });
@@ -215,6 +216,15 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableDestinationAccounts = bankAccounts.filter(acc => acc.id !== sourceAccountId);
     const availableCards = bankCards.filter(card => !sourceAccountId || card.accountId === sourceAccountId);
     
+    useEffect(() => {
+        if (transactionType === 'transfer') {
+            const transferCategory = categories.find(c => c.type === 'Transferencia');
+            if (transferCategory) {
+                form.setValue('category', transferCategory.name);
+            }
+        }
+    }, [transactionType, categories, form]);
+
     useEffect(() => {
         // Reset payment method if source account changes
         form.setValue('paymentMethod', 'account-balance');
@@ -422,28 +432,30 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                             )}
                         </>
                     )}
-                     <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={transactionType === 'transfer'}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona una categoría" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {availableCategories.map(c => (
-                                        <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {transactionType !== 'transfer' && (
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Categoría</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona una categoría" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {availableCategories.map(c => (
+                                            <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     <FormField
                         control={form.control}
                         name="date"
