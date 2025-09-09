@@ -113,6 +113,7 @@ export default function TaxesPage() {
                                 <TableRow>
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Descripción</TableHead>
+                                    <TableHead className="text-right">Monto Total</TableHead>
                                     <TableHead className="text-right">Monto Impuesto</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -122,12 +123,13 @@ export default function TaxesPage() {
                                         <TableRow key={t.id}>
                                             <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
                                             <TableCell>{t.description}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(t.amount)}</TableCell>
                                             <TableCell className="text-right font-medium">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center h-24">No hay ingresos con impuestos registrados.</TableCell>
+                                        <TableCell colSpan={4} className="text-center h-24">No hay ingresos con impuestos registrados.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -144,6 +146,7 @@ export default function TaxesPage() {
                                 <TableRow>
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Descripción</TableHead>
+                                    <TableHead className="text-right">Monto Total</TableHead>
                                     <TableHead className="text-right">Monto Impuesto</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -153,12 +156,13 @@ export default function TaxesPage() {
                                         <TableRow key={t.id}>
                                             <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
                                             <TableCell>{t.description}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(t.amount)}</TableCell>
                                             <TableCell className="text-right font-medium">{formatCurrency(t.taxDetails?.amount || 0)}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center h-24">No hay egresos con impuestos registrados.</TableCell>
+                                        <TableCell colSpan={4} className="text-center h-24">No hay egresos con impuestos registrados.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
