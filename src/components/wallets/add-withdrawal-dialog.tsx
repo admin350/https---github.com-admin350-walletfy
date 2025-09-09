@@ -1,6 +1,6 @@
 
 'use client';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,7 @@ interface AddWithdrawalDialogProps {
 export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, formatCurrency } = useData();
 
@@ -61,6 +62,12 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
             date: new Date(),
         },
     });
+
+    useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setOpen(false);
+        }
+    }, [isSuccess, isLoading]);
 
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
     const selectedAccountId = form.watch("accountId");
@@ -108,7 +115,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount.name}.`,
             });
             
-            setOpen(false);
+            setIsSuccess(true);
             form.reset({
                  amount: '' as any,
                  description: "Retiro en Efectivo",
@@ -128,7 +135,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) setIsSuccess(false); }}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

@@ -50,6 +50,7 @@ interface AddBankCardDialogProps {
 export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: AddBankCardDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBankCard, updateBankCard, profiles, bankAccounts, formatCurrency } = useData();
     
@@ -74,26 +75,35 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
     
     const cardType = form.watch("cardType");
 
+     useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
     useEffect(() => {
-        if (dialogOpen && cardToEdit) {
-            form.reset({
-                ...cardToEdit,
-                creditLimit: cardToEdit.creditLimit ?? undefined,
-                cardLevel: cardToEdit.cardLevel ?? "",
-                cardColor: cardToEdit.cardColor ?? "#374151"
-            });
-        } else if (dialogOpen && !cardToEdit) {
-            form.reset({
-                name: "",
-                bank: "",
-                cardType: "credit",
-                last4Digits: "",
-                profile: "",
-                accountId: "",
-                creditLimit: undefined,
-                cardLevel: "",
-                cardColor: "#374151"
-            });
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (cardToEdit) {
+                form.reset({
+                    ...cardToEdit,
+                    creditLimit: cardToEdit.creditLimit ?? undefined,
+                    cardLevel: cardToEdit.cardLevel ?? "",
+                    cardColor: cardToEdit.cardColor ?? "#374151"
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    bank: "",
+                    cardType: "credit",
+                    last4Digits: "",
+                    profile: "",
+                    accountId: "",
+                    creditLimit: undefined,
+                    cardLevel: "",
+                    cardColor: "#374151"
+                });
+            }
         }
     }, [cardToEdit, form, dialogOpen]);
 
@@ -113,8 +123,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                     description: "Tu nueva tarjeta ha sido creada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

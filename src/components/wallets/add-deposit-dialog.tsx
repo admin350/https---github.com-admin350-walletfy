@@ -48,6 +48,7 @@ interface AddDepositDialogProps {
 export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, transactions, formatCurrency } = useData();
 
@@ -61,6 +62,13 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
             date: new Date(),
         },
     });
+
+    useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setOpen(false);
+        }
+    }, [isSuccess, isLoading]);
+
 
     const incomeCategories = categories.filter(c => c.type === 'Ingreso');
     const selectedAccountId = form.watch("accountId");
@@ -93,7 +101,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
         path: ["amount"],
     });
 
-     const { control, handleSubmit, getValues, trigger } = form;
+     const { control, handleSubmit, trigger } = form;
 
     useEffect(() => {
         if (selectedAccountId) {
@@ -133,7 +141,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                 description: `Se ha añadido un ingreso de ${formatCurrency(values.amount)} a la cuenta ${selectedAccount.name}.`,
             });
             
-            setOpen(false);
+            setIsSuccess(true);
             form.reset({
                  amount: '' as any,
                  description: "",
@@ -153,7 +161,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) setIsSuccess(false); }}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

@@ -38,6 +38,7 @@ interface ManageCreditLineDialogProps {
 
 export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCreditLineDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { updateBankAccount, formatCurrency } = useData();
     
@@ -49,7 +50,14 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
     });
 
     useEffect(() => {
+        if(isSuccess && !isLoading){
+            onOpenChange(false);
+        }
+    }, [isSuccess, isLoading, onOpenChange]);
+
+    useEffect(() => {
         if (open) {
+            setIsSuccess(false);
             form.reset({
                 creditLineLimit: account.creditLineLimit || 0,
             });
@@ -68,8 +76,7 @@ export function ManageCreditLineDialog({ account, open, onOpenChange }: ManageCr
                 title: "Línea de Crédito Actualizada",
                 description: `Se ha establecido un cupo de ${formatCurrency(values.creditLineLimit)} para tu cuenta.`,
             });
-            form.reset();
-            onOpenChange(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

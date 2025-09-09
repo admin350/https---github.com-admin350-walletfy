@@ -53,6 +53,7 @@ interface AddBankAccountDialogProps {
 export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChange }: AddBankAccountDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBankAccount, updateBankAccount, profiles } = useData();
     
@@ -81,7 +82,14 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     const accountType = form.watch("accountType");
 
     useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
+    useEffect(() => {
         if (dialogOpen) {
+            setIsSuccess(false);
             if (accountToEdit) {
                 form.reset({
                     ...accountToEdit,
@@ -129,8 +137,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                     description: "Tu nueva cuenta ha sido creada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",
