@@ -86,6 +86,7 @@
     @apply bg-background text-foreground;
   }
 
+  /* Dark Themes */
   .theme-gradient {
      @apply bg-gradient-to-t from-gray-900 to-gray-950;
   }
@@ -100,5 +101,22 @@
   }
   .theme-gradient-metal {
       @apply bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950;
+  }
+  
+  /* Light Themes */
+  .theme-gradient-day {
+      @apply bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200;
+  }
+  .theme-gradient-sky {
+      @apply bg-gradient-to-br from-sky-100 via-blue-100 to-indigo-100;
+  }
+  .theme-gradient-sand {
+      @apply bg-gradient-to-br from-amber-50 via-orange-100 to-yellow-100;
+  }
+  .theme-gradient-mint {
+      @apply bg-gradient-to-br from-emerald-50 via-teal-100 to-cyan-100;
+  }
+  .theme-gradient-rose {
+      @apply bg-gradient-to-br from-rose-50 via-pink-100 to-fuchsia-100;
   }
 }

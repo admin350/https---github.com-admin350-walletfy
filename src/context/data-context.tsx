@@ -85,6 +85,8 @@ interface DataContextType {
     deleteProfile: (id: string) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
     formatCurrency: (value: number, withSymbol?: boolean, isCompact?: boolean) => string;
+    previewBackground: string | null;
+    setPreviewBackground: (themeId: string | null) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -124,6 +126,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         month: getMonth(new Date()),
         year: getYear(new Date()),
     });
+    const [previewBackground, setPreviewBackground] = useState<string | null>(null);
 
     const formatCurrency = useCallback((value: number, withSymbol = true, isCompact = false) => {
         const options: Intl.NumberFormatOptions = {
@@ -932,6 +935,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteProfile,
             getAllDataForMonth,
             formatCurrency,
+            previewBackground,
+            setPreviewBackground,
         }}>
             {children}
         </DataContext.Provider>
