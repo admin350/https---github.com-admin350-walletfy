@@ -2,12 +2,13 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Landmark, Wallet, Banknote } from "lucide-react";
+import { PlusCircle, Landmark, Wallet, Banknote, ArrowDownToDot } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dialog";
 import { BankAccountComponent } from "@/components/wallets/bank-account-component";
+import { AddDepositDialog } from "@/components/wallets/add-deposit-dialog";
 
 export default function BankAccountsPage() {
     const { bankAccounts, isLoading, formatCurrency } = useData();
@@ -67,11 +68,19 @@ export default function BankAccountsPage() {
                             Define y gestiona tus cuentas de origen para los fondos.
                         </CardDescription>
                     </div>
-                     <AddBankAccountDialog>
-                        <Button size="icon" variant="outline">
-                           <PlusCircle className="h-6 w-6" />
-                        </Button>
-                    </AddBankAccountDialog>
+                     <div className="flex items-center gap-2">
+                        <AddDepositDialog>
+                            <Button>
+                                <ArrowDownToDot className="mr-2 h-4 w-4" />
+                                Depósito
+                            </Button>
+                        </AddDepositDialog>
+                         <AddBankAccountDialog>
+                            <Button size="icon" variant="outline">
+                               <PlusCircle className="h-6 w-6" />
+                            </Button>
+                        </AddBankAccountDialog>
+                    </div>
                 </CardHeader>
                 <CardContent>
                    {isLoading ? (
