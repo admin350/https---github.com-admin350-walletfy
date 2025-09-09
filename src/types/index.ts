@@ -73,7 +73,7 @@ export type Debt = {
   monthlyPayment: number;
   installments: number; // total number of installments
   dueDate: Date; // next payment due date
-  financialInstitution: string;
+  financialInstitution?: string;
   profile: string;
   accountId: string;
   debtType: 'consumo' | 'hipotecario' | 'auto' | 'line-of-credit' | 'credit-card' | 'otro';

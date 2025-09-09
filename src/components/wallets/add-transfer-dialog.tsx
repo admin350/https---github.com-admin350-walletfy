@@ -62,13 +62,11 @@ export function AddTransferDialog({ children }: AddTransferDialogProps) {
         },
     });
 
-    const transferCategory = categories.find(c => c.type === 'Transferencia');
     const sourceAccountId = form.watch("sourceAccountId");
     const sourceAccount = bankAccounts.find(acc => acc.id === sourceAccountId);
-
     const availableDestinationAccounts = bankAccounts.filter(acc => acc.id !== sourceAccountId);
-    
-    // Dynamic validation schema
+    const transferCategory = categories.find(c => c.type === 'Transferencia');
+
     const dynamicFormSchema = formSchema.refine(data => {
         if (sourceAccount && data.amount > sourceAccount.balance) {
             return false;
@@ -82,20 +80,12 @@ export function AddTransferDialog({ children }: AddTransferDialogProps) {
         path: ["destinationAccountId"],
     });
 
-    useEffect(() => {
-        if (transferCategory) {
-            form.setValue('category', transferCategory.name);
-        }
-    }, [transferCategory, form]);
-
     async function onSubmit(values: z.infer<typeof formSchema>) {
         const validationResult = await dynamicFormSchema.safeParseAsync(values);
         if (!validationResult.success) {
-            validationResult.error.errors.forEach((error) => {
-                form.setError(error.path[0] as keyof typeof values, {
-                    type: "manual",
-                    message: error.message,
-                });
+             validationResult.error.errors.forEach((error) => {
+                const fieldName = error.path[0] as keyof z.infer<typeof formSchema>;
+                form.setError(fieldName, { type: "manual", message: error.message });
             });
             return;
         }
