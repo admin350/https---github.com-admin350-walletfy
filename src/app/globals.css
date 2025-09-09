@@ -102,21 +102,19 @@
   .theme-gradient-metal {
       @apply bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950;
   }
-  
-  /* Light Themes */
-  .theme-gradient-day {
-      @apply bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200;
+  .theme-gradient-ember {
+    @apply bg-gradient-to-br from-gray-900 via-red-950 to-black;
   }
-  .theme-gradient-sky {
-      @apply bg-gradient-to-br from-sky-100 via-blue-100 to-indigo-100;
+  .theme-gradient-abyss {
+    @apply bg-gradient-to-br from-slate-900 via-cyan-950 to-gray-900;
   }
-  .theme-gradient-sand {
-      @apply bg-gradient-to-br from-amber-50 via-orange-100 to-yellow-100;
+  .theme-gradient-majesty {
+    @apply bg-gradient-to-br from-indigo-950 via-purple-950 to-black;
   }
-  .theme-gradient-mint {
-      @apply bg-gradient-to-br from-emerald-50 via-teal-100 to-cyan-100;
+  .theme-gradient-bronze {
+    @apply bg-gradient-to-br from-gray-900 via-yellow-950 to-black;
   }
-  .theme-gradient-rose {
-      @apply bg-gradient-to-br from-rose-50 via-pink-100 to-fuchsia-100;
+  .theme-gradient-graphite {
+    @apply bg-gradient-to-br from-gray-800 via-gray-900 to-black;
   }
 }

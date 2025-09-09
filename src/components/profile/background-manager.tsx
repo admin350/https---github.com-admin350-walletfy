@@ -14,14 +14,11 @@ const darkBackgroundOptions = [
     { id: 'theme-gradient-dusk', name: 'Ocaso', style: { backgroundImage: 'linear-gradient(to bottom right, #0f172a, #2e1065, #0f172a)' } },
     { id: 'theme-gradient-forest', name: 'Bosque', style  : { backgroundImage: 'linear-gradient(to bottom right, #111827, #064e3b)' } },
     { id: 'theme-gradient-metal', name: 'Acero', style: { backgroundImage: 'linear-gradient(to bottom right, #1e293b, #0f172a)' } },
-];
-
-const lightBackgroundOptions = [
-    { id: 'theme-gradient-day', name: 'Día', style: { backgroundImage: 'linear-gradient(to bottom right, #f8fafc, #f1f5f9, #e2e8f0)' } },
-    { id: 'theme-gradient-sky', name: 'Cielo', style: { backgroundImage: 'linear-gradient(to bottom right, #f0f9ff, #e0f2fe, #e0e7ff)' } },
-    { id: 'theme-gradient-sand', name: 'Arena', style: { backgroundImage: 'linear-gradient(to bottom right, #fffbeb, #fff7ed, #fefce8)' } },
-    { id: 'theme-gradient-mint', name: 'Menta', style: { backgroundImage: 'linear-gradient(to bottom right, #ecfdf5, #f0fdfa, #ecfeff)' } },
-    { id: 'theme-gradient-rose', name: 'Rosa', style: { backgroundImage: 'linear-gradient(to bottom right, #fff1f2, #fdf2f8, #fdf4ff)' } },
+    { id: 'theme-gradient-ember', name: 'Ascua', style: { backgroundImage: 'linear-gradient(to bottom right, #1f2937, #450a0a, #000000)' } },
+    { id: 'theme-gradient-abyss', name: 'Abismo', style: { backgroundImage: 'linear-gradient(to bottom right, #0f172a, #164e63, #0f172a)' } },
+    { id: 'theme-gradient-majesty', name: 'Majestad', style: { backgroundImage: 'linear-gradient(to bottom right, #1e1b4b, #3b0764, #000000)' } },
+    { id: 'theme-gradient-bronze', name: 'Bronce', style: { backgroundImage: 'linear-gradient(to bottom right, #1f2937, #78350f, #000000)' } },
+    { id: 'theme-gradient-graphite', name: 'Grafito', style: { backgroundImage: 'linear-gradient(to bottom right, #1f2937, #111827, #000000)' } },
 ];
 
 
@@ -87,27 +84,6 @@ export function BackgroundManager() {
                                     )}
                                 >
                                     {selectedTheme === option.id && <Check className="h-8 w-8 text-white bg-black/50 rounded-full p-1" />}
-                                </button>
-                                <p className="text-sm text-center text-muted-foreground">{option.name}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                 <div>
-                    <h3 className="text-lg font-medium mb-4">Temas Claros</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {lightBackgroundOptions.map((option) => (
-                            <div key={option.id} className="space-y-2">
-                                <button 
-                                    onClick={() => handleSelectTheme(option.id)} 
-                                    style={option.style}
-                                    className={cn(
-                                        "w-full h-24 rounded-lg border-2 transition-all flex items-center justify-center",
-                                        selectedTheme === option.id ? "border-primary" : "border-muted hover:border-muted-foreground"
-                                    )}
-                                >
-                                    {selectedTheme === option.id && <Check className="h-8 w-8 text-black bg-white/50 rounded-full p-1" />}
                                 </button>
                                 <p className="text-sm text-center text-muted-foreground">{option.name}</p>
                             </div>
