@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Debt } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
@@ -45,6 +46,8 @@ const formSchema = z.object({
   dueNotificationDays: z.coerce.number().optional(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddDebtDialogProps {
     children: ReactNode;
     debtToEdit?: Debt;
@@ -54,8 +57,6 @@ interface AddDebtDialogProps {
 
 export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddDebtDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addDebt, updateDebt, profiles, bankAccounts } = useData();
     
@@ -63,7 +64,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -78,15 +79,37 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         },
     });
 
-     useEffect(() => {
-        if (isSuccess && !isLoading) {
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (debtToEdit) {
+                await updateDebt({ ...debtToEdit, ...values });
+            } else {
+                await addDebt(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: debtToEdit ? "Deuda actualizada" : "Deuda añadida",
+                description: `La deuda ha sido ${debtToEdit ? 'actualizada' : 'creada'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${debtToEdit ? 'actualizar' : 'añadir'} la deuda.`,
+                variant: "destructive"
+            });
+        }
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
             setDialogOpen(false);
         }
-    }, [isSuccess, isLoading, setDialogOpen]);
+    }, [isSuccess, setDialogOpen]);
 
-     useEffect(() => {
+    useEffect(() => {
         if (dialogOpen) {
-            setIsSuccess(false);
             if (debtToEdit) {
                 form.reset({
                     ...debtToEdit,
@@ -108,37 +131,6 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             }
         }
     }, [debtToEdit, form, dialogOpen]);
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(debtToEdit) {
-                 await updateDebt({
-                    ...debtToEdit,
-                    ...values
-                });
-                 toast({
-                    title: "Deuda actualizada",
-                    description: "Tu deuda ha sido actualizada exitosamente.",
-                });
-            } else {
-                 await addDebt(values);
-                toast({
-                    title: "Deuda añadida",
-                    description: "Tu deuda ha sido registrada exitosamente.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo ${debtToEdit ? 'actualizar' : 'añadir'} la deuda.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
     
     const selectedProfile = form.watch("profile");
     const filteredAccounts = bankAccounts.filter(acc => acc.profile === selectedProfile);
@@ -155,7 +147,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

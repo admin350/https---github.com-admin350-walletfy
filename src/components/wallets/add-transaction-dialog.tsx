@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Transaction } from '@/types';
 import { Checkbox } from '../ui/checkbox';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 
 const formSchema = z.object({
@@ -79,6 +80,8 @@ const formSchema = z.object({
     path: ["installments"],
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddTransactionDialogProps {
     children?: ReactNode;
     transactionToEdit?: Partial<Transaction>;
@@ -90,7 +93,6 @@ interface AddTransactionDialogProps {
 
 export function AddTransactionDialog({ children, transactionToEdit, defaultType = 'expense', open, onOpenChange, onFinish }: AddTransactionDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency } = useData();
     
@@ -98,7 +100,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: defaultType,
@@ -115,11 +117,45 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         },
     });
 
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+             const transactionData = {
+                ...values,
+                date: values.date.toISOString(),
+            };
+            if (transactionToEdit && transactionToEdit.id) {
+                await addTransaction(transactionData);
+            } else {
+                await addTransaction(transactionData);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: transactionToEdit?.id ? "Transacción actualizada" : "Transacción añadida",
+                description: `La transacción ha sido ${transactionToEdit?.id ? 'actualizada' : 'registrada'} exitosamente.`,
+            });
+            if (onFinish) onFinish();
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
+                variant: 'destructive'
+            });
+        }
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, setDialogOpen]);
+
     useEffect(() => {
         if(dialogOpen) {
             if (transactionToEdit) {
                  form.reset({
-                    ...transactionToEdit,
+                    ...(transactionToEdit as any),
                     type: transactionToEdit.type || defaultType,
                     amount: transactionToEdit.amount || ('' as any),
                     date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
@@ -180,53 +216,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         form.setValue('paymentMethod', 'account-balance');
     }, [sourceAccountId, form]);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if (transactionToEdit && transactionToEdit.id) {
-                // Update logic would be more complex, for now we simplify
-                // await updateTransaction({
-                //     ...values,
-                //     id: transactionToEdit.id,
-                //     date: values.date.toISOString(),
-                // });
-                //  toast({
-                //     title: "Transacción actualizada",
-                //     description: "Tu transacción ha sido actualizada exitosamente.",
-                // });
-            } else {
-                 await addTransaction({
-                    ...values,
-                    date: values.date.toISOString(),
-                });
-                toast({
-                    title: "Transacción añadida",
-                    description: "Tu transacción ha sido registrada exitosamente.",
-                });
-            }
-           
-            form.reset({
-                type: "expense",
-                amount: '' as any,
-                description: "",
-                category: "",
-                profile: "",
-                accountId: "",
-                date: new Date(),
-            });
-            setDialogOpen(false);
-            if(onFinish) onFinish();
-        } catch (error: any) {
-            toast({
-                title: "Error",
-                description: error.message || `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
-                variant: 'destructive'
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
@@ -239,7 +228,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         </DialogHeader>
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                     <FormField
                         control={form.control}
                         name="type"

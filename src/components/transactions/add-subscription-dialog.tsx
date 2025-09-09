@@ -31,6 +31,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
@@ -40,14 +41,14 @@ const formSchema = z.object({
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addSubscription, profiles, bankCards, formatCurrency } = useData();
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -57,37 +58,31 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             profile: "",
         },
     });
-    
-    useEffect(() => {
-        if (isSuccess && !isLoading) {
-            setOpen(false);
-        }
-    }, [isSuccess, isLoading]);
 
-    const selectedProfile = form.watch("profile");
-    const filteredCards = bankCards.filter(card => card.profile === selectedProfile);
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            await addSubscription(values);
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: addSubscription,
+        onSuccess: () => {
             toast({
                 title: "Suscripción Registrada",
                 description: "Se ha creado el gasto y programado el próximo pago.",
             });
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
+        },
+        onError: (error) => {
+            toast({
                 title: "Error",
-                description: "No se pudo añadir la suscripción.",
+                description: error.message || "No se pudo añadir la suscripción.",
                 variant: "destructive"
             });
-        } finally {
-            setIsLoading(false);
         }
-    }
+    });
     
-     useEffect(() => {
+    useEffect(() => {
+        if (isSuccess) {
+            setOpen(false);
+        }
+    }, [isSuccess]);
+
+    useEffect(() => {
         if (!open) {
             form.reset({
                 name: "",
@@ -96,9 +91,11 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 cardId: "",
                 profile: "",
             });
-            setIsSuccess(false);
         }
     }, [open, form]);
+    
+    const selectedProfile = form.watch("profile");
+    const filteredCards = bankCards.filter(card => card.profile === selectedProfile);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -112,7 +109,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

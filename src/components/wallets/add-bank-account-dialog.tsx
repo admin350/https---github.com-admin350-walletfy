@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { BankAccount } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre es muy corto." }),
@@ -43,6 +44,8 @@ const formSchema = z.object({
   creditLineUsed: z.coerce.number().optional(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddBankAccountDialogProps {
     children?: ReactNode;
     accountToEdit?: BankAccount;
@@ -52,8 +55,6 @@ interface AddBankAccountDialogProps {
 
 export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChange }: AddBankAccountDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBankAccount, updateBankAccount, profiles } = useData();
     
@@ -61,7 +62,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -79,17 +80,37 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
         },
     });
 
-    const accountType = form.watch("accountType");
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (accountToEdit) {
+                await updateBankAccount({ ...accountToEdit, ...values });
+            } else {
+                await addBankAccount(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: accountToEdit ? "Cuenta actualizada" : "Cuenta añadida",
+                description: `La cuenta ha sido ${accountToEdit ? 'actualizada' : 'creada'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${accountToEdit ? 'actualizar' : 'añadir'} la cuenta.`,
+                variant: "destructive"
+            });
+        }
+    });
 
     useEffect(() => {
-        if (isSuccess && !isLoading) {
+        if (isSuccess) {
             setDialogOpen(false);
         }
-    }, [isSuccess, isLoading, setDialogOpen]);
+    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {
-            setIsSuccess(false);
             if (accountToEdit) {
                 form.reset({
                     ...accountToEdit,
@@ -117,37 +138,8 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             }
         }
     }, [accountToEdit, form, dialogOpen]);
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(accountToEdit) {
-                await updateBankAccount({
-                    ...accountToEdit,
-                    ...values,
-                });
-                 toast({
-                    title: "Cuenta actualizada",
-                    description: "Tu cuenta ha sido actualizada exitosamente.",
-                });
-            } else {
-                await addBankAccount(values);
-                toast({
-                    title: "Cuenta añadida",
-                    description: "Tu nueva cuenta ha sido creada exitosamente.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo ${accountToEdit ? 'actualizar' : 'añadir'} la cuenta.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
+    
+    const accountType = form.watch("accountType");
 
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -161,7 +153,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

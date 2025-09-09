@@ -13,12 +13,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Category } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre es muy corto."),
   type: z.enum(["Ingreso", "Gasto", "Transferencia"], { required_error: "El tipo es requerido." }),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Debe ser un color hexadecimal válido."),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddCategoryDialogProps {
     categoryToEdit?: Category;
@@ -27,12 +30,10 @@ interface AddCategoryDialogProps {
 }
 
 export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCategoryDialogProps) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addCategory, updateCategory } = useData();
     
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -41,15 +42,37 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
         },
     });
 
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (categoryToEdit) {
+                await updateCategory({ ...values, id: categoryToEdit.id });
+            } else {
+                await addCategory(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: categoryToEdit ? "Categoría actualizada" : "Categoría añadida",
+                description: `La categoría ha sido ${categoryToEdit ? 'actualizada' : 'creada'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${categoryToEdit ? 'actualizar' : 'añadir'} la categoría.`,
+                variant: "destructive"
+            });
+        }
+    });
+
     useEffect(() => {
-        if (isSuccess && !isLoading) {
+        if (isSuccess) {
             onOpenChange(false);
         }
-    }, [isSuccess, isLoading, onOpenChange]);
+    }, [isSuccess, onOpenChange]);
 
     useEffect(() => {
         if (open) {
-            setIsSuccess(false);
             if (categoryToEdit) {
                 form.reset(categoryToEdit);
             } else {
@@ -62,34 +85,6 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
         }
     }, [categoryToEdit, form, open]);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(categoryToEdit) {
-                await updateCategory({ ...values, id: categoryToEdit.id });
-                 toast({
-                    title: "Categoría actualizada",
-                    description: "La categoría ha sido actualizada exitosamente.",
-                });
-            } else {
-                await addCategory(values);
-                toast({
-                    title: "Categoría añadida",
-                    description: "La nueva categoría ha sido creada.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo ${categoryToEdit ? 'actualizar' : 'añadir'} la categoría.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
@@ -100,7 +95,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="name"

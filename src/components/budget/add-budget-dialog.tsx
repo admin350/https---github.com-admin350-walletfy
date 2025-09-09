@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Budget } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const budgetItemSchema = z.object({
     category: z.string().min(1, "Categoría es requerida."),
@@ -31,6 +32,8 @@ const formSchema = z.object({
     path: ["items"],
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddBudgetDialogProps {
     children: ReactNode;
     budgetToEdit?: Budget;
@@ -40,8 +43,6 @@ interface AddBudgetDialogProps {
 
 export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: AddBudgetDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBudget, updateBudget, profiles, categories } = useData();
     
@@ -49,7 +50,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -57,26 +58,38 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
             items: [],
         },
     });
-
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: "items",
+    
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (budgetToEdit) {
+                await updateBudget({ ...values, id: budgetToEdit.id });
+            } else {
+                await addBudget(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: budgetToEdit ? "Presupuesto actualizado" : "Presupuesto añadido",
+                description: `El plan ha sido ${budgetToEdit ? 'actualizado' : 'creado'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${budgetToEdit ? 'actualizar' : 'añadir'} el presupuesto.`,
+                variant: "destructive"
+            });
+        }
     });
 
     useEffect(() => {
-        if (isSuccess && !isLoading) {
+        if (isSuccess) {
             setDialogOpen(false);
         }
-    }, [isSuccess, isLoading, setDialogOpen]);
-
-    const watchItems = form.watch("items");
-    const totalPercentage = watchItems.reduce((sum, item) => sum + (Number(item.percentage) || 0), 0);
-
-    const expenseCategories = categories.filter(c => c.type === 'Gasto');
+    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {
-            setIsSuccess(false);
             if (budgetToEdit) {
                 form.reset({
                     name: budgetToEdit.name,
@@ -92,34 +105,15 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
             }
         }
     }, [budgetToEdit, form, dialogOpen]);
+    
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "items",
+    });
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(budgetToEdit) {
-                await updateBudget({ ...values, id: budgetToEdit.id });
-                 toast({
-                    title: "Presupuesto actualizado",
-                    description: "Tu plan ha sido actualizado exitosamente.",
-                });
-            } else {
-                await addBudget(values);
-                toast({
-                    title: "Presupuesto añadido",
-                    description: "Tu nuevo plan ha sido creado.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo ${budgetToEdit ? 'actualizar' : 'añadir'} el presupuesto.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
+    const watchItems = form.watch("items");
+    const totalPercentage = watchItems.reduce((sum, item) => sum + (Number(item.percentage) || 0), 0);
+    const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -133,7 +127,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

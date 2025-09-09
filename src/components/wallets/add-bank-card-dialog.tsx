@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { BankCard } from '@/types';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El alias es muy corto." }),
@@ -40,6 +41,8 @@ const formSchema = z.object({
   cardColor: z.string().optional(),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 interface AddBankCardDialogProps {
     children?: ReactNode;
     cardToEdit?: BankCard;
@@ -49,8 +52,6 @@ interface AddBankCardDialogProps {
 
 export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: AddBankCardDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBankCard, updateBankCard, profiles, bankAccounts, formatCurrency } = useData();
     
@@ -58,7 +59,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
     const dialogOpen = isControlled ? open : internalOpen;
     const setDialogOpen = isControlled ? onOpenChange : setInternalOpen;
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -72,18 +73,38 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             cardColor: "#374151"
         },
     });
-    
-    const cardType = form.watch("cardType");
 
-     useEffect(() => {
-        if (isSuccess && !isLoading) {
+    const { performAction, isLoading, isSuccess } = useSubmitAction({
+        action: async (values: FormValues) => {
+            if (cardToEdit) {
+                await updateBankCard({ ...cardToEdit, ...values });
+            } else {
+                await addBankCard(values);
+            }
+        },
+        onSuccess: () => {
+            toast({
+                title: cardToEdit ? "Tarjeta actualizada" : "Tarjeta añadida",
+                description: `La tarjeta ha sido ${cardToEdit ? 'actualizada' : 'creada'} exitosamente.`,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: error.message || `No se pudo ${cardToEdit ? 'actualizar' : 'añadir'} la tarjeta.`,
+                variant: "destructive"
+            });
+        }
+    });
+    
+    useEffect(() => {
+        if (isSuccess) {
             setDialogOpen(false);
         }
-    }, [isSuccess, isLoading, setDialogOpen]);
+    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {
-            setIsSuccess(false);
             if (cardToEdit) {
                 form.reset({
                     ...cardToEdit,
@@ -107,34 +128,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
         }
     }, [cardToEdit, form, dialogOpen]);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if(cardToEdit) {
-                await updateBankCard({ ...cardToEdit, ...values });
-                 toast({
-                    title: "Tarjeta actualizada",
-                    description: "Tu tarjeta ha sido actualizada exitosamente.",
-                });
-            } else {
-                await addBankCard(values);
-                toast({
-                    title: "Tarjeta añadida",
-                    description: "Tu nueva tarjeta ha sido creada exitosamente.",
-                });
-            }
-            setIsSuccess(true);
-        } catch (error) {
-             toast({
-                title: "Error",
-                description: `No se pudo ${cardToEdit ? 'actualizar' : 'añadir'} la tarjeta.`,
-                variant: "destructive"
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    }
-    
+    const cardType = form.watch("cardType");
     const selectedProfile = form.watch("profile");
     const filteredAccounts = bankAccounts.filter(acc => acc.profile === selectedProfile);
 
@@ -150,7 +144,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                 </DialogHeader>
                  <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"
