@@ -107,12 +107,12 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
                                 <DropdownMenuItem onClick={handleEdit}>
                                     <Pencil className="mr-2 h-4 w-4" /> Editar
                                 </DropdownMenuItem>
                                 <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <DropdownMenuItem>
                                         <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                     </DropdownMenuItem>
                                 </AlertDialogTrigger>

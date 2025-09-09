@@ -46,17 +46,15 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             .reduce((sum, t) => sum + t.amount, 0);
     }, [transactions, account]);
 
-    const handleEdit = (e: React.MouseEvent) => {
+    const handleEdit = () => {
         setAccountToEdit(account);
     };
     
-    const handleManageCreditLine = (e: React.MouseEvent) => {
+    const handleManageCreditLine = () => {
         setManageCreditLineAccount(account);
     }
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
+    const handleDelete = async () => {
         try {
             await deleteBankAccount(account.id);
             toast({
@@ -123,18 +121,18 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                         <MoreVertical className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onSelect={e => e.preventDefault()}>
-                                    <DropdownMenuItem onClick={handleEdit} onSelect={(e) => e.preventDefault()}>
+                                <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <DropdownMenuItem onClick={handleEdit}>
                                         <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
                                     </DropdownMenuItem>
                                      {account.accountType === "Cuenta Corriente" && (
-                                        <DropdownMenuItem onClick={handleManageCreditLine} onSelect={(e) => e.preventDefault()}>
+                                        <DropdownMenuItem onClick={handleManageCreditLine}>
                                             <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
                                         </DropdownMenuItem>
                                     )}
                                     <DropdownMenuSeparator />
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-400 focus:text-red-500">
+                                        <DropdownMenuItem className="text-red-400 focus:text-red-500">
                                             <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
