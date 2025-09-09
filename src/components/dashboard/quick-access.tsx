@@ -24,7 +24,7 @@ export function QuickAccess() {
                     {quickAccessItems.map(item => {
                         const Icon = item.icon;
                         return (
-                             <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg hover:bg-muted transition-colors">
+                             <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg hover:bg-muted transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105">
                                 <div className={`flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background transition-colors group-hover:border-primary ${item.color}`}>
                                     <Icon className="h-6 w-6" />
                                 </div>
