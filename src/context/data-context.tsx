@@ -230,7 +230,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         const batch = writeBatch(db);
         const userDocRef = doc(db, 'users', newUid);
-        batch.set(userDocRef, { initialized: true, createdAt: new Date() }, { merge: true });
+        batch.set(userDocRef, { initialized: true, createdAt: new Date() });
 
         defaultProfiles.forEach(profile => {
             const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
@@ -248,7 +248,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
 
     const login = async (email: string, pass: string) => {
-        await signInWithEmailAndPassword(auth, email, pass);
+        return signInWithEmailAndPassword(auth, email, pass).then(() => {});
     }
     const signup = async (email: string, pass: string) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -331,7 +331,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 debtType: 'credit-card',
                 profile: transData.profile,
                 accountId: transData.accountId,
-                sourceTransactionId: transRef.id,
                 financialInstitution: allBankCards.find(c => c.id === transData.cardId)?.bank || 'Tarjeta de Crédito',
             };
             const debtRef = doc(collection(db, 'users', uid, 'debts'));
