@@ -25,6 +25,8 @@ export type BankAccount = {
   purpose: 'main' | 'savings' | 'investment'; // Designate account for a specific purpose
   color?: string;
   monthlyLimit?: number; // For "Cuenta Vista" monthly deposit limit
+  rut?: string;
+  email?: string;
   // New optional fields for Credit Line associated with a Current Account
   hasCreditLine?: boolean;
   creditLineLimit?: number;

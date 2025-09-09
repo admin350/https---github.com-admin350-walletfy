@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -73,7 +74,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const handleCopy = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        const accountInfo = `Banco: ${account.bank}\nAlias: ${account.name}\nTipo de Cuenta: ${account.accountType}\nNúmero de Cuenta: ${account.accountNumber}`;
+        const accountInfo = `Banco: ${account.bank}\nAlias: ${account.name}\nTipo de Cuenta: ${account.accountType}\nNúmero de Cuenta: ${account.accountNumber}\nRUT: ${account.rut || 'No especificado'}\nCorreo: ${account.email || 'No especificado'}`;
         navigator.clipboard.writeText(accountInfo);
         setIsCopied(true);
         toast({ title: '¡Información Copiada!', description: 'Los detalles de la cuenta se han copiado.' });

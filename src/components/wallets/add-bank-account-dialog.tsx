@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -37,6 +38,8 @@ const formSchema = z.object({
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   purpose: z.enum(["main", "savings", "investment"]),
+  rut: z.string().min(1, "El RUT es requerido."),
+  email: z.string().email("Debe ser un correo electrónico válido."),
   color: z.string().optional(),
   monthlyLimit: z.coerce.number().optional(),
   hasCreditLine: z.boolean().default(false),
@@ -72,6 +75,8 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             balance: 0,
             profile: "",
             purpose: "main",
+            rut: "",
+            email: "",
             color: "#0ea5e9",
             monthlyLimit: undefined,
             hasCreditLine: false,
@@ -114,6 +119,8 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
             if (accountToEdit) {
                 form.reset({
                     ...accountToEdit,
+                    rut: accountToEdit.rut || "",
+                    email: accountToEdit.email || "",
                     color: accountToEdit.color || "#0ea5e9",
                     monthlyLimit: accountToEdit.monthlyLimit || undefined,
                     hasCreditLine: accountToEdit.hasCreditLine || false,
@@ -129,6 +136,8 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                     balance: 0,
                     profile: "",
                     purpose: "main",
+                    rut: "",
+                    email: "",
                     color: "#0ea5e9",
                     monthlyLimit: undefined,
                     hasCreditLine: false,
@@ -175,6 +184,32 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         <FormLabel>Banco</FormLabel>
                                         <FormControl>
                                             <Input placeholder="Ej: Banco de Chile" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="rut"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>RUT del Titular</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="12.345.678-9" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Correo Electrónico</FormLabel>
+                                        <FormControl>
+                                            <Input type="email" placeholder="tu@correo.com" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
