@@ -55,6 +55,7 @@ interface AddDebtDialogProps {
 export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddDebtDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addDebt, updateDebt, profiles, bankAccounts } = useData();
     
@@ -78,24 +79,33 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
     });
 
      useEffect(() => {
-        if (dialogOpen && debtToEdit) {
-            form.reset({
-                ...debtToEdit,
-                dueDate: new Date(debtToEdit.dueDate),
-                dueNotificationDays: debtToEdit.dueNotificationDays ?? 3,
-            });
-        } else if (dialogOpen && !debtToEdit) {
-            form.reset({
-                name: "",
-                totalAmount: '' as any,
-                monthlyPayment: '' as any,
-                installments: '' as any,
-                dueDate: new Date(),
-                debtType: 'consumo',
-                profile: "",
-                accountId: "",
-                dueNotificationDays: 3,
-            });
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
+     useEffect(() => {
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (debtToEdit) {
+                form.reset({
+                    ...debtToEdit,
+                    dueDate: new Date(debtToEdit.dueDate),
+                    dueNotificationDays: debtToEdit.dueNotificationDays ?? 3,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    totalAmount: '' as any,
+                    monthlyPayment: '' as any,
+                    installments: '' as any,
+                    dueDate: new Date(),
+                    debtType: 'consumo',
+                    profile: "",
+                    accountId: "",
+                    dueNotificationDays: 3,
+                });
+            }
         }
     }, [debtToEdit, form, dialogOpen]);
 
@@ -118,8 +128,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                     description: "Tu deuda ha sido registrada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

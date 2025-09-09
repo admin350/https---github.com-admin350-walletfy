@@ -28,6 +28,7 @@ interface AddCategoryDialogProps {
 
 export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCategoryDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addCategory, updateCategory } = useData();
     
@@ -41,7 +42,14 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
     });
 
     useEffect(() => {
+        if (isSuccess && !isLoading) {
+            onOpenChange(false);
+        }
+    }, [isSuccess, isLoading, onOpenChange]);
+
+    useEffect(() => {
         if (open) {
+            setIsSuccess(false);
             if (categoryToEdit) {
                 form.reset(categoryToEdit);
             } else {
@@ -70,8 +78,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                     description: "La nueva categoría ha sido creada.",
                 });
             }
-            form.reset();
-            onOpenChange(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

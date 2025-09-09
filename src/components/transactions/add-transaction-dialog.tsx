@@ -83,14 +83,16 @@ const formSchema = z.object({
 interface AddTransactionDialogProps {
     children?: ReactNode;
     transactionToEdit?: Partial<Transaction>;
+    defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     onFinish?: () => void;
 }
 
-export function AddTransactionDialog({ children, transactionToEdit, open, onOpenChange, onFinish }: AddTransactionDialogProps) {
+export function AddTransactionDialog({ children, transactionToEdit, defaultType = 'expense', open, onOpenChange, onFinish }: AddTransactionDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency } = useData();
     
@@ -101,7 +103,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            type: "expense",
+            type: defaultType,
             amount: '' as any,
             description: "",
             category: "",
@@ -116,31 +118,41 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
     });
 
     useEffect(() => {
-        if(dialogOpen && transactionToEdit) {
-            form.reset({
-                ...transactionToEdit,
-                amount: transactionToEdit.amount || ('' as any),
-                date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
-                paymentMethod: transactionToEdit.cardId || 'account-balance',
-                isInstallment: false, // Don't support editing installments for now
-                installments: undefined,
-            });
-        } else if (dialogOpen && !transactionToEdit) {
-             form.reset({
-                type: "expense",
-                amount: '' as any,
-                description: "",
-                category: "",
-                profile: "",
-                accountId: "",
-                destinationAccountId: undefined,
-                paymentMethod: 'account-balance',
-                date: new Date(),
-                isInstallment: false,
-                installments: undefined,
-            });
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
         }
-    }, [transactionToEdit, form, dialogOpen]);
+    }, [isSuccess, isLoading, setDialogOpen]);
+
+    useEffect(() => {
+        if(dialogOpen) {
+            setIsSuccess(false);
+            if (transactionToEdit) {
+                 form.reset({
+                    ...transactionToEdit,
+                    type: transactionToEdit.type || defaultType,
+                    amount: transactionToEdit.amount || ('' as any),
+                    date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
+                    paymentMethod: transactionToEdit.cardId || 'account-balance',
+                    isInstallment: false,
+                    installments: undefined,
+                });
+            } else {
+                 form.reset({
+                    type: defaultType,
+                    amount: '' as any,
+                    description: "",
+                    category: "",
+                    profile: "",
+                    accountId: "",
+                    destinationAccountId: undefined,
+                    paymentMethod: 'account-balance',
+                    date: new Date(),
+                    isInstallment: false,
+                    installments: undefined,
+                });
+            }
+        }
+    }, [transactionToEdit, defaultType, form, dialogOpen]);
 
 
     const transactionType = form.watch("type");
@@ -201,17 +213,7 @@ export function AddTransactionDialog({ children, transactionToEdit, open, onOpen
                     description: "Tu transacción ha sido registrada exitosamente.",
                 });
             }
-           
-            form.reset({
-                type: "expense",
-                amount: '' as any,
-                description: "",
-                category: "",
-                profile: "",
-                accountId: "",
-                date: new Date(),
-            });
-            setDialogOpen(false);
+            setIsSuccess(true);
             if(onFinish) onFinish();
         } catch (error: any) {
             toast({

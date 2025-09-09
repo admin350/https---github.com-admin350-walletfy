@@ -43,6 +43,7 @@ const formSchema = z.object({
 export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addSubscription, profiles, bankCards, formatCurrency } = useData();
 
@@ -57,6 +58,12 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         },
     });
     
+    useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setOpen(false);
+        }
+    }, [isSuccess, isLoading]);
+
     const selectedProfile = form.watch("profile");
     const filteredCards = bankCards.filter(card => card.profile === selectedProfile);
 
@@ -68,8 +75,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 title: "Suscripción Registrada",
                 description: "Se ha creado el gasto y programado el próximo pago.",
             });
-            setOpen(false);
-            form.reset();
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",
@@ -90,6 +96,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 cardId: "",
                 profile: "",
             });
+            setIsSuccess(false);
         }
     }, [open, form]);
 

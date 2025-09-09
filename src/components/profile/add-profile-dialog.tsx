@@ -26,6 +26,7 @@ interface AddProfileDialogProps {
 
 export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfileDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addProfile, updateProfile } = useData();
     
@@ -38,7 +39,14 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
     });
 
     useEffect(() => {
+        if (isSuccess && !isLoading) {
+            onOpenChange(false);
+        }
+    }, [isSuccess, isLoading, onOpenChange]);
+
+    useEffect(() => {
         if (open) {
+            setIsSuccess(false);
             if (profileToEdit) {
                 form.reset({
                     name: profileToEdit.name,
@@ -69,8 +77,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                     description: "El nuevo perfil ha sido creado.",
                 });
             }
-            form.reset();
-            onOpenChange(false);
+            setIsSuccess(true);
         } catch (error: any) {
              toast({
                 title: "Error",

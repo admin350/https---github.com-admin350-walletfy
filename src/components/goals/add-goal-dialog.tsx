@@ -51,6 +51,7 @@ interface AddGoalDialogProps {
 export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddGoalDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addGoal, updateGoal, profiles } = useData();
     
@@ -69,22 +70,31 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
     });
 
     useEffect(() => {
-        if (dialogOpen && goalToEdit) {
-            form.reset({
-                name: goalToEdit.name,
-                targetAmount: goalToEdit.targetAmount,
-                estimatedDate: new Date(goalToEdit.estimatedDate),
-                profile: goalToEdit.profile,
-                category: goalToEdit.category,
-            });
-        } else if (dialogOpen && !goalToEdit) {
-            form.reset({
-                name: "",
-                targetAmount: '' as any,
-                estimatedDate: new Date(),
-                profile: "",
-                category: "",
-            });
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
+    useEffect(() => {
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (goalToEdit) {
+                form.reset({
+                    name: goalToEdit.name,
+                    targetAmount: goalToEdit.targetAmount,
+                    estimatedDate: new Date(goalToEdit.estimatedDate),
+                    profile: goalToEdit.profile,
+                    category: goalToEdit.category,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    targetAmount: '' as any,
+                    estimatedDate: new Date(),
+                    profile: "",
+                    category: "",
+                });
+            }
         }
     }, [goalToEdit, form, dialogOpen]);
 
@@ -108,8 +118,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
                     description: "Tu meta ha sido registrada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

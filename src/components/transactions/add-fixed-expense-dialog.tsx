@@ -48,6 +48,7 @@ interface AddFixedExpenseDialogProps {
 export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenChange, onFinish }: AddFixedExpenseDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addFixedExpense, updateFixedExpense, categories, profiles } = useData();
     
@@ -67,22 +68,31 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
         },
     });
 
+    useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
      useEffect(() => {
-        if (dialogOpen && expenseToEdit) {
-            form.reset({
-                ...expenseToEdit,
-                amount: expenseToEdit.amount || ('' as any),
-                paymentDay: expenseToEdit.paymentDay || undefined,
-            });
-        } else if (dialogOpen && !expenseToEdit) {
-            form.reset({
-                name: "",
-                amount: '' as any,
-                type: "expense",
-                category: "",
-                profile: "",
-                paymentDay: undefined,
-            });
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (expenseToEdit) {
+                form.reset({
+                    ...expenseToEdit,
+                    amount: expenseToEdit.amount || ('' as any),
+                    paymentDay: expenseToEdit.paymentDay || undefined,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    amount: '' as any,
+                    type: "expense",
+                    category: "",
+                    profile: "",
+                    paymentDay: undefined,
+                });
+            }
         }
     }, [expenseToEdit, form, dialogOpen]);
     
@@ -110,8 +120,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                     description: "Tu plantilla de gasto ha sido creada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
             if(onFinish) onFinish();
         } catch (error) {
              toast({

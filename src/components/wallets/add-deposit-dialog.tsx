@@ -142,13 +142,6 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
             });
             
             setIsSuccess(true);
-            form.reset({
-                 amount: '' as any,
-                 description: "",
-                 category: "",
-                 accountId: "",
-                 date: new Date(),
-            });
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -161,7 +154,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) setIsSuccess(false); }}>
+        <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) { setIsSuccess(false); form.reset(); } }}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

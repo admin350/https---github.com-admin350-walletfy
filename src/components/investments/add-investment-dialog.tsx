@@ -46,6 +46,7 @@ interface AddInvestmentDialogProps {
 export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenChange }: AddInvestmentDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addInvestment, updateInvestment, profiles } = useData();
     
@@ -65,22 +66,31 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
     });
 
     useEffect(() => {
-        if (dialogOpen && investmentToEdit) {
-            form.reset({
-                name: investmentToEdit.name,
-                initialAmount: investmentToEdit.initialAmount,
-                investmentType: investmentToEdit.investmentType,
-                platform: investmentToEdit.platform,
-                profile: investmentToEdit.profile,
-            });
-        } else if (dialogOpen && !investmentToEdit) {
-            form.reset({
-                name: "",
-                initialAmount: '' as any,
-                investmentType: "",
-                platform: "",
-                profile: "",
-            });
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
+    useEffect(() => {
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (investmentToEdit) {
+                form.reset({
+                    name: investmentToEdit.name,
+                    initialAmount: investmentToEdit.initialAmount,
+                    investmentType: investmentToEdit.investmentType,
+                    platform: investmentToEdit.platform,
+                    profile: investmentToEdit.profile,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    initialAmount: '' as any,
+                    investmentType: "",
+                    platform: "",
+                    profile: "",
+                });
+            }
         }
     }, [investmentToEdit, form, dialogOpen]);
 
@@ -104,8 +114,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                     description: "Tu inversión ha sido registrada exitosamente.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",

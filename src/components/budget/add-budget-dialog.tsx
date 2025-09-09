@@ -5,9 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
-import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, useFieldArray } from "react-hook-form"
+import * as z from "zod"
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -41,6 +41,7 @@ interface AddBudgetDialogProps {
 export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: AddBudgetDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
     const { addBudget, updateBudget, profiles, categories } = useData();
     
@@ -62,24 +63,33 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
         name: "items",
     });
 
+    useEffect(() => {
+        if (isSuccess && !isLoading) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, isLoading, setDialogOpen]);
+
     const watchItems = form.watch("items");
     const totalPercentage = watchItems.reduce((sum, item) => sum + (Number(item.percentage) || 0), 0);
 
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
     useEffect(() => {
-        if (dialogOpen && budgetToEdit) {
-            form.reset({
-                name: budgetToEdit.name,
-                profile: budgetToEdit.profile,
-                items: budgetToEdit.items,
-            });
-        } else if (dialogOpen && !budgetToEdit) {
-            form.reset({
-                name: "",
-                profile: "",
-                items: [],
-            });
+        if (dialogOpen) {
+            setIsSuccess(false);
+            if (budgetToEdit) {
+                form.reset({
+                    name: budgetToEdit.name,
+                    profile: budgetToEdit.profile,
+                    items: budgetToEdit.items,
+                });
+            } else {
+                form.reset({
+                    name: "",
+                    profile: "",
+                    items: [],
+                });
+            }
         }
     }, [budgetToEdit, form, dialogOpen]);
 
@@ -99,8 +109,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
                     description: "Tu nuevo plan ha sido creado.",
                 });
             }
-            form.reset();
-            setDialogOpen(false);
+            setIsSuccess(true);
         } catch (error) {
              toast({
                 title: "Error",
