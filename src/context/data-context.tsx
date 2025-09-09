@@ -488,6 +488,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateBankAccount = async (account: BankAccount) => {
+        if (!uid) throw new Error("Usuario no autenticado");
         const accountData: Partial<BankAccount> = { ...account };
          if (account.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
