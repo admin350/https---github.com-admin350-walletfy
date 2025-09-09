@@ -25,7 +25,7 @@ export function QuickAccess() {
                         const Icon = item.icon;
                         return (
                              <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg hover:bg-muted transition-colors">
-                                <div className={`flex h-12 w-12 items-center justify-center rounded-lg border-2 border-dashed border-border group-hover:border-primary transition-colors ${item.color}`}>
+                                <div className={`flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background transition-colors group-hover:border-primary ${item.color}`}>
                                     <Icon className="h-6 w-6" />
                                 </div>
                                 <span className="text-xs text-center text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
