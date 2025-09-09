@@ -11,6 +11,7 @@ export type Transaction = {
   accountId: string; // source account
   destinationAccountId?: string; // destination account for transfers
   cardId?: string; // Optional: link to a BankCard for expenses
+  isCreditLinePayment?: boolean; // Flag for credit line usage
 };
 
 export type BankAccount = {

@@ -48,7 +48,7 @@ interface DataContextType {
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
@@ -252,10 +252,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string }) => {
+     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, ...formData } = transaction;
-    
+
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
             amount: formData.amount,
@@ -264,6 +264,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: formData.profile,
             date: formData.date,
             accountId: formData.accountId,
+            isCreditLinePayment: paymentMethod === 'credit-line',
         };
     
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
@@ -281,13 +282,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!sourceAccount) throw new Error("Source account not found");
     
         if (isInstallment && paymentIsCard) {
-            const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
+            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
                 name: `Compra: ${transData.description}`,
                 totalAmount: transData.amount,
                 monthlyPayment: transData.amount / (installments || 1),
                 installments: installments || 1,
                 dueDate: addMonths(new Date(transData.date), 1),
                 debtType: 'credit-card',
+                financialInstitution: allBankCards.find(c => c.id === transData.cardId)?.bank || 'Tarjeta de Crédito',
                 profile: transData.profile,
                 accountId: transData.accountId,
                 sourceTransactionId: transRef.id,
@@ -308,12 +310,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const creditLineDebtSnapshot = await getDocs(creditLineDebtQuery);
     
             if (creditLineDebtSnapshot.empty) {
-                const debtData: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'> = {
+                const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
                     name: `Línea de Crédito: ${sourceAccount.name}`,
                     totalAmount: sourceAccount.creditLineLimit || 0,
                     paidAmount: (sourceAccount.creditLineUsed || 0) + transData.amount,
                     monthlyPayment: 0, // Should be defined by user later
                     installments: 1,
+                    financialInstitution: sourceAccount.bank,
                     debtType: 'line-of-credit',
                     dueDate: addMonths(new Date(), 1), // Placeholder due date
                     profile: transData.profile,
@@ -386,10 +389,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     // DEBT FUNCTIONS
-    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount' | 'financialInstitution'>) => {
-        const account = allBankAccounts.find(a => a.id === debt.accountId);
-        if (!account) throw new Error("Account not found for debt");
-        await addDoc('debts', { ...debt, paidAmount: 0, financialInstitution: account.bank }); 
+    const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
+        await addDoc('debts', { ...debt, paidAmount: 0 }); 
     };
     const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
     const deleteDebt = async (id: string) => await deleteDocById('debts', id);
@@ -460,7 +461,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // BANK ACCOUNT/CARD FUNCTIONS
     const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const accountData: Omit<BankAccount, 'id'> = { ...account };
+        const accountData: Partial<BankAccount> = { ...account };
         if (account.accountType !== 'Cuenta Vista') {
             delete accountData.monthlyLimit;
         }
@@ -469,8 +470,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const updateBankAccount = async (account: BankAccount) => {
         const accountData: Partial<BankAccount> = { ...account };
-        if (account.accountType !== 'Cuenta Vista') {
-            accountData.monthlyLimit = undefined;
+         if (account.accountType !== 'Cuenta Vista') {
+            delete accountData.monthlyLimit;
+        }
+        if (!account.hasCreditLine) {
+            delete accountData.creditLineLimit;
+            delete accountData.creditLineUsed;
         }
         await setDocWithId('bankAccounts', account.id, accountData);
     };
