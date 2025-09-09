@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, Target, Wallet } from "lucide-react";
+import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, Target, Wallet, List } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,7 @@ const quickAccessItems = [
     { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas", color: "text-orange-400", shadow: "hover:shadow-[0_0_15px_#f97316]" },
     { href: "/dashboard/debts", icon: Banknote, label: "Deudas", color: "text-red-400", shadow: "hover:shadow-[0_0_15px_#f87171]" },
     { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400", shadow: "hover:shadow-[0_0_15px_#c084fc]" },
-    { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400", shadow: "hover:shadow-[0_0_15px_#facc15]" },
+    { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-sky-400", shadow: "hover:shadow-[0_0_15px_#38bdf8]" },
     { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400", shadow: "hover:shadow-[0_0_15px_#fb7185]" },
     { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400", shadow: "hover:shadow-[0_0_15px_#34d399]" },
     { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Inversión", color: "text-blue-400", shadow: "hover:shadow-[0_0_15px_#60a5fa]" },
