@@ -309,10 +309,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             isCreditLinePayment: paymentMethod === 'credit-line',
         };
 
-        if (formData.destinationAccountId) {
-            transData.destinationAccountId = formData.destinationAccountId;
-        }
-        
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
         if (paymentIsCard) {
             transData.cardId = paymentMethod;
@@ -330,10 +326,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (transData.type === 'transfer') {
             if (!transData.destinationAccountId) throw new Error("Destination account is required for transfers.");
             
-            // Debit from source
             batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
     
-            // Credit to destination
             const destAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.destinationAccountId);
             const destAccountSnap = await getDoc(destAccountRef);
             if (destAccountSnap.exists()) {
@@ -345,37 +339,35 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         } else if (transData.type === 'income') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance + transData.amount });
         } else if (transData.type === 'expense') {
-            // Logic for expenses
             if (paymentMethod === 'credit-line') {
                 batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
-            } else if (paymentIsCard) {
-                 if (!transData.cardId) throw new Error("Card ID is required for card payments.");
+            } else if (paymentIsCard && transData.cardId) {
                 const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
                 if (cardSnap.exists()) {
                     const card = cardSnap.data() as BankCard;
                     if (card.cardType === 'credit') {
                         batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
-                         if (isInstallment) {
-                            const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
-                                name: `Compra: ${transData.description}`,
-                                totalAmount: transData.amount,
-                                monthlyPayment: transData.amount / (installments || 1),
-                                installments: installments || 1,
-                                dueDate: addMonths(new Date(transData.date), 1),
-                                debtType: 'credit-card',
-                                profile: transData.profile,
-                                accountId: transData.accountId,
-                                financialInstitution: card.bank,
-                            };
-                            const debtRef = doc(collection(db, 'users', uid, 'debts'));
-                            batch.set(debtRef, { ...debtData, paidAmount: 0 });
-                        }
-                    } else { // Debit or Prepaid
+                        if (isInstallment) {
+                           const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
+                               name: `Compra: ${transData.description}`,
+                               totalAmount: transData.amount,
+                               monthlyPayment: transData.amount / (installments || 1),
+                               installments: installments || 1,
+                               dueDate: addMonths(new Date(transData.date), 1),
+                               debtType: 'credit-card',
+                               profile: transData.profile,
+                               accountId: transData.accountId,
+                               financialInstitution: card.bank,
+                           };
+                           const debtRef = doc(collection(db, 'users', uid, 'debts'));
+                           batch.set(debtRef, { ...debtData, paidAmount: 0 });
+                       }
+                    } else { 
                         batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
                     }
                 }
-            } else { // Default to account balance
+            } else { 
                  batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
             }
         }
@@ -812,8 +804,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
 
         // 2. Debt Notifications
+        const overdueDebtIds = new Set<string>();
         allDebts.forEach(debt => {
             if (debt.paidAmount < debt.totalAmount) {
+                const dueDate = debt.dueDate;
+                if (isPast(dueDate) && !isSameDay(today, dueDate)) {
+                     newNotifications.push({
+                        id: `debt-overdue-${debt.id}`, title: `¡Pago de Deuda Atrasado!`,
+                        description: `El pago para "${debt.name}" venció el ${format(dueDate, "dd/MM/yyyy")}.`,
+                        date: new Date(), read: false, type: 'error', link: `/dashboard/debts/${debt.id}`
+                    });
+                    overdueDebtIds.add(debt.id);
+                }
+            }
+        });
+        
+        allDebts.forEach(debt => {
+            if (debt.paidAmount < debt.totalAmount && !overdueDebtIds.has(debt.id)) {
                 const dueDate = debt.dueDate;
                 const notificationDate = subDays(dueDate, debt.dueNotificationDays || 3);
                 if ((isSameDay(today, notificationDate) || (today > notificationDate && today < dueDate))) {
@@ -821,13 +828,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         id: `debt-due-${debt.id}`, title: `Deuda Próxima a Vencer`,
                         description: `Tu pago para "${debt.name}" vence el ${format(dueDate, "dd/MM/yyyy")}.`,
                         date: new Date(), read: false, type: 'warning', link: `/dashboard/debts/${debt.id}`
-                    });
-                }
-                if (isPast(dueDate) && !isSameDay(today, dueDate)) {
-                     newNotifications.push({
-                        id: `debt-overdue-${debt.id}`, title: `¡Pago de Deuda Atrasado!`,
-                        description: `El pago para "${debt.name}" venció el ${format(dueDate, "dd/MM/yyyy")}.`,
-                        date: new Date(), read: false, type: 'error', link: `/dashboard/debts/${debt.id}`
                     });
                 }
             }
