@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -55,31 +55,68 @@ const NotificationIcon = ({ type }: { type: AppNotification['type']}) => {
     }
 }
 
-const NotificationPanel = ({ notifications }: { notifications: AppNotification[] }) => {
+const NotificationPanel = () => {
+    const { notifications: initialNotifications } = useData();
+    const [notifications, setNotifications] = useState(initialNotifications);
+
+    useEffect(() => {
+        setNotifications(initialNotifications);
+    }, [initialNotifications]);
+
+    const handleMarkAllAsRead = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setNotifications([]);
+    };
+
+    const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+
+    const unreadCount = notifications.length;
+
     return (
-        <PopoverContent align="end" className="w-80 max-h-[400px] overflow-y-auto">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="font-medium">Notificaciones</h3>
-                <Button variant="link" size="sm" className="h-auto p-0">Marcar como leídas</Button>
-            </div>
-            <div className="space-y-2">
-                {notifications.length > 0 ? (
-                    notifications.map(n => (
-                        <Link href={n.link || '#'} key={n.id}>
-                            <div className="text-sm p-3 rounded-md border flex gap-3 items-start hover:bg-muted/50">
-                                <NotificationIcon type={n.type} />
-                                <div className="flex-1">
-                                    <p className="font-semibold leading-tight">{n.title}</p>
-                                    <p className="text-xs text-muted-foreground">{n.description}</p>
+        <>
+         <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{unreadCount}</Badge>
+                    )}
+                </Button>
+            </PopoverTrigger>
+             <PopoverContent align="end" className="w-80 max-h-[400px] overflow-y-auto">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium">Notificaciones</h3>
+                    {unreadCount > 0 && (
+                        <Button variant="link" size="sm" className="h-auto p-0" onClick={handleMarkAllAsRead}>Marcar como leídas</Button>
+                    )}
+                </div>
+                <div className="space-y-2">
+                    {notifications.length > 0 ? (
+                        notifications.map(n => (
+                            <Link href={n.link || '#'} key={n.id} className="block relative group">
+                                <div className="text-sm p-3 rounded-md border flex gap-3 items-start hover:bg-muted/50">
+                                    <NotificationIcon type={n.type} />
+                                    <div className="flex-1">
+                                        <p className="font-semibold leading-tight">{n.title}</p>
+                                        <p className="text-xs text-muted-foreground">{n.description}</p>
+                                    </div>
+                                    <button onClick={(e) => handleRemoveNotification(e, n.id)} className="absolute top-1 right-1 p-0.5 rounded-full text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <X className="h-3 w-3"/>
+                                    </button>
                                 </div>
-                            </div>
-                        </Link>
-                    ))
-                ) : (
-                    <p className="text-xs text-muted-foreground text-center py-4">No tienes notificaciones</p>
-                )}
-            </div>
-        </PopoverContent>
+                            </Link>
+                        ))
+                    ) : (
+                        <p className="text-xs text-muted-foreground text-center py-4">No tienes notificaciones</p>
+                    )}
+                </div>
+            </PopoverContent>
+         </Popover>
+        </>
     )
 }
 
@@ -93,7 +130,6 @@ export function Header() {
     filters,
     setFilters,
     availableYears,
-    notifications,
   } = useData();
   
   const months = Array.from({ length: 12 }, (_, i) => ({
@@ -106,7 +142,6 @@ export function Header() {
   }, []);
   
   const isCalendarPage = pathname === '/dashboard/calendar';
-  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -177,17 +212,7 @@ export function Header() {
                     {isCalendarPage ? <LayoutDashboard className="h-5 w-5" /> : <Calendar className="h-5 w-5" />}
                 </Button>
             </Link>
-             <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative">
-                        <Bell className="h-5 w-5" />
-                        {unreadNotificationsCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{unreadNotificationsCount}</Badge>
-                        )}
-                    </Button>
-                </PopoverTrigger>
-                <NotificationPanel notifications={notifications} />
-            </Popover>
+             <NotificationPanel />
            <Link href="/dashboard/profile">
                 <Button variant="ghost" size="icon">
                     <User className="h-5 w-5" />
