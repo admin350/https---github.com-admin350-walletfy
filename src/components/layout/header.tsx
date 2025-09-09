@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -24,12 +24,8 @@ const navSections = [
             { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
             { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
             { href: "/dashboard/calendar", icon: Calendar, label: "Calendario", color: "text-amber-400" },
-            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
-            { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
-            { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
-            { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
-            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
             { href: "/dashboard/reports", icon: FileText, label: "Informes", color: "text-gray-400" },
+            { href: "/dashboard/taxes", icon: Scale, label: "Impuestos", color: "text-teal-400" },
         ]
     },
     {
@@ -39,6 +35,16 @@ const navSections = [
             { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas Bancarias", color: "text-orange-400" },
             { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
+        ]
+    },
+    {
+        title: "Obligaciones y Metas",
+        items: [
+            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
+            { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
+            { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
+            { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
+            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
         ]
     }
 ]
@@ -286,5 +292,3 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
         </div>
     )
 }
-
-    

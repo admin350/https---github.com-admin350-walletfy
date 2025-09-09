@@ -12,6 +12,7 @@ import {
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -29,7 +30,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Percent } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
@@ -54,6 +55,9 @@ const formSchema = z.object({
   date: z.date({ required_error: "Fecha es requerida." }),
   isInstallment: z.boolean().default(false),
   installments: z.coerce.number().optional(),
+  // Tax fields
+  includesTax: z.boolean().default(false),
+  taxRate: z.coerce.number().optional(),
 }).refine(data => {
     if (data.type === 'transfer' && !data.destinationAccountId) {
         return false;
@@ -114,17 +118,30 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
             date: new Date(),
             isInstallment: false,
             installments: undefined,
+            includesTax: false,
+            taxRate: 19,
         },
     });
 
      const { performAction, isLoading, isSuccess } = useSubmitAction({
         action: async (values: FormValues) => {
-             const transactionData = {
-                ...values,
+            const { includesTax, taxRate, ...restOfValues } = values;
+            
+            let taxDetails: Transaction['taxDetails'] | undefined = undefined;
+            if (includesTax && taxRate && restOfValues.amount) {
+                const total = restOfValues.amount;
+                const taxAmount = total - (total / (1 + taxRate / 100));
+                taxDetails = { rate: taxRate, amount: taxAmount };
+            }
+
+            const transactionData: Omit<Transaction, 'id' | 'cardId'> & { paymentMethod?: string } = {
+                ...restOfValues,
                 date: values.date.toISOString(),
+                taxDetails: taxDetails,
             };
-            if (transactionToEdit && transactionToEdit.id) {
-                 await addTransaction(transactionData);
+            
+            if (transactionToEdit?.id) {
+                 await updateTransaction({ ...transactionData, id: transactionToEdit.id });
             } else {
                 await addTransaction(transactionData);
             }
@@ -153,8 +170,26 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 
     useEffect(() => {
         if(dialogOpen) {
-            const transferCategory = categories.find(c => c.type === 'Transferencia');
+            const hasTax = !!transactionToEdit?.taxDetails;
             const initialValues: Partial<FormValues> = {
+                type: transactionToEdit?.type || defaultType,
+                amount: transactionToEdit?.amount || ('' as any),
+                description: transactionToEdit?.description || "",
+                category: transactionToEdit?.category || "",
+                profile: transactionToEdit?.profile || "",
+                accountId: transactionToEdit?.accountId || "",
+                destinationAccountId: transactionToEdit?.destinationAccountId || undefined,
+                paymentMethod: transactionToEdit?.cardId || 'account-balance',
+                date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
+                isInstallment: transactionToEdit?.installments ? transactionToEdit.installments > 1 : false,
+                installments: transactionToEdit?.installments,
+                includesTax: hasTax,
+                taxRate: transactionToEdit?.taxDetails?.rate || 19,
+            };
+
+            form.reset(initialValues as FormValues);
+        } else {
+            form.reset({
                 type: defaultType,
                 amount: '' as any,
                 description: "",
@@ -166,24 +201,11 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 date: new Date(),
                 isInstallment: false,
                 installments: undefined,
-            };
-
-            if (transactionToEdit) {
-                Object.assign(initialValues, {
-                    ...transactionToEdit,
-                    amount: transactionToEdit.amount || ('' as any),
-                    date: transactionToEdit.date ? new Date(transactionToEdit.date) : new Date(),
-                    paymentMethod: transactionToEdit.cardId || 'account-balance'
-                });
-            }
-            
-            if (initialValues.type === 'transfer' && transferCategory) {
-                initialValues.category = transferCategory.name;
-            }
-            
-            form.reset(initialValues as FormValues);
+                includesTax: false,
+                taxRate: 19,
+            });
         }
-    }, [transactionToEdit, defaultType, form, dialogOpen, categories]);
+    }, [transactionToEdit, defaultType, form, dialogOpen]);
 
 
     const transactionType = form.watch("type");
@@ -191,6 +213,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const sourceAccountId = form.watch("accountId");
     const paymentMethod = form.watch("paymentMethod");
     const isInstallment = form.watch("isInstallment");
+    const includesTax = form.watch("includesTax");
     
     const sourceAccount = bankAccounts.find(acc => acc.id === sourceAccountId);
     const selectedCard = bankCards.find(c => c.id === paymentMethod);
@@ -198,7 +221,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
         if (transactionType === 'expense') return c.type === 'Gasto';
-        return false; // Hide for transfer
+        return false;
     });
 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
@@ -215,7 +238,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     }, [transactionType, categories, form]);
 
     useEffect(() => {
-        // Reset payment method if source account changes
         form.setValue('paymentMethod', 'account-balance');
     }, [sourceAccountId, form]);
 
@@ -238,7 +260,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Tipo</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!!transactionToEdit?.id}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona un tipo" />
@@ -422,7 +444,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                         </>
                     )}
                     {transactionType !== 'transfer' && (
-                        <FormField
+                         <FormField
                             control={form.control}
                             name="category"
                             render={({ field }) => (
@@ -445,6 +467,49 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                             )}
                         />
                     )}
+
+                    {transactionType !== 'transfer' && (
+                        <FormField
+                            control={form.control}
+                            name="includesTax"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                     <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel>¿Esta transacción incluye impuestos? (Ej: IVA)</FormLabel>
+                                        <FormDescription>
+                                            Marca esto si el monto total incluye impuestos que necesitas rastrear.
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                    {includesTax && transactionType !== 'transfer' && (
+                        <FormField
+                            control={form.control}
+                            name="taxRate"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tasa de Impuesto (%)</FormLabel>
+                                    <div className="relative">
+                                         <FormControl>
+                                            <Input type="number" placeholder="19" {...field} value={field.value ?? ''} className="pl-8"/>
+                                        </FormControl>
+                                        <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+
                     <FormField
                         control={form.control}
                         name="date"

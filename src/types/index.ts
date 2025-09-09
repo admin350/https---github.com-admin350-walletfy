@@ -12,6 +12,10 @@ export type Transaction = {
   destinationAccountId?: string; // destination account for transfers
   cardId?: string; // Optional: link to a BankCard for expenses
   isCreditLinePayment?: boolean; // Flag for credit line usage
+  taxDetails?: { // Optional: for tax tracking (e.g., IVA)
+    rate: number; // e.g., 19 for 19%
+    amount: number; // calculated tax amount
+  };
 };
 
 export type BankAccount = {
