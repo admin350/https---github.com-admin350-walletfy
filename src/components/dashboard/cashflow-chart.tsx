@@ -48,11 +48,11 @@ export function CashflowChart() {
         const expenseKey = `expenses-${profile.id}`;
         
         dataPoint[incomeKey] = transactions
-          .filter(t => t.type === 'income' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year && t.profile === profile.name)
+          .filter(t => t.type === 'income' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
           .reduce((sum, t) => sum + t.amount, 0);
 
         dataPoint[expenseKey] = transactions
-          .filter(t => t.type === 'expense' && getMonth(parseISO(t.date)) === month && getYear(parseISO(t.date)) === filters.year && t.profile === profile.name)
+          .filter(t => t.type === 'expense' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
           .reduce((sum, t) => sum + t.amount, 0);
       });
       
@@ -84,11 +84,11 @@ export function CashflowChart() {
           if (!cumulativeTotals[expenseKey]) cumulativeTotals[expenseKey] = 0;
 
           const dailyIncome = transactions
-            .filter(t => t.type === 'income' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
+            .filter(t => t.type === 'income' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
             .reduce((sum, t) => sum + t.amount, 0);
         
           const dailyExpenses = transactions
-            .filter(t => t.type === 'expense' && format(parseISO(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
+            .filter(t => t.type === 'expense' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
             .reduce((sum, t) => sum + t.amount, 0);
 
            cumulativeTotals[incomeKey] += dailyIncome;
