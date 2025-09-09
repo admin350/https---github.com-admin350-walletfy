@@ -74,7 +74,7 @@ interface DataContextType {
     addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
     updateBankAccount: (account: BankAccount) => Promise<void>;
     deleteBankAccount: (id: string) => Promise<void>;
-    addBankCard: (card: Omit<BankCard, 'id' | 'usedAmount'>) => Promise<void>;
+    addBankCard: (card: Omit<BankCard, 'id' | 'usedAmount'>) => Promise<string>;
     updateBankCard: (card: BankCard) => Promise<void>;
     deleteBankCard: (id: string) => Promise<void>;
     addReport: (report: MonthlyReport) => Promise<void>;
@@ -421,6 +421,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
         if (account && !debtData.financialInstitution) {
             debtData.financialInstitution = account.bank;
+        } else if (!debtData.financialInstitution) {
+            debtData.financialInstitution = "Institución no especificada";
         }
         return await addDoc('debts', debtData);
     };
@@ -535,8 +537,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return await batch.commit();
     };
 
-    const addBankCard = async (card: Omit<BankCard, 'id'|'usedAmount'>) => { return await addDoc('bankCards', {...card, usedAmount: 0}); };
-    const updateBankCard = async (card: BankCard) => await setDocWithId('bankCards', card.id, card);
+    const addBankCard = async (card: Omit<BankCard, 'id' | 'usedAmount'>): Promise<string> => {
+        const cardData: Partial<BankCard> = { ...card, usedAmount: 0 };
+        if (card.cardType !== 'credit') {
+            delete cardData.creditLimit;
+        }
+        return await addDoc('bankCards', cardData);
+    };
+    
+    const updateBankCard = async (card: BankCard) => {
+        const cardData: Partial<BankCard> = { ...card };
+        if (card.cardType !== 'credit') {
+            delete cardData.creditLimit;
+        }
+        return await setDocWithId('bankCards', card.id, cardData);
+    };
     const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);
 
     // SUBSCRIPTION FUNCTIONS
