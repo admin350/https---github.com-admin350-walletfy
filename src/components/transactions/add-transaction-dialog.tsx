@@ -216,15 +216,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableAccounts = bankAccounts.filter(acc => !selectedProfile || acc.profile === selectedProfile);
     const availableDestinationAccounts = bankAccounts.filter(acc => acc.id !== sourceAccountId);
     const availableCards = bankCards.filter(card => !sourceAccountId || card.accountId === sourceAccountId);
-
-    useEffect(() => {
-        if (transactionType === 'transfer') {
-            const transferCategory = categories.find(c => c.type === 'Transferencia');
-            if (transferCategory) {
-                form.setValue('category', transferCategory.name);
-            }
-        }
-    }, [transactionType, categories, form]);
     
     useEffect(() => {
         // Reset payment method if source account changes
@@ -439,7 +430,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Categoría</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={transactionType === 'transfer'}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona una categoría" />
