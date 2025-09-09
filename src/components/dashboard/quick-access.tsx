@@ -3,14 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, Target } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const quickAccessItems = [
-    { href: "/dashboard/bank-accounts", icon: Landmark, label: "Cuentas", color: "text-green-400" },
-    { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas", color: "text-orange-400" },
-    { href: "/dashboard/debts", icon: Banknote, label: "Deudas", color: "text-red-400" },
-    { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
-    { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
-    { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
+    { href: "/dashboard/bank-accounts", icon: Landmark, label: "Cuentas", color: "text-green-400", shadow: "hover:shadow-[0_0_15px_#4ade80]" },
+    { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas", color: "text-orange-400", shadow: "hover:shadow-[0_0_15px_#f97316]" },
+    { href: "/dashboard/debts", icon: Banknote, label: "Deudas", color: "text-red-400", shadow: "hover:shadow-[0_0_15px_#f87171]" },
+    { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400", shadow: "hover:shadow-[0_0_15px_#c084fc]" },
+    { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400", shadow: "hover:shadow-[0_0_15px_#fb7185]" },
+    { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400", shadow: "hover:shadow-[0_0_15px_#facc15]" },
 ];
 
 export function QuickAccess() {
@@ -24,8 +25,12 @@ export function QuickAccess() {
                     {quickAccessItems.map(item => {
                         const Icon = item.icon;
                         return (
-                             <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg hover:bg-muted transition-transform duration-300 ease-in-out hover:-translate-y-1 hover:scale-105">
-                                <div className={`flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background transition-colors group-hover:border-primary ${item.color}`}>
+                             <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg transition-transform duration-300 ease-in-out hover:-translate-y-1">
+                                <div className={cn(
+                                    "flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background transition-all duration-300",
+                                    item.color,
+                                    item.shadow
+                                )}>
                                     <Icon className="h-6 w-6" />
                                 </div>
                                 <span className="text-xs text-center text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
