@@ -71,13 +71,13 @@ export default function BankAccountsPage() {
                     </div>
                      <div className="flex items-center gap-2">
                          <AddWithdrawalDialog>
-                            <Button variant="outline">
+                            <Button variant="outline" className="hover:bg-destructive hover:text-destructive-foreground">
                                 <Coins className="mr-2 h-4 w-4" />
                                 Retiro
                             </Button>
                         </AddWithdrawalDialog>
                         <AddDepositDialog>
-                            <Button>
+                            <Button variant="outline" className="hover:bg-green-500/90 hover:text-white">
                                 <ArrowDownToDot className="mr-2 h-4 w-4" />
                                 Depósito
                             </Button>
