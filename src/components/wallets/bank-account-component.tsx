@@ -47,14 +47,10 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     }, [transactions, account]);
 
     const handleEdit = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
         setAccountToEdit(account);
     };
     
     const handleManageCreditLine = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
         setManageCreditLineAccount(account);
     }
 
@@ -127,7 +123,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                         <MoreVertical className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" onSelect={e => e.preventDefault()}>
                                     <DropdownMenuItem onClick={handleEdit}>
                                         <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
                                     </DropdownMenuItem>
@@ -138,7 +134,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                     )}
                                     <DropdownMenuSeparator />
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onClick={e => {e.stopPropagation(); e.preventDefault();}} className="text-red-400 focus:text-red-500">
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-400 focus:text-red-500">
                                             <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
