@@ -25,7 +25,6 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { SavingsGoal } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface ContributeToGoalDialogProps {
     goal: SavingsGoal;
@@ -36,6 +35,7 @@ interface ContributeToGoalDialogProps {
 export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeToGoalDialogProps) {
     const { toast } = useToast();
     const { addGoalContribution, bankAccounts, goalContributions, formatCurrency } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     const totalSavings = savingsAccount?.balance ?? 0;
@@ -59,11 +59,13 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: z.infer<typeof formSchema>) => {
-            if (!savingsAccount) {
-                throw new Error("No se ha configurado una cuenta de ahorros.");
-            }
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        if (!savingsAccount) {
+            toast({ title: "Error", description: "No se ha configurado una cuenta de ahorros.", variant: "destructive"});
+            return;
+        }
+        setIsLoading(true);
+        try {
             await addGoalContribution({
                 goalId: goal.id,
                 goalName: goal.name,
@@ -71,28 +73,29 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 date: new Date(),
                 sourceAccountId: savingsAccount.id,
             });
-        },
-        onSuccess: (result, values) => {
             toast({
                 title: "¡Aporte Exitoso!",
                 description: `Has aportado ${formatCurrency(values.amount)} a tu meta "${goal.name}".`,
             });
-        },
-        onError: (error) => {
-            toast({
-                title: "Error",
-                description: error.message || "No se pudo registrar el aporte.",
-                variant: "destructive"
-            })
-        }
-    });
-
-    useEffect(() => {
-        if(isSuccess) {
             onOpenChange(false);
             form.reset();
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
+            toast({
+                title: "Error",
+                description: err.message || "No se pudo registrar el aporte.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false);
         }
-    }, [isSuccess, onOpenChange, form]);
+    };
+
+    useEffect(() => {
+        if (open) {
+            form.reset({ amount: '' as any });
+        }
+    }, [open, form]);
 
 
     return (
@@ -105,7 +108,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

@@ -13,7 +13,6 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { BankAccount } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Terminal } from 'lucide-react';
 
@@ -28,38 +27,34 @@ interface PayTaxDialogProps {
 export function PayTaxDialog({ taxAccount, amountToPay, period, open, onOpenChange }: PayTaxDialogProps) {
     const { toast } = useToast();
     const { addTaxPayment, formatCurrency } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async () => {
-             await addTaxPayment({
+    const handlePayment = async () => {
+        setIsLoading(true);
+        try {
+            await addTaxPayment({
                 amount: amountToPay,
                 date: new Date(),
                 month: period.month,
                 year: period.year,
                 sourceAccountId: taxAccount.id,
             });
-        },
-        onSuccess: () => {
             toast({
                 title: "¡Impuesto Pagado!",
                 description: `Has pagado ${formatCurrency(amountToPay)} correspondiente al período ${period.month + 1}/${period.year}.`,
             });
-        },
-        onError: (error) => {
+            onOpenChange(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: "No se pudo registrar el pago del impuesto.",
+                description: err.message || "No se pudo registrar el pago del impuesto.",
                 variant: "destructive"
             })
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if(isSuccess) {
-            onOpenChange(false);
-        }
-    }, [isSuccess, onOpenChange]);
-
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,7 +85,7 @@ export function PayTaxDialog({ taxAccount, amountToPay, period, open, onOpenChan
                         </AlertDescription>
                     </Alert>
 
-                     <Button onClick={() => performAction()} className="w-full" disabled={isLoading}>
+                     <Button onClick={handlePayment} className="w-full" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Confirmar y Pagar
                     </Button>

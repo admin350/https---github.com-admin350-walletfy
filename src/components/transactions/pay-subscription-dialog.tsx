@@ -25,7 +25,6 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Subscription } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface PaySubscriptionDialogProps {
     subscription: Subscription;
@@ -36,6 +35,7 @@ interface PaySubscriptionDialogProps {
 export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PaySubscriptionDialogProps) {
     const { toast } = useToast();
     const { paySubscription, bankAccounts, bankCards, formatCurrency } = useData();
+    const [isLoading, setIsLoading] = useState(false);
 
     const card = useMemo(() => bankCards.find(c => c.id === subscription.cardId), [bankCards, subscription]);
     const account = useMemo(() => bankAccounts.find(a => a.id === card?.accountId), [bankAccounts, card]);
@@ -53,34 +53,36 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
         },
     });
 
-     const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: z.infer<typeof formSchema>) => {
+     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setIsLoading(true);
+        try {
             await paySubscription({
                 ...subscription,
                 amount: values.amount
             });
-        },
-        onSuccess: (result, values) => {
             toast({
                 title: "¡Suscripción Pagada!",
                 description: `Has pagado ${formatCurrency(values.amount)} por tu suscripción a "${subscription.name}".`,
             });
-        },
-        onError: (error) => {
-             toast({
-                title: "Error",
-                description: "No se pudo registrar el pago.",
-                variant: "destructive"
-            })
-        }
-    });
-
-    useEffect(() => {
-        if(isSuccess) {
             onOpenChange(false);
             form.reset();
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
+             toast({
+                title: "Error",
+                description: err.message || "No se pudo registrar el pago.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false);
         }
-    }, [isSuccess, onOpenChange, form]);
+    };
+
+    useEffect(() => {
+        if(open){
+            form.reset({ amount: subscription.amount });
+        }
+    }, [open, subscription, form]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,7 +94,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

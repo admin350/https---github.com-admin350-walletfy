@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Budget } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const budgetItemSchema = z.object({
     category: z.string().min(1, "Categoría es requerida."),
@@ -45,6 +44,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
     const [internalOpen, setInternalOpen] = useState(false);
     const { toast } = useToast();
     const { addBudget, updateBudget, profiles, categories } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -59,29 +59,34 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
         },
     });
     
-    const { performAction, isLoading } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (budgetToEdit) {
                 await updateBudget({ ...values, id: budgetToEdit.id });
+                toast({
+                    title: "Presupuesto actualizado",
+                    description: `El plan ha sido actualizado exitosamente.`,
+                });
             } else {
                 await addBudget(values);
+                 toast({
+                    title: "Presupuesto añadido",
+                    description: `El plan ha sido creado exitosamente.`,
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: budgetToEdit ? "Presupuesto actualizado" : "Presupuesto añadido",
-                description: `El plan ha sido ${budgetToEdit ? 'actualizado' : 'creado'} exitosamente.`,
-            });
             setDialogOpen(false);
-        },
-        onError: (error) => {
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${budgetToEdit ? 'actualizar' : 'añadir'} el presupuesto.`,
+                description: err.message || `No se pudo ${budgetToEdit ? 'actualizar' : 'añadir'} el presupuesto.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
 
     useEffect(() => {
         if (dialogOpen) {
@@ -122,7 +127,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

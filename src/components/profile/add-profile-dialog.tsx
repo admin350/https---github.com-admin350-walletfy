@@ -12,7 +12,6 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Profile } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre es muy corto."),
@@ -30,6 +29,7 @@ interface AddProfileDialogProps {
 export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfileDialogProps) {
     const { toast } = useToast();
     const { addProfile, updateProfile } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -39,29 +39,35 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
         },
     });
 
-    const { performAction, isLoading } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (profileToEdit) {
                 await updateProfile({ ...values, id: profileToEdit.id });
+                toast({
+                    title: "Perfil actualizado",
+                    description: `El perfil ha sido actualizado exitosamente.`,
+                });
             } else {
                 await addProfile(values);
+                toast({
+                    title: "Perfil añadido",
+                    description: `El perfil ha sido creado exitosamente.`,
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: profileToEdit ? "Perfil actualizado" : "Perfil añadido",
-                description: `El perfil ha sido ${profileToEdit ? 'actualizado' : 'creado'} exitosamente.`,
-            });
             onOpenChange(false);
-        },
-        onError: (error) => {
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${profileToEdit ? 'actualizar' : 'añadir'} el perfil.`,
+                description: err.message || `No se pudo ${profileToEdit ? 'actualizar' : 'añadir'} el perfil.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
 
     useEffect(() => {
         if (open) {
@@ -89,7 +95,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="name"

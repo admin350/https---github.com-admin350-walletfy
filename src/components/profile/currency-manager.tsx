@@ -10,36 +10,35 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useSubmitAction } from "@/hooks/use-submit-action";
 
 export function CurrencyManager() {
     const { settings, updateSettings } = useData();
     const { toast } = useToast();
     const [localSettings, setLocalSettings] = useState(settings);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         setLocalSettings(settings);
     }, [settings]);
 
-    const { performAction, isLoading } = useSubmitAction({
-        action: updateSettings,
-        onSuccess: () => {
+    const handleSave = async () => {
+        setIsLoading(true);
+        try {
+            await updateSettings(localSettings);
             toast({
                 title: "Configuración guardada",
                 description: "La configuración ha sido actualizada en toda la aplicación.",
             });
-        },
-        onError: (error) => {
+        } catch (error) {
+             const err = error instanceof Error ? error : new Error('An unknown error occurred');
              toast({
                 title: "Error",
-                description: "No se pudo guardar la configuración.",
+                description: err.message || "No se pudo guardar la configuración.",
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    const handleSave = async () => {
-        await performAction(localSettings);
     };
     
     const isChanged = JSON.stringify(settings) !== JSON.stringify(localSettings);

@@ -2,12 +2,11 @@
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSubmitAction } from "@/hooks/use-submit-action";
 
 const darkBackgroundOptions = [
     { id: 'theme-gradient', name: 'Original', style: { backgroundImage: 'linear-gradient(to top, #030712, #111827)'} },
@@ -26,49 +25,39 @@ const darkBackgroundOptions = [
 export function BackgroundManager() {
     const { settings, updateSettings, previewBackground, setPreviewBackground } = useData();
     const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
     
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: updateSettings,
-        onSuccess: () => {
-            toast({
-                title: "Fondo actualizado",
-                description: "Tu nuevo fondo se ha guardado.",
-            });
-        },
-        onError: () => {
-            toast({
-                title: "Error",
-                description: "No se pudo guardar el fondo.",
-                variant: "destructive"
-            });
-        }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setPreviewBackground(null);
-        }
-    }, [isSuccess, setPreviewBackground]);
-    
-    const selectedTheme = previewBackground || settings.background || 'theme-gradient';
-
-    const handleSelectTheme = (themeId: string) => {
-        setPreviewBackground(themeId);
-    };
-
     const handleSave = async () => {
-        if (selectedTheme !== (settings.background || 'theme-gradient')) {
-           await performAction({ background: selectedTheme });
+        if (previewBackground && previewBackground !== (settings.background || 'theme-gradient')) {
+            setIsLoading(true);
+            try {
+                await updateSettings({ background: previewBackground });
+                toast({
+                    title: "Fondo actualizado",
+                    description: "Tu nuevo fondo se ha guardado.",
+                });
+                 setPreviewBackground(null);
+            } catch (error) {
+                toast({
+                    title: "Error",
+                    description: "No se pudo guardar el fondo.",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsLoading(false);
+            }
         }
     }
-    
-    const isChanged = selectedTheme !== (settings.background || 'theme-gradient');
 
     useEffect(() => {
+        // Cleanup function to reset preview when component unmounts
         return () => {
             setPreviewBackground(null);
         };
     }, [setPreviewBackground]);
+
+    const selectedTheme = previewBackground || settings.background || 'theme-gradient';
+    const isChanged = selectedTheme !== (settings.background || 'theme-gradient');
 
     return (
         <Card>
@@ -83,7 +72,7 @@ export function BackgroundManager() {
                         {darkBackgroundOptions.map((option) => (
                             <div key={option.id} className="space-y-2">
                                 <button 
-                                    onClick={() => handleSelectTheme(option.id)} 
+                                    onClick={() => setPreviewBackground(option.id)} 
                                     style={option.style}
                                     className={cn(
                                         "w-full h-24 rounded-lg border-2 transition-all flex items-center justify-center",

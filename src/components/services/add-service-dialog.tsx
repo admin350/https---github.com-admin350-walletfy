@@ -26,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Service } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre es muy corto." }),
@@ -46,6 +45,7 @@ interface AddServiceDialogProps {
 export function AddServiceDialog({ serviceToEdit, open, onOpenChange }: AddServiceDialogProps) {
     const { toast } = useToast();
     const { addService, updateService, profiles, categories } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -57,34 +57,34 @@ export function AddServiceDialog({ serviceToEdit, open, onOpenChange }: AddServi
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (serviceToEdit) {
                 await updateService({ ...values, id: serviceToEdit.id });
+                 toast({
+                    title: "Servicio actualizado",
+                    description: `El servicio ha sido actualizado exitosamente.`,
+                });
             } else {
                 await addService(values);
+                toast({
+                    title: "Servicio añadido",
+                    description: `El servicio ha sido registrado exitosamente.`,
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: serviceToEdit ? "Servicio actualizado" : "Servicio añadido",
-                description: `El servicio ha sido ${serviceToEdit ? 'actualizado' : 'registrado'} exitosamente.`,
-            });
-        },
-        onError: (error) => {
+            onOpenChange(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${serviceToEdit ? 'actualizar' : 'añadir'} el servicio.`,
+                description: err.message || `No se pudo ${serviceToEdit ? 'actualizar' : 'añadir'} el servicio.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            onOpenChange(false);
-        }
-    }, [isSuccess, onOpenChange]);
+    };
 
     useEffect(() => {
         if (open) {
@@ -114,7 +114,7 @@ export function AddServiceDialog({ serviceToEdit, open, onOpenChange }: AddServi
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

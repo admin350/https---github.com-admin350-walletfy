@@ -25,7 +25,6 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Debt } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 interface PayDebtDialogProps {
     debt: Debt;
@@ -36,6 +35,7 @@ interface PayDebtDialogProps {
 export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) {
     const { toast } = useToast();
     const { addDebtPayment, bankAccounts, formatCurrency } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const relevantAccount = bankAccounts.find(acc => acc.id === debt.accountId);
     
@@ -52,8 +52,9 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: z.infer<typeof formSchema>) => {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setIsLoading(true);
+        try {
              await addDebtPayment({
                 debtId: debt.id,
                 debtName: debt.name,
@@ -61,29 +62,29 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                 date: new Date(),
                 accountId: debt.accountId,
             });
-        },
-        onSuccess: (result, values) => {
             toast({
                 title: "¡Abono Exitoso!",
                 description: `Has abonado ${formatCurrency(values.amount)} a tu deuda "${debt.name}".`,
             });
-        },
-        onError: (error) => {
-            toast({
-                title: "Error",
-                description: "No se pudo registrar el abono.",
-                variant: "destructive"
-            })
-        }
-    });
-
-    useEffect(() => {
-        if(isSuccess) {
             onOpenChange(false);
             form.reset();
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
+            toast({
+                title: "Error",
+                description: err.message || "No se pudo registrar el abono.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false);
         }
-    }, [isSuccess, onOpenChange, form]);
+    };
 
+    useEffect(() => {
+        if (open) {
+            form.reset({ amount: debt.monthlyPayment });
+        }
+    }, [open, debt, form]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,7 +96,7 @@ export function PayDebtDialog({ debt, open, onOpenChange }: PayDebtDialogProps) 
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="amount"

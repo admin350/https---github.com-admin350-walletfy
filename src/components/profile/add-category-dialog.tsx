@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Category } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, "El nombre es muy corto."),
@@ -32,6 +31,7 @@ interface AddCategoryDialogProps {
 export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCategoryDialogProps) {
     const { toast } = useToast();
     const { addCategory, updateCategory } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -41,30 +41,36 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
             color: "#6b7280",
         },
     });
-
-    const { performAction, isLoading } = useSubmitAction({
-        action: async (values: FormValues) => {
+    
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (categoryToEdit) {
                 await updateCategory({ ...values, id: categoryToEdit.id });
+                toast({
+                    title: "Categoría actualizada",
+                    description: "La categoría ha sido actualizada exitosamente.",
+                });
             } else {
                 await addCategory(values);
+                toast({
+                    title: "Categoría añadida",
+                    description: "La categoría ha sido creada exitosamente.",
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: categoryToEdit ? "Categoría actualizada" : "Categoría añadida",
-                description: `La categoría ha sido ${categoryToEdit ? 'actualizada' : 'creada'} exitosamente.`,
-            });
             onOpenChange(false);
-        },
-        onError: (error) => {
-            toast({
+        } catch (error) {
+             const err = error instanceof Error ? error : new Error('An unknown error occurred');
+             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${categoryToEdit ? 'actualizar' : 'añadir'} la categoría.`,
+                description: err.message || `No se pudo ${categoryToEdit ? 'actualizar' : 'añadir'} la categoría.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
+
 
     useEffect(() => {
         if (open) {
@@ -90,7 +96,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="name"
