@@ -44,7 +44,7 @@ interface DataContextType {
     login: (email: string, pass: string) => Promise<void>;
     signup: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
-    addTransaction: (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
+    addTransaction: (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<void>;
@@ -313,17 +313,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
+    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
-
+    
         let taxDetails: Transaction['taxDetails'] | undefined = undefined;
         if (includesTax && taxRate && formData.amount) {
             const total = formData.amount;
             const taxAmount = total - (total / (1 + taxRate / 100));
             taxDetails = { rate: taxRate, amount: taxAmount };
         }
-
+    
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
             amount: formData.amount,
@@ -335,7 +335,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             isCreditLinePayment: paymentMethod === 'credit-line',
             taxDetails,
         };
-
+        
+        if (formData.type === 'transfer' && !transData.category) {
+            transData.category = 'Transferencia';
+        }
+    
         const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
         if (paymentIsCard) {
             transData.cardId = paymentMethod;
@@ -1070,14 +1074,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addCategory,
             updateCategory,
             deleteCategory,
-            addBankAccount,
-            updateBankAccount,
-            deleteBankAccount,
-            addBankCard,
-            updateBankCard,
-            deleteBankCard,
-            addReport,
-            deleteReport,
             addService,
             updateService,
             deleteService,
