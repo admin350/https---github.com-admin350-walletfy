@@ -126,25 +126,20 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
      const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
         try {
-            const transactionData = {
-                ...values,
-                paymentMethod: values.paymentMethod || 'account-balance',
-            };
-
             if (transactionToEdit?.id) {
-                // This is an update, but update logic needs careful consideration of re-calculating balances.
-                // For now, we'll focus on the creation logic as it's the primary use case.
-                // A full update would require reverting the old transaction's impact and applying the new one.
-                // This is complex, so we'll just update the details for now.
+                // For now, we'll just update the details for now. A full update would require more complex logic.
                  await updateTransaction({ ...transactionToEdit, ...values, id: transactionToEdit.id } as Transaction);
+                 toast({
+                    title: "Transacción actualizada",
+                    description: `La transacción ha sido actualizada exitosamente.`,
+                });
             } else {
-                await addTransaction(transactionData);
+                await addTransaction(values);
+                toast({
+                    title: "Transacción añadida",
+                    description: `La transacción ha sido registrada exitosamente.`,
+                });
             }
-            
-            toast({
-                title: transactionToEdit?.id ? "Transacción actualizada" : "Transacción añadida",
-                description: `La transacción ha sido ${transactionToEdit?.id ? 'actualizada' : 'registrada'} exitosamente.`,
-            });
             if (onFinish) onFinish();
             setDialogOpen(false);
         } catch (error) {
@@ -555,3 +550,4 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+

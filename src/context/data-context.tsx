@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -258,11 +257,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
             { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
         ];
-        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000 };
+        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
 
         const batch = writeBatch(db);
         const userDocRef = doc(db, 'users', newUid);
-        batch.set(userDocRef, { createdAt: new Date() });
+        batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email });
 
         defaultProfiles.forEach(profile => {
             const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
@@ -317,6 +316,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
 
+        const batch = writeBatch(db);
+        const transRef = doc(collection(db, 'users', uid, 'transactions'));
+        
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
             amount: formData.amount,
@@ -349,8 +351,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         }
         
-        const batch = writeBatch(db);
-        const transRef = doc(collection(db, 'users', uid, 'transactions'));
         batch.set(transRef, transData);
 
         const sourceAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.accountId);
@@ -468,34 +468,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         if (!payment.accountId) throw new Error("accountId is missing");
         
-        const batch = writeBatch(db);
-        
         const debtRef = doc(db, 'users', uid, 'debts', payment.debtId);
         const debtSnap = await getDoc(debtRef);
         if (!debtSnap.exists()) throw new Error("Deuda no encontrada.");
         const debt = debtSnap.data() as Debt;
 
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', payment.accountId);
-        const accountSnap = await getDoc(accountRef);
-        if(!accountSnap.exists()) throw new Error("Cuenta bancaria no encontrada.");
-        const account = accountSnap.data() as BankAccount;
-
-        if (account.balance < payment.amount) throw new Error("Saldo insuficiente en la cuenta para realizar el pago.");
-
-        const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
-        batch.set(paymentRef, payment);
-        
-        const newPaidAmount = debt.paidAmount + payment.amount;
-        batch.update(debtRef, { paidAmount: newPaidAmount });
-        batch.update(accountRef, {balance: account.balance - payment.amount});
-
-        const debtCategory = allCategories.find(c => c.name === "Pago de Deuda")?.name || "Otros Gastos";
-        
         await addTransaction({
             type: 'expense',
             amount: payment.amount,
             description: `Abono a: ${debt.name}`,
-            category: debtCategory,
+            category: "Pago de Deuda",
             profile: debt.profile,
             date: new Date().toISOString(),
             accountId: payment.accountId,
@@ -507,13 +489,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // TAX FUNCTIONS
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const batch = writeBatch(db);
-    
-        const taxAccountRef = doc(db, 'users', uid, 'bankAccounts', payment.sourceAccountId);
-        const taxAccountSnap = await getDoc(taxAccountRef);
-        if (!taxAccountSnap.exists()) throw new Error("Tax account not found.");
-    
-        const taxAccount = taxAccountSnap.data() as BankAccount;
     
         const transactionsInMonth = allTransactions.filter(t => {
             const date = new Date(t.date);
@@ -536,16 +511,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             finalPayment.remanente = Math.abs(netTax);
         }
     
-        const paymentRef = doc(collection(db, 'users', uid, 'taxPayments'));
-        batch.set(paymentRef, finalPayment);
-        batch.update(taxAccountRef, { balance: taxAccount.balance - payment.amount });
+        await addDoc('taxPayments', finalPayment);
     
         await addTransaction({
             type: 'expense',
             amount: payment.amount,
             description: `Pago Impuesto (F29) ${payment.month + 1}/${payment.year}`,
             category: "Impuestos",
-            profile: taxAccount.profile,
+            profile: "Negocio", // Assuming tax is always business
             date: new Date().toISOString(),
             accountId: payment.sourceAccountId,
             includesTax: false,
@@ -1063,3 +1036,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+

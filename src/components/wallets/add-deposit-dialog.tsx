@@ -95,6 +95,17 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
+            const validationResult = dynamicFormSchema.safeParse(values);
+            if (!validationResult.success) {
+                const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
+                if (amountError) {
+                    form.setError("amount", { type: "manual", message: amountError.message });
+                }
+                // Stop submission if validation fails
+                setIsLoading(false);
+                return;
+            }
+
             const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
             if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
@@ -104,6 +115,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                 ...values,
                 type: 'income',
                 profile: selectedAccount.profile,
+                includesTax: false,
             });
 
             toast({
@@ -113,11 +125,13 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
             setOpen(false);
         } catch (error) {
             const err = error instanceof Error ? error : new Error('An unknown error occurred');
-            toast({
-                title: "Error",
-                description: err.message || `No se pudo añadir el depósito.`,
-                variant: 'destructive'
-            });
+             if (!form.formState.errors.amount) {
+                toast({
+                    title: "Error",
+                    description: err.message || `No se pudo añadir el depósito.`,
+                    variant: 'destructive'
+                });
+            }
         } finally {
             setIsLoading(false);
         }
