@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -31,9 +31,9 @@ const navSections = [
     {
         title: "Carteras",
         items: [
-            { href: "/dashboard/bank-accounts", icon: Banknote, label: "Cuentas Bancarias", color: "text-primary" },
+            { href: "/dashboard/bank-accounts", icon: Landmark, label: "Cuentas Bancarias", color: "text-primary" },
             { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas Bancarias", color: "text-orange-400" },
-            { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400" },
+            { href: "/dashboard/savings-portfolio", icon: PiggyBank, label: "Ahorros", color: "text-emerald-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
             { href: "/dashboard/tax-portfolio", icon: Scale, label: "Cartera Tributaria", color: "text-teal-400" },
         ]
