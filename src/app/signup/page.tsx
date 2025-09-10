@@ -52,12 +52,12 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl">
         <CardHeader className="text-center">
-            <div className="flex justify-center items-center gap-2 mb-2">
+            <div className="flex justify-center items-center gap-2 mb-2 animate-pulse animation-delay-4000">
                  <Wallet className="h-8 w-8 text-primary" />
-                 <h1 className="text-3xl font-bold font-headline">FA Vision</h1>
+                 <h1 className="text-3xl font-bold font-headline">FA WALLET</h1>
             </div>
           <CardTitle>Crear una Cuenta</CardTitle>
           <CardDescription>Empieza a tomar el control de tus finanzas hoy mismo.</CardDescription>

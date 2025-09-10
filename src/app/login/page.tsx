@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
+  rememberMe: z.boolean().default(false),
 });
 
 export default function LoginPage() {
@@ -29,6 +32,7 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -47,12 +51,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl">
         <CardHeader className="text-center">
-            <div className="flex justify-center items-center gap-2 mb-2">
+            <div className="flex justify-center items-center gap-2 mb-2 animate-pulse animation-delay-4000">
                  <Wallet className="h-8 w-8 text-primary" />
-                 <h1 className="text-3xl font-bold font-headline">FA Vision</h1>
+                 <h1 className="text-3xl font-bold font-headline">FA WALLET</h1>
             </div>
           <CardTitle>Iniciar Sesión</CardTitle>
           <CardDescription>Bienvenido de vuelta. Accede a tu panel financiero.</CardDescription>
@@ -86,6 +90,29 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              <div className="flex items-center justify-between">
+                 <FormField
+                    control={form.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">Recordarme</FormLabel>
+                            </div>
+                        </FormItem>
+                    )}
+                 />
+                 <Link href="#" className="text-sm text-primary hover:underline">
+                    ¿Olvidaste tu contraseña?
+                 </Link>
+              </div>
+
               {error && <p className="text-sm font-medium text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
