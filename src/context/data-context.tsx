@@ -488,31 +488,53 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-        
-        const paymentRef = doc(collection(db, 'users', uid, 'taxPayments'));
-        batch.set(paymentRef, payment);
-
+    
         const taxAccountRef = doc(db, 'users', uid, 'bankAccounts', payment.sourceAccountId);
         const taxAccountSnap = await getDoc(taxAccountRef);
-        if (taxAccountSnap.exists()) {
-            const taxAccount = taxAccountSnap.data() as BankAccount;
-            batch.update(taxAccountRef, { balance: taxAccount.balance - payment.amount });
-
-             const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
-              const transactionData: Omit<Transaction, 'id'> = {
-                type: 'expense',
-                amount: payment.amount,
-                description: `Pago Impuesto (F29) ${payment.month + 1}/${payment.year}`,
-                category: "Impuestos",
-                profile: taxAccount.profile, 
-                date: new Date().toISOString(),
-                accountId: payment.sourceAccountId,
-            };
-            batch.set(transactionRef, transactionData);
+        if (!taxAccountSnap.exists()) throw new Error("Tax account not found.");
+    
+        const taxAccount = taxAccountSnap.data() as BankAccount;
+    
+        const transactionsInMonth = allTransactions.filter(t => {
+            const date = new Date(t.date);
+            return getMonth(date) === payment.month && getYear(date) === payment.year;
+        });
+    
+        const totalDebit = transactionsInMonth.filter(t => t.type === 'income' && t.taxDetails).reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalCredit = transactionsInMonth.filter(t => t.type === 'expense' && t.taxDetails).reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        
+        const prevPeriod = subMonths(new Date(payment.year, payment.month), 1);
+        const prevMonth = getMonth(prevPeriod);
+        const prevYear = getYear(prevPeriod);
+        const previousPayment = allTaxPayments.find(p => p.month === prevMonth && p.year === prevYear);
+        const remanenteAnterior = previousPayment?.remanente ?? 0;
+    
+        const netTax = totalDebit - remanenteAnterior - totalCredit;
+        const finalPayment: Omit<TaxPayment, 'id'> = { ...payment };
+    
+        if (netTax < 0) {
+            finalPayment.remanente = Math.abs(netTax);
         }
-
+    
+        const paymentRef = doc(collection(db, 'users', uid, 'taxPayments'));
+        batch.set(paymentRef, finalPayment);
+        batch.update(taxAccountRef, { balance: taxAccount.balance - payment.amount });
+    
+        const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
+        const transactionData: Omit<Transaction, 'id'> = {
+            type: 'expense',
+            amount: payment.amount,
+            description: `Pago Impuesto (F29) ${payment.month + 1}/${payment.year}`,
+            category: "Impuestos",
+            profile: taxAccount.profile,
+            date: new Date().toISOString(),
+            accountId: payment.sourceAccountId,
+        };
+        batch.set(transactionRef, transactionData);
+    
         return await batch.commit();
     };
+    
     
     // INVESTMENT FUNCTIONS
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => { return await addDoc('investments', { ...investment, currentValue: investment.initialAmount }); };

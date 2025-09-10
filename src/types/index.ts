@@ -1,5 +1,6 @@
 
 
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -146,6 +147,7 @@ export type TaxPayment = {
   amount: number;
   date: Date; // payment date
   sourceAccountId: string; // the tax portfolio account
+  remanente?: number; // Credit carryover to the next month
 };
 
 export type BudgetItem = {

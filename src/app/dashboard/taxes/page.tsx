@@ -1,30 +1,88 @@
 
 'use client';
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useData } from "@/context/data-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { ArrowDown, ArrowUp, Scale, Info } from "lucide-react";
+import { ArrowDown, ArrowUp, Scale, Info, FileDown, HandCoins } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from 'date-fns';
+import { format, subMonths, getMonth, getYear } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { PayTaxDialog } from "@/components/transactions/pay-tax-dialog";
 
 export default function TaxesPage() {
-    const { transactions, formatCurrency, isLoading } = useData();
+    const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts } = useData();
+    const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
-    // The 'transactions' from useData are already filtered by the global filters.
-    // We just need to perform the tax calculations on this pre-filtered array.
+    const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax'), [bankAccounts]);
+
     const taxData = useMemo(() => {
         const incomeWithTax = transactions.filter(t => t.type === 'income' && t.taxDetails);
         const expensesWithTax = transactions.filter(t => t.type === 'expense' && t.taxDetails);
 
         const totalDebit = incomeWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
         const totalCredit = expensesWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
-        const netTax = totalDebit - totalCredit;
+        
+        // Remanente Logic
+        const currentPeriod = new Date();
+        const prevPeriod = subMonths(currentPeriod, 1);
+        const prevMonth = getMonth(prevPeriod);
+        const prevYear = getYear(prevPeriod);
+        
+        const previousPayment = taxPayments.find(p => p.month === prevMonth && p.year === prevYear);
+        const remanente = previousPayment?.remanente ?? 0;
+        
+        const adjustedDebit = totalDebit - remanente;
+        const netTax = adjustedDebit - totalCredit;
 
-        return { incomeWithTax, expensesWithTax, totalDebit, totalCredit, netTax };
-    }, [transactions]); // The dependency on 'transactions' ensures this recalculates when filters change.
+        return { incomeWithTax, expensesWithTax, totalDebit, totalCredit, remanente, netTax };
+    }, [transactions, taxPayments]); 
+    
+    const isCurrentPeriodPaid = useMemo(() => {
+         const currentPeriod = new Date();
+         const currentMonth = getMonth(currentPeriod);
+         const currentYear = getYear(currentPeriod);
+         return taxPayments.some(p => p.month === currentMonth && p.year === currentYear);
+    }, [taxPayments]);
+
+    const handleExportCSV = () => {
+        const headers = ["Fecha", "Tipo", "Descripción", "Monto Neto", "Monto Impuesto", "Monto Total"];
+        const incomeRows = taxData.incomeWithTax.map(t => [
+            format(new Date(t.date), 'dd/MM/yyyy'),
+            "Débito Fiscal",
+            t.description,
+            t.amount - (t.taxDetails?.amount || 0),
+            t.taxDetails?.amount || 0,
+            t.amount
+        ]);
+        const expenseRows = taxData.expensesWithTax.map(t => [
+            format(new Date(t.date), 'dd/MM/yyyy'),
+            "Crédito Fiscal",
+            t.description,
+            t.amount - (t.taxDetails?.amount || 0),
+            t.taxDetails?.amount || 0,
+            t.amount
+        ]);
+    
+        const csvContent = [
+            headers.join(','),
+            ...incomeRows.map(row => row.join(',')),
+            ...expenseRows.map(row => row.join(','))
+        ].join('\n');
+    
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `detalle_impuestos_${getMonth(new Date()) + 1}_${getYear(new Date())}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -48,11 +106,17 @@ export default function TaxesPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
-                <p className="text-muted-foreground">
-                    Resumen de tu débito y crédito fiscal para el período seleccionado.
-                </p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
+                    <p className="text-muted-foreground">
+                        Resumen de tu débito y crédito fiscal para el período seleccionado.
+                    </p>
+                </div>
+                 <Button onClick={handleExportCSV}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Exportar a CSV
+                </Button>
             </div>
             
              <div className="grid gap-4 md:grid-cols-3">
@@ -74,7 +138,7 @@ export default function TaxesPage() {
                             value={<span className="text-red-400">{formatCurrency(taxData.totalDebit)}</span>} 
                             icon={ArrowUp} 
                             iconClassName="text-red-400"
-                            description="Suma del IVA de tus ingresos." 
+                            description={taxData.remanente > 0 ? `Remanente mes anterior: -${formatCurrency(taxData.remanente)}` : "Suma del IVA de tus ingresos."} 
                         />
                         <KpiCard 
                              title={
@@ -92,17 +156,49 @@ export default function TaxesPage() {
                              title={
                                 <div className="flex items-center">
                                     Impuesto a Pagar / Favor
-                                     <KpiTooltip content="Resultado de (Débito Fiscal - Crédito Fiscal). Si es positivo, es el monto a pagar. Si es negativo, es un saldo a tu favor para el próximo período (remanente)." />
+                                     <KpiTooltip content="Resultado de (Débito Fiscal - Crédito Fiscal - Remanente). Si es positivo, es el monto a pagar. Si es negativo, es un saldo a tu favor para el próximo período (remanente)." />
                                 </div>
                             }
-                            value={<span className={taxData.netTax >= 0 ? "text-primary" : "text-green-400"}>{formatCurrency(taxData.netTax)}</span>} 
+                            value={isCurrentPeriodPaid ? (
+                                <span className="text-blue-400">Período Pagado</span>
+                            ) : (
+                               <span className={taxData.netTax >= 0 ? "text-primary" : "text-green-400"}>{formatCurrency(taxData.netTax)}</span>
+                            )} 
                             icon={Scale}
-                            iconClassName={taxData.netTax >= 0 ? "text-primary" : "text-green-400"}
-                            description={taxData.netTax >= 0 ? "Monto a pagar al fisco" : "Saldo a tu favor (remanente)"}
+                            iconClassName={isCurrentPeriodPaid ? "text-blue-400" : (taxData.netTax >= 0 ? "text-primary" : "text-green-400")}
+                            description={isCurrentPeriodPaid ? "El impuesto de este período ya fue declarado." : (taxData.netTax >= 0 ? "Monto a pagar al fisco" : "Saldo a tu favor (remanente)")}
                         />
                     </>
                 )}
             </div>
+
+             {taxData.netTax > 0 && !isCurrentPeriodPaid && (
+                 <Card className="bg-card/80 border-border/80">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                             <CardTitle>Declaración de Impuesto (F29)</CardTitle>
+                            <CardDescription>
+                                ¿Listo para pagar el impuesto de este período desde tu cartera tributaria?
+                            </CardDescription>
+                        </div>
+                        <Button disabled={!taxAccount || (taxAccount.balance < taxData.netTax)} onClick={() => setIsPayDialogOpen(true)}>
+                             <HandCoins className="mr-2 h-4 w-4" />
+                            Pagar Impuesto (F29)
+                        </Button>
+                    </CardHeader>
+                     {!taxAccount && (
+                        <CardContent>
+                             <p className="text-xs text-amber-400/80">Para pagar, primero debes configurar una <a href="/dashboard/bank-accounts" className="underline">Cartera Tributaria</a>.</p>
+                        </CardContent>
+                    )}
+                     {taxAccount && taxAccount.balance < taxData.netTax && (
+                         <CardContent>
+                             <p className="text-xs text-amber-400/80">Saldo insuficiente en Cartera Tributaria. Saldo actual: {formatCurrency(taxAccount.balance)}</p>
+                        </CardContent>
+                    )}
+                 </Card>
+             )}
+
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
@@ -182,6 +278,16 @@ export default function TaxesPage() {
                     </CardContent>
                 </Card>
             </div>
+            
+            {taxAccount && (
+                 <PayTaxDialog 
+                    open={isPayDialogOpen}
+                    onOpenChange={setIsPayDialogOpen}
+                    taxAccount={taxAccount}
+                    amountToPay={taxData.netTax}
+                    period={{ month: getMonth(new Date()), year: getYear(new Date()) }}
+                 />
+            )}
         </div>
     )
 }
