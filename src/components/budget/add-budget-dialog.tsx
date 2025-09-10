@@ -59,7 +59,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
         },
     });
     
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
+    const { performAction, isLoading } = useSubmitAction({
         action: async (values: FormValues) => {
             if (budgetToEdit) {
                 await updateBudget({ ...values, id: budgetToEdit.id });
@@ -72,6 +72,7 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
                 title: budgetToEdit ? "Presupuesto actualizado" : "Presupuesto añadido",
                 description: `El plan ha sido ${budgetToEdit ? 'actualizado' : 'creado'} exitosamente.`,
             });
+            setDialogOpen(false);
         },
         onError: (error) => {
             toast({
@@ -81,12 +82,6 @@ export function AddBudgetDialog({ children, budgetToEdit, open, onOpenChange }: 
             });
         }
     });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {

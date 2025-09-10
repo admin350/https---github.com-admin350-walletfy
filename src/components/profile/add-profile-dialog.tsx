@@ -39,7 +39,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
+    const { performAction, isLoading } = useSubmitAction({
         action: async (values: FormValues) => {
             if (profileToEdit) {
                 await updateProfile({ ...values, id: profileToEdit.id });
@@ -52,6 +52,7 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
                 title: profileToEdit ? "Perfil actualizado" : "Perfil añadido",
                 description: `El perfil ha sido ${profileToEdit ? 'actualizado' : 'creado'} exitosamente.`,
             });
+            onOpenChange(false);
         },
         onError: (error) => {
             toast({
@@ -61,12 +62,6 @@ export function AddProfileDialog({ profileToEdit, open, onOpenChange }: AddProfi
             });
         }
     });
-
-    useEffect(() => {
-        if (isSuccess) {
-            onOpenChange(false);
-        }
-    }, [isSuccess, onOpenChange]);
 
     useEffect(() => {
         if (open) {

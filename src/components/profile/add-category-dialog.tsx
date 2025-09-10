@@ -42,7 +42,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
+    const { performAction, isLoading } = useSubmitAction({
         action: async (values: FormValues) => {
             if (categoryToEdit) {
                 await updateCategory({ ...values, id: categoryToEdit.id });
@@ -55,6 +55,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                 title: categoryToEdit ? "Categoría actualizada" : "Categoría añadida",
                 description: `La categoría ha sido ${categoryToEdit ? 'actualizada' : 'creada'} exitosamente.`,
             });
+            onOpenChange(false);
         },
         onError: (error) => {
             toast({
@@ -64,12 +65,6 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
             });
         }
     });
-
-    useEffect(() => {
-        if (isSuccess) {
-            onOpenChange(false);
-        }
-    }, [isSuccess, onOpenChange]);
 
     useEffect(() => {
         if (open) {

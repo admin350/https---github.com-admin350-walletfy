@@ -70,7 +70,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
+    const { performAction, isLoading } = useSubmitAction({
         action: async (values: FormValues) => {
             if (goalToEdit) {
                 await updateGoal({ ...values, id: goalToEdit.id, currentAmount: goalToEdit.currentAmount });
@@ -83,6 +83,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
                 title: goalToEdit ? "Meta actualizada" : "Meta añadida",
                 description: `La meta ha sido ${goalToEdit ? 'actualizada' : 'registrada'} exitosamente.`,
             });
+            setDialogOpen(false);
         },
         onError: (error) => {
             toast({
@@ -92,12 +93,6 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
             });
         }
     });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {
