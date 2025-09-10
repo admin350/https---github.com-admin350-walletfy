@@ -12,7 +12,7 @@ import type { Profile } from "@/types";
 import { AddProfileDialog } from "./add-profile-dialog";
 
 export function ProfileManager() {
-    const { profiles, deleteProfile } from useData();
+    const { profiles, deleteProfile } = useData();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
