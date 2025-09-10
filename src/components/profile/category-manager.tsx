@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { MoreHorizontal, Trash2, Pencil, PlusCircle } from "lucide-react";
+import { MoreHorizontal, Trash2, Pencil, PlusCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useData } from "@/context/data-context";
 import { AddCategoryDialog } from "./add-category-dialog";
@@ -17,6 +17,7 @@ export function CategoryManager() {
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [categoryToEdit, setCategoryToEdit] = useState<Category | undefined>(undefined);
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
     const handleAdd = () => {
         setCategoryToEdit(undefined);
@@ -29,6 +30,7 @@ export function CategoryManager() {
     };
 
     const handleDelete = async (id: string) => {
+        setIsDeleteLoading(true);
         try {
             await deleteCategory(id);
             toast({
@@ -41,6 +43,8 @@ export function CategoryManager() {
                 description: "No se pudo eliminar la categoría.",
                 variant: "destructive"
             });
+        } finally {
+            setIsDeleteLoading(false);
         }
     };
     
@@ -111,7 +115,10 @@ export function CategoryManager() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(category.id)}>Continuar</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleDelete(category.id)} disabled={isDeleteLoading}>
+                                                     {isDeleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                     Continuar
+                                                </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -125,6 +132,7 @@ export function CategoryManager() {
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 categoryToEdit={categoryToEdit}
+                onCategoryAddedOrUpdated={() => setIsDialogOpen(false)}
             />
         </Card>
     );
