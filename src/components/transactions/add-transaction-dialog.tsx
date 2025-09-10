@@ -124,7 +124,13 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     });
 
      const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: addTransaction,
+        action: async (values: FormValues) => {
+            const transactionData = {
+                ...values,
+                date: values.date.toISOString(),
+            };
+            await addTransaction(transactionData);
+        },
         onSuccess: () => {
             toast({
                 title: transactionToEdit?.id ? "Transacción actualizada" : "Transacción añadida",
@@ -542,3 +548,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
+    
