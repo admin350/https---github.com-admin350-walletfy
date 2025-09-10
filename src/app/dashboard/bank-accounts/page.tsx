@@ -10,7 +10,7 @@ import { AddBankAccountDialog } from "@/components/wallets/add-bank-account-dial
 import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 import { AddDepositDialog } from "@/components/wallets/add-deposit-dialog";
 import { AddWithdrawalDialog } from "@/components/wallets/add-withdrawal-dialog";
-import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
+import { AddTransferDialog } from "@/components/wallets/add-transfer-dialog";
 
 export default function BankAccountsPage() {
     const { bankAccounts, isLoading, formatCurrency } = useData();
@@ -77,12 +77,12 @@ export default function BankAccountsPage() {
                                 Retiro
                             </Button>
                         </AddWithdrawalDialog>
-                         <AddTransactionDialog defaultType="transfer">
+                         <AddTransferDialog>
                             <Button variant="outline" className="hover:bg-blue-500/90 hover:text-white">
                                 <ArrowRightLeft className="mr-2 h-4 w-4" />
                                 Transferir
                             </Button>
-                        </AddTransactionDialog>
+                        </AddTransferDialog>
                         <AddDepositDialog>
                             <Button variant="outline" className="hover:bg-green-500/90 hover:text-white">
                                 <ArrowDownToDot className="mr-2 h-4 w-4" />
