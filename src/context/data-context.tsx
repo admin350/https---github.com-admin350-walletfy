@@ -316,7 +316,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
-    
+
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
             amount: formData.amount,
@@ -326,7 +326,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             date: formData.date,
             accountId: formData.accountId,
         };
-    
+
         if (formData.type === 'transfer') {
             if (!formData.category) {
                 transData.category = allCategories.find(c => c.type === 'Transferencia')?.name || 'Transferencia';
@@ -352,17 +352,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const batch = writeBatch(db);
         const transRef = doc(collection(db, 'users', uid, 'transactions'));
         batch.set(transRef, transData);
-    
+
         const sourceAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.accountId);
         const sourceAccountSnap = await getDoc(sourceAccountRef);
         const sourceAccount = sourceAccountSnap.exists() ? sourceAccountSnap.data() as BankAccount : null;
         if (!sourceAccount) throw new Error("Source account not found");
-    
+
         if (transData.type === 'transfer') {
             if (!transData.destinationAccountId) throw new Error("Destination account is required for transfers.");
             
             batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
-    
+
             const destAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.destinationAccountId);
             const destAccountSnap = await getDoc(destAccountRef);
             if (destAccountSnap.exists()) {
@@ -376,19 +376,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         } else if (transData.type === 'expense') {
             if (paymentMethod === 'credit-line') {
                 batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
-            } else if (transData.cardId) { // payment is a card
+            } else if (transData.cardId) {
                 const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
                 if (cardSnap.exists()) {
                     const card = cardSnap.data() as BankCard;
                     if (card.cardType === 'credit') {
                         batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
-                        if (isInstallment) {
-                           const debtData: Omit<Debt, 'id' | 'paidAmount'> = {
+                        if (isInstallment && installments && installments > 1) {
+                           const debtData: Omit<Debt, 'id' | 'paidAmount' | 'sourceTransactionId'> = {
                                name: `Compra: ${transData.description}`,
                                totalAmount: transData.amount,
-                               monthlyPayment: transData.amount / (installments || 1),
-                               installments: installments || 1,
+                               monthlyPayment: transData.amount / installments,
+                               installments: installments,
                                dueDate: addMonths(new Date(transData.date), 1),
                                debtType: 'credit-card',
                                profile: transData.profile,
@@ -396,17 +396,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                                financialInstitution: card.bank,
                            };
                            const debtRef = doc(collection(db, 'users', uid, 'debts'));
-                           batch.set(debtRef, { ...debtData, paidAmount: 0 });
+                           batch.set(debtRef, { ...debtData, paidAmount: 0, sourceTransactionId: transRef.id });
                        }
-                    } else { // Debit or Prepaid
+                    } else { 
                         batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
                     }
                 }
-            } else { // Payment is from account balance
+            } else { 
                  batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
             }
         }
-    
+
         await batch.commit();
     };
 
@@ -665,8 +665,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         batch.update(subRef, { dueDate: nextDueDate });
 
         const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
-        batch.update(accountRef, { balance: account.balance - sub.amount });
-
+        if (card.cardType !== 'credit') {
+            batch.update(accountRef, { balance: account.balance - sub.amount });
+        }
+        
         if (card.cardType === 'credit') {
             const cardRef = doc(db, 'users', uid, 'bankCards', card.id);
             batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
