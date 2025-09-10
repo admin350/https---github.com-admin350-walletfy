@@ -47,7 +47,7 @@ interface DataContextType {
     addTransaction: (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
-    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<void>;
+    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<string>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     addSubscription: (subscription: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => Promise<void>;
@@ -55,27 +55,27 @@ interface DataContextType {
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<string>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
-    addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
+    addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<string>;
     updateFixedExpense: (expense: FixedExpense) => Promise<void>;
     deleteFixedExpense: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
     paySubscription: (subscription: Subscription) => Promise<void>;
     addTaxPayment: (payment: Omit<TaxPayment, 'id'>) => Promise<void>;
-    addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
+    addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<string>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
     addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => Promise<void>;
-    addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
+    addBudget: (budget: Omit<Budget, 'id'>) => Promise<string>;
     updateBudget: (budget: Budget) => Promise<void>;
     deleteBudget: (id: string) => Promise<void>;
-    addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
+    addCategory: (category: Omit<Category, 'id'>) => Promise<string>;
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
-    addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<void>;
+    addBankAccount: (account: Omit<BankAccount, 'id'>) => Promise<string>;
     updateBankAccount: (account: BankAccount) => Promise<void>;
     deleteBankAccount: (id: string) => Promise<void>;
     addBankCard: (card: Omit<BankCard, 'id' | 'usedAmount'>) => Promise<string>;
@@ -83,11 +83,11 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     addReport: (report: MonthlyReport) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
-    addService: (service: Omit<Service, 'id'>) => Promise<void>;
+    addService: (service: Omit<Service, 'id'>) => Promise<string>;
     updateService: (service: Service) => Promise<void>;
     deleteService: (id: string) => Promise<void>;
     updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
-    addProfile: (profile: Omit<Profile, 'id'>) => Promise<void>;
+    addProfile: (profile: Omit<Profile, 'id'>) => Promise<string>;
     updateProfile: (profile: Profile) => Promise<void>;
     deleteProfile: (id: string) => Promise<void>;
     getAllDataForMonth: (month: number, year: number) => { transactions: Transaction[], goals: SavingsGoal[], debts: Debt[], investments: Investment[], budgets: Budget[] };
@@ -421,7 +421,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     // GOAL FUNCTIONS
-    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => { return await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false }); };
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false });
     const updateGoal = async (goal: SavingsGoal) => await setDocWithId('goals', goal.id, goal);
     const deleteGoal = async (id: string) => await deleteDocById('goals', id);
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
@@ -546,7 +546,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     
     // INVESTMENT FUNCTIONS
-    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => { return await addDoc('investments', { ...investment, currentValue: investment.initialAmount }); };
+    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => await addDoc('investments', { ...investment, currentValue: investment.initialAmount });
     const updateInvestment = async (investment: Investment) => await setDocWithId('investments', investment.id, investment);
     const deleteInvestment = async (id: string) => await deleteDocById('investments', id);
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
@@ -681,8 +681,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
         const { paymentDate, ...sub } = subData;
         const subscriptionRecord: Omit<Subscription, 'id'> = { ...sub, dueDate: addMonths(paymentDate, 1), status: 'active', };
-        await addDoc('subscriptions', subscriptionRecord);
-        await paySubscription({ ...subscriptionRecord, id: 'temp_for_payment' }); // Create initial payment transaction
+        const newId = await addDoc('subscriptions', subscriptionRecord);
+        await paySubscription({ ...subscriptionRecord, id: newId }); // Create initial payment transaction
     };
     
     const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
@@ -698,19 +698,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
     
     // OTHER ENTITIES
-    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => { return await addDoc('fixedExpenses', expense); };
+    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => await addDoc('fixedExpenses', expense);
     const updateFixedExpense = async (expense: FixedExpense) => await setDocWithId('fixedExpenses', expense.id, expense);
     const deleteFixedExpense = async (id: string) => await deleteDocById('fixedExpenses', id);
 
-    const addBudget = async (budget: Omit<Budget, 'id'>) => { return await addDoc('budgets', budget); };
+    const addBudget = async (budget: Omit<Budget, 'id'>) => await addDoc('budgets', budget);
     const updateBudget = async (budget: Budget) => await setDocWithId('budgets', budget.id, budget);
     const deleteBudget = async (id: string) => await deleteDocById('budgets', id);
     
-    const addCategory = async (category: Omit<Category, 'id'>) => { return await addDoc('categories', category); };
+    const addCategory = async (category: Omit<Category, 'id'>) => await addDoc('categories', category);
     const updateCategory = async (category: Category) => await setDocWithId('categories', category.id, category);
     const deleteCategory = async (id: string) => await deleteDocById('categories', id);
     
-    const addService = async (service: Omit<Service, 'id'>) => { return await addDoc('services', service); };
+    const addService = async (service: Omit<Service, 'id'>) => await addDoc('services', service);
     const updateService = async (service: Service) => await setDocWithId('services', service.id, service);
     const deleteService = async (id: string) => await deleteDocById('services', id);
 
@@ -722,7 +722,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return await setDocWithId('settings', 'appSettings', newSettings);
     }
     
-    const addProfile = async (profile: Omit<Profile, 'id'>) => { return await addDoc('profiles', profile); };
+    const addProfile = async (profile: Omit<Profile, 'id'>) => await addDoc('profiles', profile);
     const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.id, profile);
     const deleteProfile = async (id: string) => await deleteDocById('profiles', id);
 
