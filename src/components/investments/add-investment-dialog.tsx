@@ -1,4 +1,3 @@
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -27,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { Investment } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la inversión es muy corto." }),
@@ -48,6 +46,7 @@ interface AddInvestmentDialogProps {
 
 export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenChange }: AddInvestmentDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addInvestment, updateInvestment, profiles } = useData();
     
@@ -66,34 +65,35 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (investmentToEdit) {
                 await updateInvestment({ ...values, id: investmentToEdit.id, currentValue: investmentToEdit.currentValue });
+                toast({
+                    title: "Inversión actualizada",
+                    description: `La inversión ha sido actualizada exitosamente.`,
+                });
             } else {
                 await addInvestment(values);
+                 toast({
+                    title: "Inversión añadida",
+                    description: `La inversión ha sido registrada exitosamente.`,
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: investmentToEdit ? "Inversión actualizada" : "Inversión añadida",
-                description: `La inversión ha sido ${investmentToEdit ? 'actualizada' : 'registrada'} exitosamente.`,
-            });
-        },
-        onError: (error) => {
+            setDialogOpen(false);
+        } catch (error) {
+             const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${investmentToEdit ? 'actualizar' : 'añadir'} la inversión.`,
+                description: err.message || `No se pudo ${investmentToEdit ? 'actualizar' : 'añadir'} la inversión.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
 
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
 
     useEffect(() => {
         if (dialogOpen) {
@@ -129,7 +129,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"
