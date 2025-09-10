@@ -241,7 +241,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const initializeUserData = async (newUid: string) => {
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
-        const defaultCategories = [ { name: "Alimentación", type: "Gasto", color: "#f97316" }, { name: "Transporte", type: "Gasto", color: "#3b82f6" }, { name: "Vivienda", type: "Gasto", color: "#84cc16" }, { name: "Sueldo", type: "Ingreso", color: "#22c55e" }, { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"}, { name: "Suscripciones", type: "Gasto", color: "#a855f7"}, { name: "Otros Gastos", type: "Gasto", color: "#6b7280"}, { name: "Transferencia", type: "Transferencia", color: "#06b6d4"}, ];
+        const defaultCategories = [
+            { name: "Alimentación", type: "Gasto", color: "#f97316" },
+            { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+            { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+            { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+            { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+            { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+            { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+            { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+            { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
+        ];
         const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000 };
 
         const batch = writeBatch(db);
