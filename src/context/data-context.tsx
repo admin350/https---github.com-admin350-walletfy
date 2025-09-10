@@ -317,13 +317,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
     
-        let taxDetails: Transaction['taxDetails'] | undefined = undefined;
-        if (includesTax && taxRate && formData.amount) {
-            const total = formData.amount;
-            const taxAmount = total - (total / (1 + taxRate / 100));
-            taxDetails = { rate: taxRate, amount: taxAmount };
-        }
-    
         const transData: Omit<Transaction, 'id'> = {
             type: formData.type,
             amount: formData.amount,
@@ -332,17 +325,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: formData.profile,
             date: formData.date,
             accountId: formData.accountId,
-            isCreditLinePayment: paymentMethod === 'credit-line',
-            taxDetails,
         };
-        
-        if (formData.type === 'transfer' && !transData.category) {
-            transData.category = 'Transferencia';
-        }
     
-        const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
-        if (paymentIsCard) {
-            transData.cardId = paymentMethod;
+        if (formData.type === 'transfer') {
+            if (!formData.category) {
+                transData.category = allCategories.find(c => c.type === 'Transferencia')?.name || 'Transferencia';
+            }
+            if (formData.destinationAccountId) {
+                transData.destinationAccountId = formData.destinationAccountId;
+            }
+        } else {
+            let taxDetails: Transaction['taxDetails'] | undefined = undefined;
+            if (includesTax && taxRate && formData.amount) {
+                const total = formData.amount;
+                const taxAmount = total - (total / (1 + taxRate / 100));
+                taxDetails = { rate: taxRate, amount: taxAmount };
+            }
+            transData.taxDetails = taxDetails;
+            transData.isCreditLinePayment = paymentMethod === 'credit-line';
+            const paymentIsCard = paymentMethod && paymentMethod !== 'account-balance' && paymentMethod !== 'credit-line';
+            if (paymentIsCard) {
+                transData.cardId = paymentMethod;
+            }
         }
         
         const batch = writeBatch(db);
@@ -372,7 +376,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         } else if (transData.type === 'expense') {
             if (paymentMethod === 'credit-line') {
                 batch.update(sourceAccountRef, { creditLineUsed: (sourceAccount.creditLineUsed || 0) + transData.amount });
-            } else if (paymentIsCard && transData.cardId) {
+            } else if (transData.cardId) { // payment is a card
                 const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
                 if (cardSnap.exists()) {
@@ -394,11 +398,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                            const debtRef = doc(collection(db, 'users', uid, 'debts'));
                            batch.set(debtRef, { ...debtData, paidAmount: 0 });
                        }
-                    } else { 
+                    } else { // Debit or Prepaid
                         batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
                     }
                 }
-            } else { 
+            } else { // Payment is from account balance
                  batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
             }
         }
