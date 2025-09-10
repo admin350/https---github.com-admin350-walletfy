@@ -37,7 +37,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
@@ -54,6 +53,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function AddTransferDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, formatCurrency } = useData();
     
@@ -81,8 +81,9 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
         path: ["amount"],
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             const validationResult = dynamicSchema.safeParse(values);
             if (!validationResult.success) {
                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
@@ -111,29 +112,24 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
                 accountId: values.sourceAccountId,
                 destinationAccountId: values.destinationAccountId,
             });
-        },
-        onSuccess: (result, values) => {
             toast({
                 title: "Transferencia Exitosa",
                 description: `Has transferido ${formatCurrency(values.amount)}.`,
             });
-        },
-        onError: (error) => {
+            setOpen(false);
+        } catch (error) {
             if (!form.formState.errors.amount && !form.formState.errors.destinationAccountId) {
+                 const err = error instanceof Error ? error : new Error('An unknown error occurred');
                  toast({
                     title: "Error en la Transferencia",
-                    description: error.message || `No se pudo registrar la transferencia.`,
+                    description: err.message || `No se pudo registrar la transferencia.`,
                     variant: 'destructive'
                 });
             }
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setOpen(false);
-        }
-    }, [isSuccess]);
+    };
 
     useEffect(() => {
         if(!open) {
@@ -161,7 +157,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
         </DialogHeader>
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
                         control={form.control}
                         name="sourceAccountId"

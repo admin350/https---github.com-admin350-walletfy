@@ -27,7 +27,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { BankCard } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El alias es muy corto." }),
@@ -53,6 +52,7 @@ interface AddBankCardDialogProps {
 
 export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: AddBankCardDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addBankCard, updateBankCard, profiles, bankAccounts, formatCurrency } = useData();
     
@@ -76,35 +76,31 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (cardToEdit) {
                 await updateBankCard({ ...cardToEdit, ...values });
             } else {
                 await addBankCard(values);
             }
-        },
-        onSuccess: () => {
-            toast({
+             toast({
                 title: cardToEdit ? "Tarjeta actualizada" : "Tarjeta añadida",
                 description: `La tarjeta ha sido ${cardToEdit ? 'actualizada' : 'creada'} exitosamente.`,
             });
-        },
-        onError: (error) => {
+            setDialogOpen(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${cardToEdit ? 'actualizar' : 'añadir'} la tarjeta.`,
+                description: err.message || `No se pudo ${cardToEdit ? 'actualizar' : 'añadir'} la tarjeta.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
     
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
-
     useEffect(() => {
         if (dialogOpen) {
             if (cardToEdit) {
@@ -148,7 +144,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                 </DialogHeader>
                  <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

@@ -31,7 +31,6 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 
 const formSchema = z.object({
@@ -48,6 +47,7 @@ interface AddWithdrawalDialogProps {
 
 export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const [open, setOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addTransaction, categories, bankAccounts, formatCurrency } = useData();
 
@@ -75,8 +75,9 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
         path: ["amount"],
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: z.infer<typeof formSchema>) => {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setIsLoading(true);
+        try {
              if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
             }
@@ -94,29 +95,24 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 date: values.date.toISOString(),
                 profile: selectedAccount.profile,
             });
-        },
-        onSuccess: (result, values) => {
             toast({
                 title: "Retiro Registrado",
                 description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount?.name}.`,
             });
-        },
-        onError: (error) => {
+            setOpen(false);
+        } catch (error) {
             if (!form.formState.errors.amount) {
+                const err = error instanceof Error ? error : new Error('An unknown error occurred');
                 toast({
                     title: "Error",
-                    description: error.message || `No se pudo añadir el retiro.`,
+                    description: err.message || `No se pudo añadir el retiro.`,
                     variant: 'destructive'
                 });
             }
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setOpen(false);
-        }
-    }, [isSuccess]);
+    };
 
     useEffect(() => {
         if(!open) {
@@ -144,7 +140,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                              <FormField
                                 control={form.control}
                                 name="accountId"

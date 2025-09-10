@@ -11,30 +11,13 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import type { Profile } from "@/types";
 import { AddProfileDialog } from "./add-profile-dialog";
-import { useSubmitAction } from "@/hooks/use-submit-action";
 
 export function ProfileManager() {
     const { profiles, deleteProfile } = useData();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
-
-    const { performAction: performDelete } = useSubmitAction({
-        action: deleteProfile,
-        onSuccess: () => {
-            toast({
-                title: "Perfil eliminado",
-                description: "El perfil ha sido eliminado exitosamente.",
-            });
-        },
-        onError: (error) => {
-            toast({
-                title: "Error",
-                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
-                variant: "destructive"
-            });
-        }
-    });
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
     const handleAdd = () => {
         setProfileToEdit(undefined);
@@ -47,7 +30,22 @@ export function ProfileManager() {
     };
 
     const handleDelete = async (id: string) => {
-        await performDelete(id);
+        setIsDeleteLoading(true);
+        try {
+            await deleteProfile(id);
+            toast({
+                title: "Perfil eliminado",
+                description: "El perfil ha sido eliminado exitosamente.",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "No se pudo eliminar el perfil. Asegúrate que no esté en uso.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsDeleteLoading(false);
+        }
     };
     
     return (
@@ -113,7 +111,10 @@ export function ProfileManager() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(profile.id)}>Continuar</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleDelete(profile.id)} disabled={isDeleteLoading}>
+                                                    {isDeleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    Continuar
+                                                </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
