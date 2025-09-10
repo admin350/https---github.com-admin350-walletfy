@@ -137,7 +137,13 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if(!open) {
-            form.reset();
+            form.reset({
+                amount: '' as any,
+                description: "",
+                sourceAccountId: "",
+                destinationAccountId: "",
+                date: new Date(),
+            });
         }
     }, [open, form]);
 
