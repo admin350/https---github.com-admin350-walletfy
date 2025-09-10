@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -34,7 +35,7 @@ import { useData } from '@/context/data-context';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
   amount: z.coerce.number().positive({ message: "Monto debe ser positivo." }),
-  paymentDate: z.date({ required_error: "La fecha de pago es requerida." }),
+  dueDate: z.date({ required_error: "La fecha de pago es requerida." }),
   cardId: z.string().min(1, { message: "La tarjeta es requerida."}),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
 });
@@ -52,7 +53,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         defaultValues: {
             name: "",
             amount: '' as any,
-            paymentDate: new Date(),
+            dueDate: new Date(),
             cardId: "",
             profile: "",
         },
@@ -64,7 +65,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             await addSubscription(values);
             toast({
                 title: "Suscripción Registrada",
-                description: "Se ha creado el gasto y programado el próximo pago.",
+                description: "La suscripción se ha creado y está lista para ser pagada.",
             });
             setOpen(false);
         } catch (error) {
@@ -84,7 +85,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
             form.reset({
                 name: "",
                 amount: '' as any,
-                paymentDate: new Date(),
+                dueDate: new Date(),
                 cardId: "",
                 profile: "",
             });
@@ -101,7 +102,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 <DialogHeader>
                     <DialogTitle>Añadir Nueva Suscripción</DialogTitle>
                     <DialogDescription>
-                        Registra un nuevo pago recurrente. Se creará un gasto y se programará el próximo vencimiento.
+                        Registra un nuevo pago recurrente. Podrás marcarlo como pagado cada mes.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
@@ -147,7 +148,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                 name="amount"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Monto Pagado</FormLabel>
+                                        <FormLabel>Monto Mensual</FormLabel>
                                         <FormControl>
                                             <Input type="number" placeholder="$15.990" {...field} value={field.value ?? ''} />
                                         </FormControl>
@@ -186,10 +187,10 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
 
                             <FormField
                                 control={form.control}
-                                name="paymentDate"
+                                name="dueDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel>Fecha de Pago</FormLabel>
+                                        <FormLabel>Próximo Vencimiento</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>

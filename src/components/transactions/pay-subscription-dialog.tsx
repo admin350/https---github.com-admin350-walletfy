@@ -43,7 +43,6 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
     const formSchema = z.object({
         amount: z.coerce.number()
           .positive({ message: "El monto debe ser positivo." })
-          .max(account?.balance ?? 0, { message: `No puedes pagar más de tu balance disponible (${formatCurrency(account?.balance ?? 0)}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -77,7 +76,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
             setIsLoading(false);
         }
     };
-
+    
     useEffect(() => {
         if(open){
             form.reset({ amount: subscription.amount });
@@ -90,7 +89,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
                 <DialogHeader>
                     <DialogTitle>Pagar Suscripción: {subscription.name}</DialogTitle>
                     <DialogDescription>
-                       Pagando desde la cuenta: <span className="font-bold text-primary">{account?.name} ({formatCurrency(account?.balance ?? 0)})</span>
+                       Se registrará un gasto desde la cuenta: <span className="font-bold text-primary">{account?.name} ({formatCurrency(account?.balance ?? 0)})</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

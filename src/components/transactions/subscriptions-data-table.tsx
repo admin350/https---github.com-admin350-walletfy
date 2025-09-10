@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Subscription } from "@/types";
 import { useData } from "@/context/data-context";
-import { format, isPast } from "date-fns";
-import { MoreHorizontal, Pencil, Trash2, HandCoins } from "lucide-react";
+import { format, isPast, getMonth, getYear } from "date-fns";
+import { MoreHorizontal, Pencil, Trash2, HandCoins, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
@@ -118,12 +118,12 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                  const date = tab === 'cancelled' ? subscription.cancellationDate : subscription.dueDate;
                  if (!date) return null;
 
-                 const isDue = isPast(new Date(subscription.dueDate));
+                 const isOverdue = isPast(new Date(subscription.dueDate));
 
                  return (
                     <div className="flex items-center gap-2">
                         <span>{format(new Date(date), "dd/MM/yyyy")}</span>
-                        {isDue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
+                        {isOverdue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
                         {tab === 'cancelled' && <Badge variant="outline">Cancelada</Badge>}
                     </div>
                  )
@@ -133,7 +133,10 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
-                const showPayButton = tab === 'overdue' || tab === 'this-month';
+                const today = new Date();
+                const isPaidThisMonth = item.lastPaymentMonth === getMonth(today) && item.lastPaymentYear === getYear(today);
+                
+                const showPayButton = (tab === 'overdue' || tab === 'this-month') && !isPaidThisMonth;
 
                 if (tab === 'cancelled') {
                     return (
@@ -175,6 +178,21 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                 <HandCoins className="mr-2 h-4 w-4" />
                                 Pagar
                             </Button>
+                        )}
+                        {isPaidThisMonth && (
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="flex items-center gap-2 text-green-500 text-sm font-medium">
+                                            <CheckCircle className="h-5 w-5" />
+                                            <span>Pagado</span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Pagado este mes</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                             </TooltipProvider>
                         )}
                         <AlertDialog>
                             <DropdownMenu>

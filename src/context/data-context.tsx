@@ -50,7 +50,7 @@ interface DataContextType {
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<string>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
-    addSubscription: (subscription: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => Promise<void>;
+    addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
     updateSubscription: (subscription: Subscription) => Promise<void>;
     updateSubscriptionAmount: (subscriptionId: string, newAmount: number) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
@@ -499,6 +499,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: debt.profile,
             date: new Date().toISOString(),
             accountId: payment.accountId,
+            includesTax: false,
         });
 
     };
@@ -547,6 +548,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: taxAccount.profile,
             date: new Date().toISOString(),
             accountId: payment.sourceAccountId,
+            includesTax: false,
         });
     
     };
@@ -648,53 +650,38 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const paySubscription = async (sub: Subscription) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        
+        const today = new Date();
         const cardRef = doc(db, 'users', uid, 'bankCards', sub.cardId);
         const cardSnap = await getDoc(cardRef);
         if (!cardSnap.exists()) throw new Error("Tarjeta no encontrada para la suscripción");
         const card = cardSnap.data() as BankCard;
 
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
-        const accountSnap = await getDoc(accountRef);
-        if (!accountSnap.exists()) throw new Error("Cuenta bancaria asociada a la tarjeta no encontrada");
-        const account = accountSnap.data() as BankAccount;
-
-        const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones")?.name || "Otros Gastos";
-        
-        await addTransaction({
-            type: 'expense', amount: sub.amount, description: `Suscripción: ${sub.name}`,
-            category: subscriptionCategory, profile: sub.profile, date: new Date().toISOString(),
-            accountId: card.accountId, paymentMethod: card.id,
-        });
-
-        const nextDueDate = addMonths(sub.dueDate, 1);
-        const subRef = doc(db, 'users', uid, 'subscriptions', sub.id);
-        await updateDoc(subRef, { dueDate: nextDueDate });
-    };
-
-
-    const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
-        if (!uid) throw new Error("Usuario no autenticado");
-        const { paymentDate, ...sub } = subData;
-        const subscriptionRecord: Omit<Subscription, 'id'> = {
-            ...sub,
-            dueDate: addMonths(paymentDate, 1),
-            status: 'active',
-        };
-        const newId = await addDoc('subscriptions', subscriptionRecord);
-        const card = allBankCards.find(c => c.id === sub.cardId);
-        if (!card) throw new Error("Card not found");
-
         await addTransaction({
             type: 'expense',
             amount: sub.amount,
             description: `Suscripción: ${sub.name}`,
-            category: 'Suscripciones',
+            category: "Suscripciones",
             profile: sub.profile,
-            date: paymentDate.toISOString(),
+            date: today.toISOString(),
             accountId: card.accountId,
-            paymentMethod: sub.cardId
+            paymentMethod: sub.cardId,
+            includesTax: false,
         });
+
+        const subRef = doc(db, 'users', uid, 'subscriptions', sub.id);
+        await updateDoc(subRef, { 
+            lastPaymentMonth: getMonth(today),
+            lastPaymentYear: getYear(today)
+        });
+    };
+
+
+    const addSubscription = async (subData: Omit<Subscription, 'id' | 'status'>) => {
+        const subscriptionRecord: Omit<Subscription, 'id'> = {
+            ...subData,
+            status: 'active',
+        };
+        await addDoc('subscriptions', subscriptionRecord);
     };
     
     const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);

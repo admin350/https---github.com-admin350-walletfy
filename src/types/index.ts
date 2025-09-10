@@ -109,6 +109,8 @@ export type Subscription = {
   profile: string;
   status: 'active' | 'cancelled';
   cancellationDate?: Date;
+  lastPaymentMonth?: number; // 0-11
+  lastPaymentYear?: number;
 };
 
 
