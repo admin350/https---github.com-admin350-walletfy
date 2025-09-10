@@ -206,6 +206,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const availableCategories = categories.filter(c => {
         if (transactionType === 'income') return c.type === 'Ingreso';
         if (transactionType === 'expense') return c.type === 'Gasto';
+        // For 'transfer', the category is set programmatically and the field is hidden
         return false;
     });
 
@@ -548,5 +549,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
+    
 
     
