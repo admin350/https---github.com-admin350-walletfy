@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
 import { db, auth } from "@/lib/firebase";
@@ -26,6 +26,7 @@ interface DataContextType {
     categories: Category[];
     goalContributions: GoalContribution[];
     debtPayments: DebtPayment[];
+    taxPayments: TaxPayment[];
     investments: Investment[];
     investmentContributions: InvestmentContribution[];
     budgets: Budget[];
@@ -61,6 +62,7 @@ interface DataContextType {
     addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
     paySubscription: (subscription: Subscription) => Promise<void>;
+    addTaxPayment: (payment: Omit<TaxPayment, 'id'>) => Promise<void>;
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
@@ -113,6 +115,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allCategories, setAllCategories] = useState<Category[]>([]);
     const [allGoalContributions, setAllGoalContributions] = useState<GoalContribution[]>([]);
     const [allDebtPayments, setAllDebtPayments] = useState<DebtPayment[]>([]);
+    const [allTaxPayments, setAllTaxPayments] = useState<TaxPayment[]>([]);
     const [allInvestments, setAllInvestments] = useState<Investment[]>([]);
     const [allInvestmentContributions, setAllInvestmentContributions] = useState<InvestmentContribution[]>([]);
     const [allBudgets, setAllBudgets] = useState<Budget[]>([]);
@@ -161,8 +164,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 // Clear all data when user logs out
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
-                setAllDebtPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); setAllBudgets([]);
-                setAllBankAccounts([]); setAllBankCards([]); setAllReports([]);
+                setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
+                setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]);
                 setSettings({ currency: 'CLP' });
                 setIsLoading(false);
             }
@@ -181,7 +184,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
-            'categories', 'goalContributions', 'debtPayments', 'investments', 
+            'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments', 
             'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports'
         ];
 
@@ -189,8 +192,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
             debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
             categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
-            investments: setAllInvestments, investmentContributions: setAllInvestmentContributions, budgets: setAllBudgets,
-            bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports,
+            taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions, 
+            budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports,
         };
 
         const unsubscribers: Unsubscribe[] = [];
@@ -463,6 +466,36 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         }
          return await batch.commit();
+    };
+
+    // TAX FUNCTIONS
+    const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const batch = writeBatch(db);
+        
+        const paymentRef = doc(collection(db, 'users', uid, 'taxPayments'));
+        batch.set(paymentRef, payment);
+
+        const taxAccountRef = doc(db, 'users', uid, 'bankAccounts', payment.sourceAccountId);
+        const taxAccountSnap = await getDoc(taxAccountRef);
+        if (taxAccountSnap.exists()) {
+            const taxAccount = taxAccountSnap.data() as BankAccount;
+            batch.update(taxAccountRef, { balance: taxAccount.balance - payment.amount });
+
+             const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
+              const transactionData: Omit<Transaction, 'id'> = {
+                type: 'expense',
+                amount: payment.amount,
+                description: `Pago Impuesto (F29) ${payment.month + 1}/${payment.year}`,
+                category: "Impuestos",
+                profile: taxAccount.profile, 
+                date: new Date().toISOString(),
+                accountId: payment.sourceAccountId,
+            };
+            batch.set(transactionRef, transactionData);
+        }
+
+        return await batch.commit();
     };
     
     // INVESTMENT FUNCTIONS
@@ -749,6 +782,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return profileMatch && monthMatch && yearMatch;
         });
     }, [allDebtPayments, allDebts, filters]);
+    
+    const filteredTaxPayments = useMemo(() => {
+        return allTaxPayments.filter(tp => {
+            const monthMatch = filters.month === -1 || tp.month === filters.month;
+            const yearMatch = tp.year === filters.year;
+            // Tax payments aren't directly linked to a profile, they are company-wide
+            // but for consistency we can filter if a user has selected a non-"all" profile
+            // This might need refinement based on desired logic.
+            return monthMatch && yearMatch;
+        });
+    }, [allTaxPayments, filters]);
 
     const filteredInvestments = useMemo(() => {
         return allInvestments.filter(i => filters.profile === 'all' || i.profile === filters.profile);
@@ -902,9 +946,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 }
             });
         }
+        
+        // 7. Tax Payment Notification
+        const isTaxPeriodPaid = allTaxPayments.some(p => p.month === getMonth(today) && p.year === getYear(today));
+        const taxPaymentDueDate = new Date(today.getFullYear(), today.getMonth() + 1, 20); // Assume F29 due date is 20th of next month
+        const taxNotificationDate = subDays(taxPaymentDueDate, 5); // Notify 5 days before
+        if (!isTaxPeriodPaid && today >= taxNotificationDate && today <= taxPaymentDueDate) {
+             newNotifications.push({
+                id: `tax-due-${getMonth(today)}`, title: `Declaración de Impuestos (F29) Próxima`,
+                description: `Recuerda declarar y pagar tus impuestos antes del ${format(taxPaymentDueDate, "dd/MM/yyyy")}.`,
+                date: new Date(), read: false, type: 'warning', link: `/dashboard/taxes`
+            });
+        }
+
 
         return newNotifications.sort((a,b) => b.date.getTime() - a.date.getTime());
-    }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency]);
+    }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments]);
 
 
     return (
@@ -919,6 +976,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             categories: allCategories,
             goalContributions: filteredGoalContributions,
             debtPayments: filteredDebtPayments,
+            taxPayments: filteredTaxPayments,
             investments: filteredInvestments,
             investmentContributions: filteredInvestmentContributions,
             budgets: filteredBudgets,
@@ -954,6 +1012,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addGoalContribution,
             addDebtPayment,
             paySubscription,
+            addTaxPayment,
             addInvestment,
             updateInvestment,
             deleteInvestment,

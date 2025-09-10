@@ -17,7 +17,7 @@ export default function TaxPortfolioPage() {
     
     const totalTransferredToTax = taxAccount?.balance ?? 0;
 
-    const totalPaidInTaxes = taxPayments.reduce((acc, p) => acc + p.amount, 0);
+    const totalPaidInTaxes = (taxPayments || []).reduce((acc, p) => acc + p.amount, 0);
 
     const availableToPay = totalTransferredToTax - totalPaidInTaxes;
 
