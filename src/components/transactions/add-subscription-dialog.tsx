@@ -31,6 +31,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import type { Subscription } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
