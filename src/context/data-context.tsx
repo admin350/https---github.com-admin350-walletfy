@@ -44,7 +44,7 @@ interface DataContextType {
     login: (email: string, pass: string) => Promise<void>;
     signup: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
-    addTransaction: (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
+    addTransaction: (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => Promise<string>;
@@ -313,7 +313,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
+     const addTransaction = async (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
 
@@ -490,8 +490,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         batch.update(accountRef, {balance: account.balance - payment.amount});
 
         const debtCategory = allCategories.find(c => c.name === "Pago de Deuda")?.name || "Otros Gastos";
-        const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
-        const transactionData: Omit<Transaction, 'id'> = {
+        
+        await addTransaction({
             type: 'expense',
             amount: payment.amount,
             description: `Abono a: ${debt.name}`,
@@ -499,10 +499,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: debt.profile,
             date: new Date().toISOString(),
             accountId: payment.accountId,
-        };
-        batch.set(transactionRef, transactionData);
+        });
 
-        return await batch.commit();
     };
 
     // TAX FUNCTIONS
@@ -541,8 +539,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         batch.set(paymentRef, finalPayment);
         batch.update(taxAccountRef, { balance: taxAccount.balance - payment.amount });
     
-        const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
-        const transactionData: Omit<Transaction, 'id'> = {
+        await addTransaction({
             type: 'expense',
             amount: payment.amount,
             description: `Pago Impuesto (F29) ${payment.month + 1}/${payment.year}`,
@@ -550,10 +547,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: taxAccount.profile,
             date: new Date().toISOString(),
             accountId: payment.sourceAccountId,
-        };
-        batch.set(transactionRef, transactionData);
+        });
     
-        return await batch.commit();
     };
     
     
@@ -654,8 +649,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const paySubscription = async (sub: Subscription) => {
         if (!uid) throw new Error("Usuario no autenticado");
         
-        const batch = writeBatch(db);
-
         const cardRef = doc(db, 'users', uid, 'bankCards', sub.cardId);
         const cardSnap = await getDoc(cardRef);
         if (!cardSnap.exists()) throw new Error("Tarjeta no encontrada para la suscripción");
@@ -667,37 +660,41 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const account = accountSnap.data() as BankAccount;
 
         const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones")?.name || "Otros Gastos";
-        const transactionData: Omit<Transaction, 'id'> = {
+        
+        await addTransaction({
             type: 'expense', amount: sub.amount, description: `Suscripción: ${sub.name}`,
             category: subscriptionCategory, profile: sub.profile, date: new Date().toISOString(),
-            accountId: card.accountId, cardId: sub.cardId,
-        };
-        const transRef = doc(collection(db, 'users', uid, 'transactions'));
-        batch.set(transRef, transactionData);
-        
+            accountId: card.accountId, paymentMethod: card.id,
+        });
+
         const nextDueDate = addMonths(sub.dueDate, 1);
         const subRef = doc(db, 'users', uid, 'subscriptions', sub.id);
-        batch.update(subRef, { dueDate: nextDueDate });
-
-        if (card.cardType !== 'credit') {
-            if (account.balance < sub.amount) throw new Error("Saldo insuficiente en la cuenta.");
-            batch.update(accountRef, { balance: account.balance - sub.amount });
-        } else {
-             if (card.creditLimit && (card.usedAmount || 0) + sub.amount > card.creditLimit) {
-                throw new Error("Límite de la tarjeta de crédito excedido.");
-             }
-             batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
-        }
-
-        return await batch.commit();
+        await updateDoc(subRef, { dueDate: nextDueDate });
     };
 
 
     const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
+        if (!uid) throw new Error("Usuario no autenticado");
         const { paymentDate, ...sub } = subData;
-        const subscriptionRecord: Omit<Subscription, 'id'> = { ...sub, dueDate: addMonths(paymentDate, 1), status: 'active', };
+        const subscriptionRecord: Omit<Subscription, 'id'> = {
+            ...sub,
+            dueDate: addMonths(paymentDate, 1),
+            status: 'active',
+        };
         const newId = await addDoc('subscriptions', subscriptionRecord);
-        await paySubscription({ ...subscriptionRecord, id: newId }); // Create initial payment transaction
+        const card = allBankCards.find(c => c.id === sub.cardId);
+        if (!card) throw new Error("Card not found");
+
+        await addTransaction({
+            type: 'expense',
+            amount: sub.amount,
+            description: `Suscripción: ${sub.name}`,
+            category: 'Suscripciones',
+            profile: sub.profile,
+            date: paymentDate.toISOString(),
+            accountId: card.accountId,
+            paymentMethod: sub.cardId
+        });
     };
     
     const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
