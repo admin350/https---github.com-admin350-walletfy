@@ -37,7 +37,7 @@ const formSchema = z.object({
   accountNumber: z.string().min(1, { message: "El número de cuenta es requerido." }),
   balance: z.coerce.number().min(0, { message: "El saldo inicial no puede ser negativo." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
-  purpose: z.enum(["main", "savings", "investment"]),
+  purpose: z.enum(["main", "savings", "investment", "tax"]),
   rut: z.string().min(1, "El RUT es requerido."),
   email: z.string().email("Debe ser un correo electrónico válido."),
   color: z.string().optional(),
@@ -268,6 +268,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                             <SelectItem value="main">Uso Principal</SelectItem>
                                             <SelectItem value="savings">Cartera de Ahorros</SelectItem>
                                             <SelectItem value="investment">Cartera de Inversión</SelectItem>
+                                            <SelectItem value="tax">Cartera Tributaria</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

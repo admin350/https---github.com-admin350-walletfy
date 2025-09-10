@@ -35,6 +35,7 @@ const navSections = [
             { href: "/dashboard/bank-cards", icon: CreditCard, label: "Tarjetas Bancarias", color: "text-orange-400" },
             { href: "/dashboard/savings-portfolio", icon: Landmark, label: "Ahorros", color: "text-emerald-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
+            { href: "/dashboard/tax-portfolio", icon: Scale, label: "Cartera Tributaria", color: "text-teal-400" },
         ]
     },
     {

@@ -542,4 +542,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
-

@@ -26,7 +26,7 @@ export type BankAccount = {
   accountNumber: string;
   balance: number;
   profile: string;
-  purpose: 'main' | 'savings' | 'investment'; // Designate account for a specific purpose
+  purpose: 'main' | 'savings' | 'investment' | 'tax'; // Designate account for a specific purpose
   color?: string;
   monthlyLimit?: number; // For "Cuenta Vista" monthly deposit limit
   rut?: string;
@@ -138,6 +138,15 @@ export type InvestmentContribution = {
   amount: number;
   date: Date;
 }
+
+export type TaxPayment = {
+  id: string;
+  year: number;
+  month: number;
+  amount: number;
+  date: Date; // payment date
+  sourceAccountId: string; // the tax portfolio account
+};
 
 export type BudgetItem = {
   category: string;
