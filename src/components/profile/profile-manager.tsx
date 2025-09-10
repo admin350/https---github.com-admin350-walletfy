@@ -1,4 +1,3 @@
-
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import type { Profile } from "@/types";
 import { AddProfileDialog } from "./add-profile-dialog";
 
 export function ProfileManager() {
-    const { profiles, deleteProfile } = useData();
+    const { profiles, deleteProfile } from useData();
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [profileToEdit, setProfileToEdit] = useState<Profile | undefined>(undefined);
