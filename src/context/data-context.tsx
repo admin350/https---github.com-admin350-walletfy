@@ -393,6 +393,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                                debtType: 'credit-card',
                                profile: transData.profile,
                                accountId: transData.accountId,
+                               cardId: transData.cardId,
                                financialInstitution: card.bank,
                            };
                            const debtRef = doc(collection(db, 'users', uid, 'debts'));

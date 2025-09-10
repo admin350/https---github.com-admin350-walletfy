@@ -1,6 +1,5 @@
 
 
-
 export type Transaction = {
   id: string;
   type: 'income' | 'expense' | 'transfer';
@@ -84,6 +83,7 @@ export type Debt = {
   financialInstitution?: string;
   profile: string;
   accountId: string;
+  cardId?: string; // Link to the source credit card if applicable
   debtType: 'consumo' | 'hipotecario' | 'auto' | 'line-of-credit' | 'credit-card' | 'otro';
   // New field for notification settings
   dueNotificationDays?: number; // e.g., notify 3 days before due date
