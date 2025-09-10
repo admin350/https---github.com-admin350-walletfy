@@ -635,73 +635,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);
 
     // SUBSCRIPTION FUNCTIONS
-    const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
-        if (!uid) throw new Error("Usuario no autenticado");
-
-        const { paymentDate, ...sub } = subData;
-        const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones")?.name || "Otros Gastos";
-        const card = allBankCards.find(c => c.id === sub.cardId);
-        if(!card) throw new Error("Tarjeta no encontrada para la suscripción");
-
-        const batch = writeBatch(db);
-
-        // 1. Create the expense transaction for the payment made now
-        const transactionData: Omit<Transaction, 'id'> = {
-            type: 'expense',
-            amount: sub.amount,
-            description: `Suscripción: ${sub.name}`,
-            category: subscriptionCategory,
-            profile: sub.profile,
-            date: paymentDate.toISOString(),
-            accountId: card.accountId,
-            cardId: sub.cardId,
-        };
-        const transRef = doc(collection(db, 'users', uid, 'transactions'));
-        batch.set(transRef, transactionData);
-
-        // 2. Create the subscription record for future tracking
-        const nextDueDate = addMonths(paymentDate, 1);
-        const subscriptionRecord: Omit<Subscription, 'id'> = {
-            ...sub,
-            dueDate: nextDueDate,
-            status: 'active',
-        };
-        const subRef = doc(collection(db, 'users', uid, 'subscriptions'));
-        batch.set(subRef, subscriptionRecord);
-
-        // 3. Update account balance
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
-        const accountSnap = await getDoc(accountRef);
-        if(accountSnap.exists()) {
-             const account = accountSnap.data() as BankAccount;
-             batch.update(accountRef, { balance: account.balance - sub.amount });
-        }
-
-        // 4. Update card used amount if credit card
-        if (card.cardType === 'credit') {
-            const cardRef = doc(db, 'users', uid, 'bankCards', card.id);
-            batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
-        }
-
-        return await batch.commit();
-    };
-
-    const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
-    const updateSubscriptionAmount = async (subscriptionId: string, newAmount: number) => {
-        if (!uid) throw new Error("Usuario no autenticado");
-        const subRef = doc(db, 'users', uid, 'subscriptions', subscriptionId);
-        return await updateDoc(subRef, { amount: newAmount });
-    };
-    const cancelSubscription = async (id: string) => {
-        const sub = allSubscriptions.find(s => s.id === id);
-        if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
-    };
-    const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
-    
     const paySubscription = async (sub: Subscription) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+
         const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
         const card = allBankCards.find(c => c.id === sub.cardId);
-        if(!card) throw new Error("Tarjeta no encontrada para la suscripción");
+        if (!card) throw new Error("Tarjeta no encontrada para la suscripción");
+
+        const account = allBankAccounts.find(a => a.id === card.accountId);
+        if (!account) throw new Error("Cuenta bancaria asociada a la tarjeta no encontrada");
 
         const transactionData: Omit<Transaction, 'id'> = {
             type: 'expense',
@@ -713,6 +655,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: card.accountId,
             cardId: sub.cardId,
         };
+
         const batch = writeBatch(db);
         const transRef = doc(collection(db, 'users', uid, 'transactions'));
         batch.set(transRef, transactionData);
@@ -722,11 +665,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         batch.update(subRef, { dueDate: nextDueDate });
 
         const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
-        const accountSnap = await getDoc(accountRef);
-        if(accountSnap.exists()) {
-             const account = accountSnap.data() as BankAccount;
-             batch.update(accountRef, { balance: account.balance - sub.amount });
-        }
+        batch.update(accountRef, { balance: account.balance - sub.amount });
+
         if (card.cardType === 'credit') {
             const cardRef = doc(db, 'users', uid, 'bankCards', card.id);
             batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
@@ -734,6 +674,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         return await batch.commit();
     };
+
+    const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
+        const { paymentDate, ...sub } = subData;
+        const subscriptionRecord: Omit<Subscription, 'id'> = { ...sub, dueDate: addMonths(paymentDate, 1), status: 'active', };
+        await addDoc('subscriptions', subscriptionRecord);
+        await paySubscription({ ...subscriptionRecord, id: 'temp_for_payment' }); // Create initial payment transaction
+    };
+    
+    const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
+    const updateSubscriptionAmount = async (subscriptionId: string, newAmount: number) => {
+        if (!uid) throw new Error("Usuario no autenticado");
+        const subRef = doc(db, 'users', uid, 'subscriptions', subscriptionId);
+        return await updateDoc(subRef, { amount: newAmount });
+    };
+    const cancelSubscription = async (id: string) => {
+        const sub = allSubscriptions.find(s => s.id === id);
+        if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
+    };
+    const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
     
     // OTHER ENTITIES
     const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => { return await addDoc('fixedExpenses', expense); };
@@ -1081,7 +1040,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             addService,
             updateService,
             deleteService,
-            updateSettings,
             addProfile,
             updateProfile,
             deleteProfile,
@@ -1089,6 +1047,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             formatCurrency,
             previewBackground,
             setPreviewBackground,
+            addBankAccount,
+            updateBankAccount,
+            deleteBankAccount,
+            addBankCard,
+            updateBankCard,
+            deleteBankCard,
+            addReport,
+            deleteReport,
+            updateSettings,
         }}>
             {children}
         </DataContext.Provider>
