@@ -2,7 +2,7 @@
 
 'use client';
 import { Card, CardContent } from "@/components/ui/card";
-import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, PiggyBank, Wallet, Scale, Globe, Target } from "lucide-react";
+import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, PiggyBank, Wallet, Scale, Globe, Target, FileText, List } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -16,13 +16,16 @@ const quickAccessItems = [
     { href: "/dashboard/debts", icon: Banknote, label: "Deudas", color: "text-red-400", shadow: "hover:shadow-[0_0_15px_#f87171]" },
     { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400", shadow: "hover:shadow-[0_0_15px_#c084fc]" },
     { href: "/dashboard/taxes", icon: Scale, label: "Impuestos", color: "text-teal-400", shadow: "hover:shadow-[0_0_15px_#2dd4bf]" },
+    { href: "/dashboard/reports", icon: FileText, label: "Informes", color: "text-gray-400", shadow: "hover:shadow-[0_0_15px_#9ca3af]" },
+    { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-sky-400", shadow: "hover:shadow-[0_0_15px_#38bdf8]" },
+    { href: "/dashboard/services", icon: Globe, label: "Servicios", color: "text-cyan-400", shadow: "hover:shadow-[0_0_15px_#22d3ee]" },
 ];
 
 export function QuickAccess() {
     return (
         <Card className="bg-card/50 border-border/50">
             <CardContent className="pt-6">
-                <div className="grid grid-cols-3 gap-2 md:gap-4">
+                <div className="grid grid-cols-4 gap-2 md:gap-4">
                     {quickAccessItems.map(item => {
                         const Icon = item.icon;
                         return (
@@ -43,4 +46,3 @@ export function QuickAccess() {
         </Card>
     )
 }
-
