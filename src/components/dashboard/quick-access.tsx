@@ -20,10 +20,7 @@ const quickAccessItems = [
 export function QuickAccess() {
     return (
         <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-4">
-                <CardTitle>Accesos Rápidos</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
                 <div className="grid grid-cols-3 gap-4">
                     {quickAccessItems.map(item => {
                         const Icon = item.icon;
