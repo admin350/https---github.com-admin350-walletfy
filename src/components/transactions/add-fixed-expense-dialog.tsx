@@ -27,7 +27,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { FixedExpense } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre del gasto es muy corto." }),
@@ -52,6 +51,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
     const [internalOpen, setInternalOpen] = useState(false);
     const { toast } = useToast();
     const { addFixedExpense, updateFixedExpense, categories, profiles } = useData();
+    const [isLoading, setIsLoading] = useState(false);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -69,35 +69,31 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (expenseToEdit) {
                 await updateFixedExpense({ id: expenseToEdit.id, ...values, paymentDay: values.paymentDay || 0 });
             } else {
                 await addFixedExpense({ ...values, paymentDay: values.paymentDay || 0 });
             }
-        },
-        onSuccess: () => {
             toast({
                 title: expenseToEdit ? "Plantilla actualizada" : "Gasto Fijo Añadido",
                 description: `La plantilla ha sido ${expenseToEdit ? 'actualizada' : 'creada'} exitosamente.`,
             });
             if (onFinish) onFinish();
-        },
-        onError: (error) => {
+            setDialogOpen(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${expenseToEdit ? 'actualizar' : 'añadir'} la plantilla.`,
+                description: err.message || `No se pudo ${expenseToEdit ? 'actualizar' : 'añadir'} la plantilla.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
+    };
 
     useEffect(() => {
         if (dialogOpen) {
@@ -140,7 +136,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

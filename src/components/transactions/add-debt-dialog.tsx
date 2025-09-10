@@ -32,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Debt } from '@/types';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
@@ -57,6 +56,7 @@ interface AddDebtDialogProps {
 
 export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddDebtDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const { addDebt, updateDebt, profiles, bankAccounts } = useData();
     
@@ -79,34 +79,34 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: async (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
             if (debtToEdit) {
                 await updateDebt({ ...debtToEdit, ...values });
+                toast({
+                    title: "Deuda actualizada",
+                    description: `La deuda ha sido actualizada exitosamente.`,
+                });
             } else {
                 await addDebt(values);
+                toast({
+                    title: "Deuda añadida",
+                    description: `La deuda ha sido creada exitosamente.`,
+                });
             }
-        },
-        onSuccess: () => {
-            toast({
-                title: debtToEdit ? "Deuda actualizada" : "Deuda añadida",
-                description: `La deuda ha sido ${debtToEdit ? 'actualizada' : 'creada'} exitosamente.`,
-            });
-        },
-        onError: (error) => {
+            setDialogOpen(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || `No se pudo ${debtToEdit ? 'actualizar' : 'añadir'} la deuda.`,
+                description: err.message || `No se pudo ${debtToEdit ? 'actualizar' : 'añadir'} la deuda.`,
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            setDialogOpen(false);
-        }
-    }, [isSuccess, setDialogOpen]);
+    };
 
     useEffect(() => {
         if (dialogOpen) {
@@ -147,7 +147,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"

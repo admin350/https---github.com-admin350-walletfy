@@ -1,4 +1,3 @@
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -31,7 +30,6 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
-import { useSubmitAction } from '@/hooks/use-submit-action';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la suscripción es muy corto." }),
@@ -47,6 +45,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const { addSubscription, profiles, bankCards, formatCurrency } = useData();
+    const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -59,29 +58,27 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
-        action: addSubscription,
-        onSuccess: () => {
+    const onSubmit = async (values: FormValues) => {
+        setIsLoading(true);
+        try {
+            await addSubscription(values);
             toast({
                 title: "Suscripción Registrada",
                 description: "Se ha creado el gasto y programado el próximo pago.",
             });
-        },
-        onError: (error) => {
+            setOpen(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: error.message || "No se pudo añadir la suscripción.",
+                description: err.message || "No se pudo añadir la suscripción.",
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
         }
-    });
+    };
     
-    useEffect(() => {
-        if (isSuccess) {
-            setOpen(false);
-        }
-    }, [isSuccess]);
-
     useEffect(() => {
         if (!open) {
             form.reset({
@@ -109,7 +106,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"
