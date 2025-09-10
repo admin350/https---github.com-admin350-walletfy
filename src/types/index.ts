@@ -196,3 +196,11 @@ export type AppNotification = {
     type: 'warning' | 'info' | 'success' | 'error';
     link?: string;
 }
+
+export type Service = {
+  id: string;
+  name: string;
+  category: string;
+  profile: string;
+  paymentUrl: string;
+};

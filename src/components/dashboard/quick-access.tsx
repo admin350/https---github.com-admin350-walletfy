@@ -1,7 +1,8 @@
 
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, PiggyBank, Wallet, List, Scale } from "lucide-react";
+import { Banknote, Landmark, CreditCard, Repeat, ClipboardPen, PiggyBank, Wallet, List, Scale, Globe } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ const quickAccessItems = [
     { href: "/dashboard/savings-portfolio", icon: PiggyBank, label: "Ahorros", color: "text-emerald-400", shadow: "hover:shadow-[0_0_15px_#34d399]" },
     { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Inversión", color: "text-blue-400", shadow: "hover:shadow-[0_0_15px_#60a5fa]" },
     { href: "/dashboard/taxes", icon: Scale, label: "Impuestos", color: "text-teal-400", shadow: "hover:shadow-[0_0_15px_#2dd4bf]" },
+    { href: "/dashboard/services", icon: Globe, label: "Servicios", color: "text-cyan-400", shadow: "hover:shadow-[0_0_15px_#22d3ee]" },
 ];
 
 export function QuickAccess() {

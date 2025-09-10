@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment } from "@/types";
+import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
 import { db, auth } from "@/lib/firebase";
@@ -33,6 +34,7 @@ interface DataContextType {
     bankAccounts: BankAccount[];
     bankCards: BankCard[];
     reports: MonthlyReport[];
+    services: Service[];
     settings: AppSettings;
     notifications: AppNotification[];
     isLoading: boolean;
@@ -81,6 +83,9 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     addReport: (report: MonthlyReport) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
+    addService: (service: Omit<Service, 'id'>) => Promise<void>;
+    updateService: (service: Service) => Promise<void>;
+    deleteService: (id: string) => Promise<void>;
     updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
     addProfile: (profile: Omit<Profile, 'id'>) => Promise<void>;
     updateProfile: (profile: Profile) => Promise<void>;
@@ -122,6 +127,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allBankAccounts, setAllBankAccounts] = useState<BankAccount[]>([]);
     const [allBankCards, setAllBankCards] = useState<BankCard[]>([]);
     const [allReports, setAllReports] = useState<MonthlyReport[]>([]);
+    const [allServices, setAllServices] = useState<Service[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP' });
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState<IFilters>({
@@ -165,7 +171,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
-                setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]);
+                setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
                 setSettings({ currency: 'CLP' });
                 setIsLoading(false);
             }
@@ -185,7 +191,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const collections = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
             'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments', 
-            'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports'
+            'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
         ];
 
         const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
@@ -193,7 +199,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
             categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
             taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions, 
-            budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports,
+            budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices,
         };
 
         const unsubscribers: Unsubscribe[] = [];
@@ -712,6 +718,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateCategory = async (category: Category) => await setDocWithId('categories', category.id, category);
     const deleteCategory = async (id: string) => await deleteDocById('categories', id);
     
+    const addService = async (service: Omit<Service, 'id'>) => { return await addDoc('services', service); };
+    const updateService = async (service: Service) => await setDocWithId('services', service.id, service);
+    const deleteService = async (id: string) => await deleteDocById('services', id);
+
     const addReport = async (report: MonthlyReport) => await setDocWithId('reports', report.id, report);
     const deleteReport = async (id: string) => await deleteDocById('reports', id);
     
@@ -768,6 +778,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const filteredFixedExpenses = useMemo(() => {
         return allFixedExpenses.filter(fe => filters.profile === 'all' || fe.profile === filters.profile);
     }, [allFixedExpenses, filters]);
+    
+    const filteredServices = useMemo(() => {
+        return allServices.filter(s => filters.profile === 'all' || s.profile === filters.profile);
+    }, [allServices, filters]);
 
     const filteredGoalContributions = useMemo(() => {
         return allGoalContributions.filter(gc => {
@@ -982,6 +996,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             subscriptions: filteredSubscriptions,
             debts: filteredDebts,
             fixedExpenses: filteredFixedExpenses,
+            services: filteredServices,
             profiles: allProfiles,
             categories: allCategories,
             goalContributions: filteredGoalContributions,
@@ -1041,6 +1056,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             deleteBankCard,
             addReport,
             deleteReport,
+            addService,
+            updateService,
+            deleteService,
             updateSettings,
             addProfile,
             updateProfile,

@@ -1,10 +1,11 @@
 
+
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank, Globe } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -46,6 +47,7 @@ const navSections = [
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
             { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
             { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
+            { href: "/dashboard/services", icon: Globe, label: "Servicios", color: "text-cyan-400" },
         ]
     }
 ]
