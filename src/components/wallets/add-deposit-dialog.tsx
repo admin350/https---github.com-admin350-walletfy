@@ -95,39 +95,29 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
-             if (!selectedAccount) {
+            const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
+            if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
-            }
-            
-            const validationResult = await dynamicFormSchema.safeParseAsync(values);
-            if (!validationResult.success) {
-                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
-                 if(amountError) {
-                      form.setError("amount", { type: "manual", message: amountError.message });
-                 }
-                 throw new Error(amountError?.message || "Validation failed");
             }
             
             await addTransaction({
                 ...values,
                 type: 'income',
-                date: values.date.toISOString(),
                 profile: selectedAccount.profile,
             });
+
             toast({
                 title: "Depósito Registrado",
                 description: `Se ha añadido un ingreso de ${formatCurrency(values.amount)} a la cuenta ${selectedAccount?.name}.`,
             });
             setOpen(false);
         } catch (error) {
-            if (!form.formState.errors.amount) {
-                const err = error instanceof Error ? error : new Error('An unknown error occurred');
-                toast({
-                    title: "Error",
-                    description: err.message || `No se pudo añadir el depósito.`,
-                    variant: 'destructive'
-                });
-            }
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
+            toast({
+                title: "Error",
+                description: err.message || `No se pudo añadir el depósito.`,
+                variant: 'destructive'
+            });
         } finally {
             setIsLoading(false);
         }

@@ -78,37 +78,29 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
+            const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
              if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
             }
-             const validationResult = await dynamicFormSchema.safeParseAsync(values);
-            if (!validationResult.success) {
-                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
-                 if(amountError) {
-                      form.setError("amount", { type: "manual", message: amountError.message });
-                 }
-                 throw new Error(amountError?.message || "Validation failed");
-            }
+            
              await addTransaction({
                 ...values,
                 type: 'expense',
-                date: values.date.toISOString(),
                 profile: selectedAccount.profile,
             });
+
             toast({
                 title: "Retiro Registrado",
                 description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount?.name}.`,
             });
             setOpen(false);
         } catch (error) {
-            if (!form.formState.errors.amount) {
-                const err = error instanceof Error ? error : new Error('An unknown error occurred');
-                toast({
-                    title: "Error",
-                    description: err.message || `No se pudo añadir el retiro.`,
-                    variant: 'destructive'
-                });
-            }
+            const err = error instanceof Error ? error : new Error('An unknown error occurred');
+            toast({
+                title: "Error",
+                description: err.message || `No se pudo añadir el retiro.`,
+                variant: 'destructive'
+            });
         } finally {
             setIsLoading(false);
         }

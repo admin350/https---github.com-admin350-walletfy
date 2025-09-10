@@ -313,7 +313,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
+     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'cardId' | 'taxDetails' | 'isCreditLinePayment'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const { isInstallment, installments, paymentMethod, includesTax, taxRate, ...formData } = transaction;
 
@@ -355,22 +355,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         const sourceAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.accountId);
         const sourceAccountSnap = await getDoc(sourceAccountRef);
-        const sourceAccount = sourceAccountSnap.exists() ? sourceAccountSnap.data() as BankAccount : null;
-        if (!sourceAccount) throw new Error("Source account not found");
+        if (!sourceAccountSnap.exists()) throw new Error("Cuenta de origen no encontrada.");
+        const sourceAccount = sourceAccountSnap.data() as BankAccount;
+
 
         if (transData.type === 'transfer') {
-            if (!transData.destinationAccountId) throw new Error("Destination account is required for transfers.");
+            if (!transData.destinationAccountId) throw new Error("La cuenta de destino es requerida para transferencias.");
             
             batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
 
             const destAccountRef = doc(db, 'users', uid, 'bankAccounts', transData.destinationAccountId);
             const destAccountSnap = await getDoc(destAccountRef);
-            if (destAccountSnap.exists()) {
-                const destAccount = destAccountSnap.data() as BankAccount;
-                batch.update(destAccountRef, { balance: destAccount.balance + transData.amount });
-            } else {
-                throw new Error("Destination account not found.");
-            }
+            if (!destAccountSnap.exists()) throw new Error("Cuenta de destino no encontrada.");
+            const destAccount = destAccountSnap.data() as BankAccount;
+            batch.update(destAccountRef, { balance: destAccount.balance + transData.amount });
+
         } else if (transData.type === 'income') {
             batch.update(sourceAccountRef, { balance: sourceAccount.balance + transData.amount });
         } else if (transData.type === 'expense') {
@@ -379,29 +378,29 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             } else if (transData.cardId) {
                 const cardRef = doc(db, 'users', uid, 'bankCards', transData.cardId);
                 const cardSnap = await getDoc(cardRef);
-                if (cardSnap.exists()) {
-                    const card = cardSnap.data() as BankCard;
-                    if (card.cardType === 'credit') {
-                        batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
-                        if (isInstallment && installments && installments > 1) {
-                           const debtData: Omit<Debt, 'id' | 'paidAmount' | 'sourceTransactionId'> = {
-                               name: `Compra: ${transData.description}`,
-                               totalAmount: transData.amount,
-                               monthlyPayment: transData.amount / installments,
-                               installments: installments,
-                               dueDate: addMonths(new Date(transData.date), 1),
-                               debtType: 'credit-card',
-                               profile: transData.profile,
-                               accountId: transData.accountId,
-                               cardId: transData.cardId,
-                               financialInstitution: card.bank,
-                           };
-                           const debtRef = doc(collection(db, 'users', uid, 'debts'));
-                           batch.set(debtRef, { ...debtData, paidAmount: 0, sourceTransactionId: transRef.id });
-                       }
-                    } else { 
-                        batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
-                    }
+                if (!cardSnap.exists()) throw new Error("Tarjeta no encontrada.");
+                const card = cardSnap.data() as BankCard;
+
+                if (card.cardType === 'credit') {
+                    batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + transData.amount });
+                    if (isInstallment && installments && installments > 1) {
+                       const debtData: Omit<Debt, 'id' | 'paidAmount' | 'sourceTransactionId'> = {
+                           name: `Compra: ${transData.description}`,
+                           totalAmount: transData.amount,
+                           monthlyPayment: transData.amount / installments,
+                           installments: installments,
+                           dueDate: addMonths(new Date(transData.date), 1),
+                           debtType: 'credit-card',
+                           profile: transData.profile,
+                           accountId: transData.accountId,
+                           cardId: transData.cardId,
+                           financialInstitution: card.bank,
+                       };
+                       const debtRef = doc(collection(db, 'users', uid, 'debts'));
+                       batch.set(debtRef, { ...debtData, paidAmount: 0, sourceTransactionId: transRef.id });
+                   }
+                } else { 
+                    batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
                 }
             } else { 
                  batch.update(sourceAccountRef, { balance: sourceAccount.balance - transData.amount });
@@ -413,10 +412,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
+        // A full update would require reverting the old transaction's impact and applying the new one.
+        // This is complex logic that should be handled carefully. For now, we will just update the doc.
         return await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
     };
 
     const deleteTransaction = async (id: string) => {
+         // Similar to update, deleting a transaction should revert its financial impact.
+         // This is a simplified version.
          return await deleteDocById('transactions', id);
     };
     
@@ -427,20 +430,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-        const contribRef = doc(collection(db, 'users', uid, 'goalContributions'));
-        batch.set(contribRef, contribution);
+        
         const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
         const goalSnap = await getDoc(goalRef);
-        if (goalSnap.exists()) {
-            const goal = goalSnap.data() as SavingsGoal;
-            batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
-        }
+        if (!goalSnap.exists()) throw new Error("Meta no encontrada.");
+        const goal = goalSnap.data() as SavingsGoal;
+        
         const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
         const accountSnap = await getDoc(accountRef);
-        if(accountSnap.exists()) {
-            const account = accountSnap.data() as BankAccount;
-            batch.update(accountRef, { balance: account.balance - contribution.amount });
-        }
+        if(!accountSnap.exists()) throw new Error("Cuenta de ahorros no encontrada.");
+        const account = accountSnap.data() as BankAccount;
+
+        if (account.balance < contribution.amount) throw new Error("Saldo insuficiente en la cuenta de ahorros.");
+
+        const contribRef = doc(collection(db, 'users', uid, 'goalContributions'));
+        batch.set(contribRef, contribution);
+        batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
+        batch.update(accountRef, { balance: account.balance - contribution.amount });
+        
         return await batch.commit();
     };
     
@@ -460,37 +467,42 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         if (!payment.accountId) throw new Error("accountId is missing");
+        
         const batch = writeBatch(db);
+        
+        const debtRef = doc(db, 'users', uid, 'debts', payment.debtId);
+        const debtSnap = await getDoc(debtRef);
+        if (!debtSnap.exists()) throw new Error("Deuda no encontrada.");
+        const debt = debtSnap.data() as Debt;
+
+        const accountRef = doc(db, 'users', uid, 'bankAccounts', payment.accountId);
+        const accountSnap = await getDoc(accountRef);
+        if(!accountSnap.exists()) throw new Error("Cuenta bancaria no encontrada.");
+        const account = accountSnap.data() as BankAccount;
+
+        if (account.balance < payment.amount) throw new Error("Saldo insuficiente en la cuenta para realizar el pago.");
+
         const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
         batch.set(paymentRef, payment);
+        
+        const newPaidAmount = debt.paidAmount + payment.amount;
+        batch.update(debtRef, { paidAmount: newPaidAmount });
+        batch.update(accountRef, {balance: account.balance - payment.amount});
 
-        const debt = allDebts.find(d => d.id === payment.debtId);
-        if (debt) {
-            const debtRef = doc(db, 'users', uid, 'debts', debt.id);
-            const newPaidAmount = debt.paidAmount + payment.amount;
-            batch.update(debtRef, { paidAmount: newPaidAmount });
+        const debtCategory = allCategories.find(c => c.name === "Pago de Deuda")?.name || "Otros Gastos";
+        const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
+        const transactionData: Omit<Transaction, 'id'> = {
+            type: 'expense',
+            amount: payment.amount,
+            description: `Abono a: ${debt.name}`,
+            category: debtCategory,
+            profile: debt.profile,
+            date: new Date().toISOString(),
+            accountId: payment.accountId,
+        };
+        batch.set(transactionRef, transactionData);
 
-            const debtCategory = allCategories.find(c => c.name === "Pago de Deuda") ? "Pago de Deuda" : "Otros Gastos";
-            const transactionRef = doc(collection(db, 'users', uid, 'transactions'));
-            const transactionData: Omit<Transaction, 'id'> = {
-                type: 'expense',
-                amount: payment.amount,
-                description: `Abono a: ${debt.name}`,
-                category: debtCategory,
-                profile: debt.profile,
-                date: new Date().toISOString(),
-                accountId: payment.accountId,
-            };
-            batch.set(transactionRef, transactionData);
-            
-            const accountRef = doc(db, 'users', uid, 'bankAccounts', payment.accountId);
-            const accountSnap = await getDoc(accountRef);
-            if(accountSnap.exists()){
-                const account = accountSnap.data() as BankAccount;
-                batch.update(accountRef, {balance: account.balance - payment.amount});
-            }
-        }
-         return await batch.commit();
+        return await batch.commit();
     };
 
     // TAX FUNCTIONS
@@ -552,23 +564,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const batch = writeBatch(db);
-        const contribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
-        batch.set(contribRef, contribution);
+        
         const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
         const investmentSnap = await getDoc(investmentRef);
-        if (investmentSnap.exists()) {
-            const investment = investmentSnap.data() as Investment;
-            batch.update(investmentRef, { 
-                initialAmount: investment.initialAmount + contribution.amount,
-                currentValue: investment.currentValue + contribution.amount,
-            });
-        }
+        if (!investmentSnap.exists()) throw new Error("Inversión no encontrada.");
+        const investment = investmentSnap.data() as Investment;
+
         const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
         const accountSnap = await getDoc(accountRef);
-        if(accountSnap.exists()) {
-            const account = accountSnap.data() as BankAccount;
-            batch.update(accountRef, { balance: account.balance - contribution.amount });
-        }
+        if(!accountSnap.exists()) throw new Error("Cuenta de inversión no encontrada.");
+        const account = accountSnap.data() as BankAccount;
+
+        if (account.balance < contribution.amount) throw new Error("Saldo insuficiente en la cuenta de inversión.");
+
+        const contribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
+        batch.set(contribRef, contribution);
+        batch.update(investmentRef, { 
+            initialAmount: investment.initialAmount + contribution.amount,
+            currentValue: investment.currentValue + contribution.amount,
+        });
+        batch.update(accountRef, { balance: account.balance - contribution.amount });
+
         return await batch.commit();
     };
 
@@ -635,29 +651,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);
 
-    // SUBSCRIPTION FUNCTIONS
     const paySubscription = async (sub: Subscription) => {
         if (!uid) throw new Error("Usuario no autenticado");
-
-        const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones") ? "Suscripciones" : "Otros Gastos";
-        const card = allBankCards.find(c => c.id === sub.cardId);
-        if (!card) throw new Error("Tarjeta no encontrada para la suscripción");
-
-        const account = allBankAccounts.find(a => a.id === card.accountId);
-        if (!account) throw new Error("Cuenta bancaria asociada a la tarjeta no encontrada");
-
-        const transactionData: Omit<Transaction, 'id'> = {
-            type: 'expense',
-            amount: sub.amount,
-            description: `Suscripción: ${sub.name}`,
-            category: subscriptionCategory,
-            profile: sub.profile,
-            date: new Date().toISOString(),
-            accountId: card.accountId,
-            cardId: sub.cardId,
-        };
-
+        
         const batch = writeBatch(db);
+
+        const cardRef = doc(db, 'users', uid, 'bankCards', sub.cardId);
+        const cardSnap = await getDoc(cardRef);
+        if (!cardSnap.exists()) throw new Error("Tarjeta no encontrada para la suscripción");
+        const card = cardSnap.data() as BankCard;
+
+        const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
+        const accountSnap = await getDoc(accountRef);
+        if (!accountSnap.exists()) throw new Error("Cuenta bancaria asociada a la tarjeta no encontrada");
+        const account = accountSnap.data() as BankAccount;
+
+        const subscriptionCategory = allCategories.find(c => c.name === "Suscripciones")?.name || "Otros Gastos";
+        const transactionData: Omit<Transaction, 'id'> = {
+            type: 'expense', amount: sub.amount, description: `Suscripción: ${sub.name}`,
+            category: subscriptionCategory, profile: sub.profile, date: new Date().toISOString(),
+            accountId: card.accountId, cardId: sub.cardId,
+        };
         const transRef = doc(collection(db, 'users', uid, 'transactions'));
         batch.set(transRef, transactionData);
         
@@ -665,18 +679,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const subRef = doc(db, 'users', uid, 'subscriptions', sub.id);
         batch.update(subRef, { dueDate: nextDueDate });
 
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', card.accountId);
         if (card.cardType !== 'credit') {
+            if (account.balance < sub.amount) throw new Error("Saldo insuficiente en la cuenta.");
             batch.update(accountRef, { balance: account.balance - sub.amount });
-        }
-        
-        if (card.cardType === 'credit') {
-            const cardRef = doc(db, 'users', uid, 'bankCards', card.id);
-            batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
+        } else {
+             if (card.creditLimit && (card.usedAmount || 0) + sub.amount > card.creditLimit) {
+                throw new Error("Límite de la tarjeta de crédito excedido.");
+             }
+             batch.update(cardRef, { usedAmount: (card.usedAmount || 0) + sub.amount });
         }
 
         return await batch.commit();
     };
+
 
     const addSubscription = async (subData: Omit<Subscription, 'id' | 'status' | 'dueDate'> & { paymentDate: Date }) => {
         const { paymentDate, ...sub } = subData;
