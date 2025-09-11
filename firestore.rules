@@ -5,11 +5,11 @@ service cloud.firestore {
       // Permite que un usuario cree su propio documento de perfil/anclaje
       allow create: if request.auth != null && request.auth.uid == userId;
       // Una vez creado, solo ese usuario puede leer/escribir/borrar sus datos
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      allow read, write, delete: if request.auth.uid == userId;
 
       match /{document=**} {
         // Permite leer/escribir/borrar en todas las subcolecciones
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, write, delete: if request.auth.uid == userId;
       }
     }
   }
