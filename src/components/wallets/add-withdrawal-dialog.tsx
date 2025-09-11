@@ -270,4 +270,3 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
         </Dialog>
     );
 }
-
