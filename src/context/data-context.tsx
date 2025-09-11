@@ -161,16 +161,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     
     const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
+        console.log("Attempting to initialize user data for:", userId);
         const userDocRef = doc(db, 'users', userId);
-        const userDocSnap = await getDoc(userDocRef);
-    
-        if (userDocSnap.exists()) {
-            console.log("User data already exists for:", userId);
-            return;
-        }
         
-        console.log("Initializing new user data for:", userId);
-    
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
         const defaultCategories = [
             { name: "Alimentación", type: "Gasto", color: "#f97316" },
@@ -188,10 +181,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         try {
             const batch = writeBatch(db);
             
-            // 1. Create the anchor user document. This is CRUCIAL.
+            // Anchor Document
             batch.set(userDocRef, { createdAt: new Date(), email: userEmail });
     
-            // 2. Create default subcollections.
             defaultProfiles.forEach(profile => {
                 const profileRef = doc(collection(db, 'users', userId, 'profiles'));
                 batch.set(profileRef, profile);
@@ -201,7 +193,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 batch.set(categoryRef, category);
             });
             
-            // 3. Create the settings document.
             const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
             batch.set(settingsDocRef, defaultSettings);
     
@@ -213,98 +204,87 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    // Subscribe to auth state changes
+    // Auth state listener
     useEffect(() => {
-        const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setIsLoading(true);
+        setIsLoading(true);
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 setUid(currentUser.uid);
+                // Setup user data and listeners
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (!userDocSnap.exists()) {
+                    try {
+                        await initializeUserData(currentUser.uid, currentUser.email);
+                    } catch (error) {
+                        console.error("Initialization failed, user may be left in a bad state:", error);
+                    }
+                }
             } else {
                 setUser(null);
                 setUid(null);
-                // Clear all data when user logs out
+                 // Clear all data
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
                 setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
                 setSettings({ currency: 'CLP', background: 'theme-gradient' });
-                setIsLoading(false);
             }
+            setIsLoading(false);
         });
-        return () => authUnsubscribe();
-    }, []);
+        return () => unsubscribe();
+    }, [initializeUserData]);
     
 
-    // Subscribe to user data once UID is available
+    // Data listeners
     useEffect(() => {
-        if (!uid) {
-            setIsLoading(false); // Ensure loading is false if no user
-            return;
-        }
-        
-        let unsubscribers: Unsubscribe[] = [];
-        
-        const setupListeners = async () => {
-            setIsLoading(true);
-            try {
-                // Initialize user data if it doesn't exist
-                await initializeUserData(uid, auth.currentUser?.email || null);
+        if (!uid) return;
 
-                const collections = [
-                    'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
-                    'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments', 
-                    'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
-                ];
-        
-                const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
-                    transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
-                    debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
-                    categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
-                    taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions, 
-                    budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices,
-                };
-    
-                unsubscribers = collections.map(collectionName => 
-                    onSnapshot(collection(db, 'users', uid, collectionName), snapshot => {
-                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        const processedData = data.map(item => {
-                            const newItem: DocumentData = { ...item };
-                            for (const key in newItem) {
-                                if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                    newItem[key] = newItem[key].toDate();
-                                }
-                            }
-                            return newItem;
-                        });
-                        dataSetters[collectionName]?.(processedData as any);
-                    }, (error) => {
-                        console.error(`Error fetching ${collectionName}:`, error);
-                    })
-                );
-                
-                const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
-                const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
-                    if(docSnap.exists()){
-                        setSettings(docSnap.data() as AppSettings);
-                    }
-                });
-                unsubscribers.push(settingsUnsub);
-                
-            } catch (error) {
-                console.error("Error setting up listeners:", error);
-            } finally {
-                setIsLoading(false);
-            }
+        const collectionsToListen = [
+            'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles',
+            'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments',
+            'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
+        ];
+
+        const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
+            transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
+            debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
+            categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
+            taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions,
+            budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices
         };
 
-        setupListeners();
+        const unsubscribers = collectionsToListen.map(collectionName => {
+            const collectionRef = collection(db, 'users', uid, collectionName);
+            return onSnapshot(collectionRef, (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const processedData = data.map(item => {
+                    const newItem: DocumentData = { ...item };
+                    for (const key in newItem) {
+                        if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                            newItem[key] = newItem[key].toDate();
+                        }
+                    }
+                    return newItem;
+                });
+                dataSetters[collectionName]?.(processedData as any);
+            });
+        });
+
+        const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
+        const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setSettings(docSnap.data() as AppSettings);
+            }
+        });
+        unsubscribers.push(settingsUnsub);
 
         return () => {
             unsubscribers.forEach(unsub => unsub());
-        }
+        };
+    }, [uid]);
 
-    }, [uid, initializeUserData]);
 
     const login = async (email: string, pass: string) => {
         await signInWithEmailAndPassword(auth, email, pass);
@@ -312,6 +292,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const signup = async (email: string, pass: string) => {
         await createUserWithEmailAndPassword(auth, email, pass);
+        // The onAuthStateChanged listener will handle the data initialization
     };
 
     const logout = async () => {
@@ -1104,3 +1085,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
