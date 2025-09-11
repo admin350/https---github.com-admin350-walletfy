@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, initializeFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, initializeFirestore, type Firestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -14,23 +14,24 @@ const firebaseConfig = {
   "messagingSenderId": "340465179002"
 };
 
-// Initialize Firebase, checking if apps are already initialized.
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-const db = getFirestore(app);
-export const auth = getAuth(app);
-export { db };
-
-export const enablePersistence = async () => {
-    try {
-        await enableIndexedDbPersistence(db, {
-            cacheSizeBytes: CACHE_SIZE_UNLIMITED
-        });
-    } catch (err: any) {
-        if (err.code === 'failed-precondition') {
-            console.warn("Firestore persistence failed: Multiple tabs open or other initialization issue.");
-        } else if (err.code === 'unimplemented') {
-            console.warn("Firestore persistence not available in this browser.");
-        }
+// Lazy initialization for Firebase
+function getFirebaseInstances() {
+    if (typeof window !== "undefined" && !getApps().length) {
+        // This ensures we only initialize on the client
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    } else if (getApps().length) {
+        app = getApp();
+        auth = getAuth(app);
+        db = getFirestore(app);
     }
 }
+
+getFirebaseInstances();
+
+export { app, auth, db, enableIndexedDbPersistence };

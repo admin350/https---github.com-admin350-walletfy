@@ -4,7 +4,7 @@
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
-import { db, auth, enablePersistence } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
@@ -129,7 +129,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allServices, setAllServices] = useState<Service[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP', background: 'theme-gradient' });
     const [isLoading, setIsLoading] = useState(true);
-    const [firebaseInitialized, setFirebaseInitialized] = useState(false);
+    const [firebaseReady, setFirebaseReady] = useState(false);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
         month: getMonth(new Date()),
@@ -159,16 +159,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         return new Intl.NumberFormat(locale, options).format(value);
     }, [settings.currency]);
-    
-    
-     const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
-        const userDocRef = doc(db, "users", userId);
-        const userDocSnap = await getDoc(userDocRef);
 
-        if (userDocSnap.exists()) {
-            return; 
+    useEffect(() => {
+        const initializeFirebase = async () => {
+            try {
+                await enablePersistence(db);
+            } catch (err: any) {
+                 if (err.code === 'failed-precondition') {
+                    // Multiple tabs open, persistence can only be enabled in one.
+                } else if (err.code === 'unimplemented') {
+                    // The current browser does not support all of the
+                    // features required to enable persistence
+                }
+            } finally {
+                setFirebaseReady(true);
+            }
         }
+        initializeFirebase();
+    }, []);
 
+    const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
+        const userDocRef = doc(db, "users", userId);
+        
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
         const defaultCategories = [
             { name: "Alimentación", type: "Gasto", color: "#f97316" },
@@ -182,7 +194,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
         ];
         const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
-
+    
         try {
             const batch = writeBatch(db);
             batch.set(userDocRef, { createdAt: new Date(), email: userEmail });
@@ -196,29 +208,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    // Firebase Initialization Effect
     useEffect(() => {
-        const init = async () => {
-            await enablePersistence();
-            setFirebaseInitialized(true);
-        };
-        init();
-    }, []);
-
-    // Auth and Data Listener Effect
-    useEffect(() => {
-        if (!firebaseInitialized) return;
+        if (!firebaseReady) return;
 
         setIsLoading(true);
         const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 setUid(currentUser.uid);
-                await initializeUserData(currentUser.uid, currentUser.email);
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (!userDocSnap.exists()) {
+                    try {
+                        await initializeUserData(currentUser.uid, currentUser.email);
+                    } catch (error) {
+                        console.error("Initialization failed after signup/login:", error);
+                    }
+                }
             } else {
                 setUser(null);
                 setUid(null);
-                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
+                setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
                 setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
@@ -226,8 +236,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 setIsLoading(false);
             }
         });
+
         return () => authUnsubscribe();
-    }, [firebaseInitialized, initializeUserData]);
+    }, [firebaseReady, initializeUserData]);
 
     // Data listeners
     useEffect(() => {
@@ -235,13 +246,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(isLoading) setIsLoading(false);
             return;
         }
-
+    
         const collectionsToListen = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles',
             'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments',
             'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
         ];
-
+    
         const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
             transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
             debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
@@ -249,7 +260,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions,
             budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices
         };
-
+    
         const unsubscribers = collectionsToListen.map(collectionName => {
             const collectionRef = collection(db, 'users', uid, collectionName);
             return onSnapshot(collectionRef, (snapshot) => {
@@ -268,7 +279,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 console.error(`Firestore snapshot error on ${collectionName}:`, error);
             });
         });
-
+    
         const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
         const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -278,13 +289,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         unsubscribers.push(settingsUnsub);
         
         setIsLoading(false);
-
+    
         return () => {
             unsubscribers.forEach(unsub => unsub());
         };
     }, [uid, isLoading]);
-
-
+    
+    
     const login = async (email: string, pass: string) => {
         await signInWithEmailAndPassword(auth, email, pass);
     }
@@ -607,7 +618,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const cardsSnapshot = await getDocs(cardsQuery);
         cardsSnapshot.forEach(doc => batch.delete(doc.ref));
         const debtsQuery = query(collection(db, 'users', uid, 'debts'), where('accountId', '==', id));
-        const debtsSnapshot = await getDocs(debtsQuery);
         debtsSnapshot.forEach(doc => batch.delete(doc.ref));
         const accountRef = doc(db, 'users', uid, 'bankAccounts', id);
         batch.delete(accountRef);
@@ -863,6 +873,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [allTransactions, allGoals, allDebts, allInvestments, allBudgets]);
 
     const notifications: AppNotification[] = useMemo(() => {
+        if (isLoading || !uid) return [];
         const newNotifications: AppNotification[] = [];
         const today = new Date();
         const currentMonthStart = startOfMonth(today);
@@ -995,7 +1006,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
 
         return newNotifications.sort((a,b) => b.date.getTime() - a.date.getTime());
-    }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments]);
+    }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments, uid, isLoading]);
 
 
     return (
@@ -1082,3 +1093,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
+    
