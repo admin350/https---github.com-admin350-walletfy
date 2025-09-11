@@ -1,8 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId}/{documents=**} {
-      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    // Allows public read/write access. 
+    // This is suitable for prototyping or single-user scenarios without real authentication.
+    // For a multi-user app, you must implement user-specific security rules.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
