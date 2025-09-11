@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -164,9 +163,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setIsLoading(true);
-            setUser(currentUser);
-            setUid(currentUser ? currentUser.uid : null);
-             if (!currentUser) {
+            if (currentUser) {
+                setUser(currentUser);
+                setUid(currentUser.uid);
+            } else {
+                setUser(null);
+                setUid(null);
                 // Clear all data when user logs out
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
@@ -180,11 +182,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const initializeUserData = useCallback(async (newUid: string) => {
-        const userDocRef = doc(db, 'users', newUid);
-        const userDocSnap = await getDoc(userDocRef);
-        
-        // Only initialize if the user document doesn't exist or is empty
-        if (!userDocSnap.exists() || !userDocSnap.data().createdAt) {
+        const settingsDocRef = doc(db, 'users', newUid, 'settings', 'appSettings');
+        const settingsDocSnap = await getDoc(settingsDocRef);
+
+        if (!settingsDocSnap.exists()) {
             const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
             const defaultCategories = [
                 { name: "Alimentación", type: "Gasto", color: "#f97316" },
@@ -200,8 +201,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
 
             const batch = writeBatch(db);
+            const userDocRef = doc(db, 'users', newUid);
             batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
-
+            
             defaultProfiles.forEach(profile => {
                 const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
                 batch.set(profileRef, profile);
@@ -210,8 +212,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 const categoryRef = doc(collection(db, 'users', newUid, 'categories'));
                 batch.set(categoryRef, category);
             });
-            const newSettingsRef = doc(db, 'users', newUid, 'settings', 'appSettings');
-            batch.set(newSettingsRef, defaultSettings);
+            
+            batch.set(settingsDocRef, defaultSettings);
 
             await batch.commit();
         }
@@ -220,17 +222,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Subscribe to user data once UID is available
     useEffect(() => {
         if (!uid) {
-            setIsLoading(false); // Set loading to false if no user
             return;
         }
 
-        let isMounted = true;
         const unsubscribers: Unsubscribe[] = [];
-
-        const setupSubscriptions = async () => {
+        
+        const setupListeners = async () => {
             await initializeUserData(uid);
-
-            if (!isMounted) return;
 
             const collections = [
                 'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
@@ -246,49 +244,38 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices,
             };
 
-            const unsubPromises = collections.map(collectionName => {
-                return new Promise<Unsubscribe>((resolve) => {
-                    const collRef = collection(db, 'users', uid, collectionName);
-                    const unsub = onSnapshot(collRef, (snapshot) => {
-                        if (!isMounted) return;
-                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        const processedData = data.map(item => {
-                            const newItem: DocumentData = { ...item };
-                            for (const key in newItem) {
-                                if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                    newItem[key] = newItem[key].toDate();
-                                }
+            collections.forEach(collectionName => {
+                const collRef = collection(db, 'users', uid, collectionName);
+                const unsub = onSnapshot(collRef, (snapshot) => {
+                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const processedData = data.map(item => {
+                        const newItem: DocumentData = { ...item };
+                        for (const key in newItem) {
+                            if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                                newItem[key] = newItem[key].toDate();
                             }
-                            return newItem;
-                        });
-                        dataSetters[collectionName]?.(processedData as any);
-                        resolve(unsub);
-                    }, (error) => {
-                        console.error(`Error fetching ${collectionName}: `, error);
+                        }
+                        return newItem;
                     });
+                    dataSetters[collectionName]?.(processedData as any);
                 });
+                unsubscribers.push(unsub);
             });
             
             const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-            const settingsPromise = new Promise<Unsubscribe>(resolve => {
-                const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
-                    if (!isMounted) return;
-                    if(docSnap.exists()){
-                        setSettings(docSnap.data() as AppSettings);
-                    }
-                     resolve(unsubSettings);
-                });
+            const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+                if(docSnap.exists()){
+                    setSettings(docSnap.data() as AppSettings);
+                }
             });
-            
-            const allUnsubs = await Promise.all([...unsubPromises, settingsPromise]);
-            unsubscribers.push(...allUnsubs);
+            unsubscribers.push(unsubSettings);
+
             setIsLoading(false);
         };
 
-        setupSubscriptions();
+        setupListeners();
 
         return () => {
-            isMounted = false;
             unsubscribers.forEach(unsub => unsub());
         }
 
@@ -298,11 +285,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await signInWithEmailAndPassword(auth, email, pass);
     }
     const signup = async (email: string, pass: string) => {
-        try {
-            await createUserWithEmailAndPassword(auth, email, pass);
-        } catch (error: any) {
-            throw error;
-        }
+        await createUserWithEmailAndPassword(auth, email, pass);
     }
     const logout = async () => {
         await signOut(auth);
