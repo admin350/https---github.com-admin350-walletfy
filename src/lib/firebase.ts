@@ -36,4 +36,3 @@ try {
 
 export const auth = getAuth(app);
 export { db };
-
