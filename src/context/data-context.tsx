@@ -162,6 +162,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     // Subscribe to auth state changes
     useEffect(() => {
+        setIsLoading(true);
         const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
@@ -180,45 +181,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
         return () => authUnsubscribe();
     }, []);
-
-    const initializeUserData = useCallback(async (newUid: string) => {
-        const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
-        const defaultCategories = [
-            { name: "Alimentación", type: "Gasto", color: "#f97316" },
-            { name: "Transporte", type: "Gasto", color: "#3b82f6" },
-            { name: "Vivienda", type: "Gasto", color: "#84cc16" },
-            { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-            { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-            { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-            { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-            { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
-            { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
-        ];
-        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
-
-        const batch = writeBatch(db);
-        const userDocRef = doc(db, 'users', newUid);
-        batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
-        
-        defaultProfiles.forEach(profile => {
-            const profileRef = doc(collection(db, 'users', newUid, 'profiles'));
-            batch.set(profileRef, profile);
-        });
-        defaultCategories.forEach(category => {
-            const categoryRef = doc(collection(db, 'users', newUid, 'categories'));
-            batch.set(categoryRef, category);
-        });
-        
-        const settingsDocRef = doc(db, 'users', newUid, 'settings', 'appSettings');
-        batch.set(settingsDocRef, defaultSettings);
-
-        await batch.commit();
-    }, []);
-
+    
     // Subscribe to user data once UID is available
     useEffect(() => {
         if (!uid) {
-            setIsLoading(true); // Keep loading if no user
             return;
         }
         
@@ -226,15 +192,45 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         const setupListeners = async () => {
             try {
-                // Check for user initialization
+                // Check for user initialization by fetching settings
                 const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
                 const settingsDocSnap = await getDoc(settingsDocRef);
     
                 if (!settingsDocSnap.exists()) {
-                    await initializeUserData(uid);
+                    // This is a new user, initialize their data
+                    const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
+                    const defaultCategories = [
+                        { name: "Alimentación", type: "Gasto", color: "#f97316" },
+                        { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+                        { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+                        { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+                        { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+                        { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+                        { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+                        { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+                        { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
+                    ];
+                    const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
+
+                    const batch = writeBatch(db);
+                    const userDocRef = doc(db, 'users', uid);
+                    batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
+                    
+                    defaultProfiles.forEach(profile => {
+                        const profileRef = doc(collection(db, 'users', uid, 'profiles'));
+                        batch.set(profileRef, profile);
+                    });
+                    defaultCategories.forEach(category => {
+                        const categoryRef = doc(collection(db, 'users', uid, 'categories'));
+                        batch.set(categoryRef, category);
+                    });
+                    
+                    batch.set(settingsDocRef, defaultSettings);
+
+                    await batch.commit();
                 }
 
-                // Now setup all listeners
+                // Now setup all listeners for real-time updates
                 const collections = [
                     'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
                     'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments', 
@@ -286,14 +282,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             unsubscribers.forEach(unsub => unsub());
         }
 
-    }, [uid, initializeUserData]);
+    }, [uid]);
 
     const login = async (email: string, pass: string) => {
         await signInWithEmailAndPassword(auth, email, pass);
     }
     const signup = async (email: string, pass: string) => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        // `initializeUserData` will be triggered by the `useEffect` hook listening to `uid` changes.
+        await createUserWithEmailAndPassword(auth, email, pass);
     }
     const logout = async () => {
         await signOut(auth);
@@ -307,8 +302,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const setDocWithId = async <T>(collectionName: string, id: string, data: T): Promise<void> => {
         if (!uid) throw new Error("Usuario no autenticado");
-        const docRef = doc(db, 'users', uid, collectionName, id);
-        await setDoc(docRef, data, { merge: true });
+        await setDoc(doc(db, 'users', uid, collectionName, id), data, { merge: true });
     };
 
     const deleteDocById = async (collectionName: string, id: string): Promise<void> => {
@@ -412,21 +406,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
-        return batch.commit();
+        await batch.commit();
     };
 
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
-        return await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
+        await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
     };
 
     const deleteTransaction = async (id: string) => {
-         return await deleteDocById('transactions', id);
+         await deleteDocById('transactions', id);
     };
     
-    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false });
-    const updateGoal = async (goal: SavingsGoal) => await setDocWithId('goals', goal.id, goal);
-    const deleteGoal = async (id: string) => await deleteDocById('goals', id);
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => {
+        return await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false });
+    }
+    const updateGoal = async (goal: SavingsGoal) => {
+        await setDocWithId('goals', goal.id, goal);
+    }
+    const deleteGoal = async (id: string) => {
+        await deleteDocById('goals', id);
+    }
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const goal = allGoals.find(g => g.id === contribution.goalId);
@@ -435,8 +435,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!account) throw new Error(`No se encontró una 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
 
         const batch = writeBatch(db);
-        const contribRef = doc(collection(db, 'users', uid, 'goalContributions'));
-        batch.set(contribRef, contribution);
+        
+        await addDoc('goalContributions', contribution);
         
         const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
         batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
@@ -444,7 +444,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const accountRef = doc(db, 'users', uid, 'bankAccounts', account.id);
         batch.update(accountRef, { balance: account.balance - contribution.amount });
         
-        return batch.commit();
+        await batch.commit();
     };
     
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
@@ -457,8 +457,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
         return await addDoc('debts', debtData);
     };
-    const updateDebt = async (debt: Debt) => await setDocWithId('debts', debt.id, debt);
-    const deleteDebt = async (id: string) => await deleteDocById('debts', id);
+    const updateDebt = async (debt: Debt) => {
+        await setDocWithId('debts', debt.id, debt);
+    }
+    const deleteDebt = async (id: string) => {
+        await deleteDocById('debts', id);
+    }
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         if (!payment.accountId) throw new Error("accountId is missing");
@@ -467,7 +471,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const debtSnap = await getDoc(debtRef);
         if (!debtSnap.exists()) throw new Error("Deuda no encontrada.");
         const debt = debtSnap.data() as Debt;
+        
+        const batch = writeBatch(db);
+        const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
+        batch.set(paymentRef, payment);
 
+        const newPaidAmount = debt.paidAmount + payment.amount;
+        batch.update(debtRef, { paidAmount: newPaidAmount });
+        
         await addTransaction({
             type: 'expense',
             amount: payment.amount,
@@ -479,6 +490,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             includesTax: false,
         });
 
+        await batch.commit();
     };
 
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
@@ -521,9 +533,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     
-    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => await addDoc('investments', { ...investment, currentValue: investment.initialAmount });
-    const updateInvestment = async (investment: Investment) => await setDocWithId('investments', investment.id, investment);
-    const deleteInvestment = async (id: string) => await deleteDocById('investments', id);
+    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
+        return await addDoc('investments', { ...investment, currentValue: investment.initialAmount });
+    }
+    const updateInvestment = async (investment: Investment) => {
+        await setDocWithId('investments', investment.id, investment);
+    }
+    const deleteInvestment = async (id: string) => {
+        await deleteDocById('investments', id);
+    }
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const investment = allInvestments.find(i => i.id === contribution.investmentId);
@@ -532,8 +550,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!account) throw new Error(`No se encontró una 'Cartera de Inversión' para el perfil '${investment.profile}'.`);
 
         const batch = writeBatch(db);
-        const contribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
-        batch.set(contribRef, contribution);
+        
+        await addDoc('investmentContributions', contribution);
         
         const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
         batch.update(investmentRef, { 
@@ -544,7 +562,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const accountRef = doc(db, 'users', uid, 'bankAccounts', account.id);
         batch.update(accountRef, { balance: account.balance - contribution.amount });
         
-        return batch.commit();
+        await batch.commit();
     };
 
     const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
@@ -575,7 +593,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             delete accountData.creditLineLimit;
             delete accountData.creditLineUsed;
         }
-        return await setDocWithId('bankAccounts', account.id, accountData);
+        await setDocWithId('bankAccounts', account.id, accountData);
     };
 
     const deleteBankAccount = async (id: string) => {
@@ -589,7 +607,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         debtsSnapshot.forEach(doc => batch.delete(doc.ref));
         const accountRef = doc(db, 'users', uid, 'bankAccounts', id);
         batch.delete(accountRef);
-        return await batch.commit();
+        await batch.commit();
     };
 
     const addBankCard = async (card: Omit<BankCard, 'id' | 'usedAmount'>): Promise<string> => {
@@ -605,9 +623,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (card.cardType !== 'credit') {
             delete cardData.creditLimit;
         }
-        return await setDocWithId('bankCards', card.id, cardData);
+        await setDocWithId('bankCards', card.id, cardData);
     };
-    const deleteBankCard = async (id: string) => await deleteDocById('bankCards', id);
+    const deleteBankCard = async (id: string) => {
+        await deleteDocById('bankCards', id);
+    }
 
     const paySubscription = async (sub: Subscription) => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -645,45 +665,83 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await addDoc('subscriptions', subscriptionRecord);
     };
     
-    const updateSubscription = async (sub: Subscription) => await setDocWithId('subscriptions', sub.id, sub);
+    const updateSubscription = async (sub: Subscription) => {
+        await setDocWithId('subscriptions', sub.id, sub);
+    }
     const updateSubscriptionAmount = async (subscriptionId: string, newAmount: number) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const subRef = doc(db, 'users', uid, 'subscriptions', subscriptionId);
-        return await updateDoc(subRef, { amount: newAmount });
+        await updateDoc(subRef, { amount: newAmount });
     };
     const cancelSubscription = async (id: string) => {
         const sub = allSubscriptions.find(s => s.id === id);
         if(sub) await updateSubscription({...sub, status: 'cancelled', cancellationDate: new Date()});
     };
-    const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
+    const deleteSubscription = async (id: string) => {
+        await deleteDocById('subscriptions', id);
+    }
     
-    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => await addDoc('fixedExpenses', expense);
-    const updateFixedExpense = async (expense: FixedExpense) => await setDocWithId('fixedExpenses', expense.id, expense);
-    const deleteFixedExpense = async (id: string) => await deleteDocById('fixedExpenses', id);
+    const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => {
+        return await addDoc('fixedExpenses', expense);
+    }
+    const updateFixedExpense = async (expense: FixedExpense) => {
+        await setDocWithId('fixedExpenses', expense.id, expense);
+    }
+    const deleteFixedExpense = async (id: string) => {
+        await deleteDocById('fixedExpenses', id);
+    }
 
-    const addBudget = async (budget: Omit<Budget, 'id'>) => await addDoc('budgets', budget);
-    const updateBudget = async (budget: Budget) => await setDocWithId('budgets', budget.id, budget);
-    const deleteBudget = async (id: string) => await deleteDocById('budgets', id);
+    const addBudget = async (budget: Omit<Budget, 'id'>) => {
+        return await addDoc('budgets', budget);
+    }
+    const updateBudget = async (budget: Budget) => {
+        await setDocWithId('budgets', budget.id, budget);
+    }
+    const deleteBudget = async (id: string) => {
+        await deleteDocById('budgets', id);
+    }
     
-    const addCategory = async (category: Omit<Category, 'id'>) => await addDoc('categories', category);
-    const updateCategory = async (category: Category) => await setDocWithId('categories', category.id, category);
-    const deleteCategory = async (id: string) => await deleteDocById('categories', id);
+    const addCategory = async (category: Omit<Category, 'id'>) => {
+        return await addDoc('categories', category);
+    }
+    const updateCategory = async (category: Category) => {
+        await setDocWithId('categories', category.id, category);
+    }
+    const deleteCategory = async (id: string) => {
+        await deleteDocById('categories', id);
+    }
     
-    const addService = async (service: Omit<Service, 'id'>) => await addDoc('services', service);
-    const updateService = async (service: Service) => await setDocWithId('services', service.id, service);
-    const deleteService = async (id: string) => await deleteDocById('services', id);
+    const addService = async (service: Omit<Service, 'id'>) => {
+        return await addDoc('services', service);
+    }
+    const updateService = async (service: Service) => {
+        await setDocWithId('services', service.id, service);
+    }
+    const deleteService = async (id: string) => {
+        await deleteDocById('services', id);
+    }
 
-    const addReport = async (report: MonthlyReport) => await setDocWithId('reports', report.id, report);
-    const deleteReport = async (id: string) => await deleteDocById('reports', id);
+    const addReport = async (report: MonthlyReport) => {
+        await setDocWithId('reports', report.id, report);
+    }
+    const deleteReport = async (id: string) => {
+        await deleteDocById('reports', id);
+    }
     
     const updateSettings = async (newSettings: Partial<AppSettings>) => {
         if (!uid) throw new Error("Usuario no autenticado");
-        return await setDocWithId('settings', 'appSettings', newSettings);
+        await setDocWithId('settings', 'appSettings', newSettings);
     }
     
-    const addProfile = async (profile: Omit<Profile, 'id'>) => await addDoc('profiles', profile);
-    const updateProfile = async (profile: Profile) => await setDocWithId('profiles', profile.id, profile);
-    const deleteProfile = async (id: string) => await deleteDocById('profiles', id);
+    const addProfile = async (profile: Omit<Profile, 'id'>) => {
+        return await addDoc('profiles', profile);
+    }
+    const updateProfile = async (profile: Profile) => {
+        await setDocWithId('profiles', profile.id, profile);
+    }
+    const deleteProfile = async (id: string) => {
+        await deleteDocById('profiles', id);
+    }
 
     const availableYears = useMemo(() => {
         const years = new Set(allTransactions.map(t => getYear(new Date(t.date))));
