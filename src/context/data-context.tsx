@@ -4,7 +4,7 @@
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
-import { db, auth, enableIndexedDbPersistence } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
@@ -192,112 +192,84 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         let unsubscribers: Unsubscribe[] = [];
     
-        const initializeFirebaseServices = async () => {
-            try {
-                await enableIndexedDbPersistence(db);
-            } catch (err: any) {
-                if (err.code === 'failed-precondition') {
-                    // Multiple tabs open, persistence can only be enabled in one.
-                } else if (err.code === 'unimplemented') {
-                    // The current browser does not support persistence.
+        const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            unsubscribers.forEach(unsub => unsub());
+            unsubscribers = [];
+    
+            if (currentUser) {
+                setUser(currentUser);
+                setUid(currentUser.uid);
+                setIsLoading(true);
+    
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+    
+                if (!userDocSnap.exists()) {
+                    await initializeUserData(currentUser.uid, currentUser.email);
                 }
-            }
-    
-            const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-                // Clear previous listeners
-                unsubscribers.forEach(unsub => unsub());
-                unsubscribers = [];
-    
-                if (currentUser) {
-                    setUser(currentUser);
-                    setUid(currentUser.uid);
-                    setIsLoading(true);
-    
-                    const userDocRef = doc(db, 'users', currentUser.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-    
-                    if (!userDocSnap.exists()) {
-                        try {
-                            await initializeUserData(currentUser.uid, currentUser.email);
-                        } catch (error) {
-                            console.error("Initialization failed after signup/login:", error);
-                        }
-                    }
-                    
-                    const collectionsToListen = [
-                        'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles',
-                        'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments',
-                        'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
-                    ];
-                    const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
-                        transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
-                        debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
-                        categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
-                        taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions,
-                        budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices
-                    };
+                
+                const collectionsToListen = [
+                    'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles',
+                    'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments',
+                    'investmentContributions', 'budgets', 'bankAccounts', 'bankCards', 'reports', 'services'
+                ];
+                const dataSetters: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
+                    transactions: setAllTransactions, goals: setAllGoals, subscriptions: setAllSubscriptions,
+                    debts: setAllDebts, fixedExpenses: setAllFixedExpenses, profiles: setAllProfiles,
+                    categories: setAllCategories, goalContributions: setAllGoalContributions, debtPayments: setAllDebtPayments,
+                    taxPayments: setAllTaxPayments, investments: setAllInvestments, investmentContributions: setAllInvestmentContributions,
+                    budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices
+                };
 
-                    collectionsToListen.forEach(collectionName => {
-                        const collectionRef = collection(db, 'users', currentUser.uid, collectionName);
-                        const unsub = onSnapshot(collectionRef, (snapshot) => {
-                            const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                            const processedData = data.map(item => {
-                                const newItem: DocumentData = { ...item };
-                                for (const key in newItem) {
-                                    if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                        newItem[key] = newItem[key].toDate();
-                                    }
+                collectionsToListen.forEach(collectionName => {
+                    const collectionRef = collection(db, 'users', currentUser.uid, collectionName);
+                    const unsub = onSnapshot(collectionRef, (snapshot) => {
+                        const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const processedData = data.map(item => {
+                            const newItem: DocumentData = { ...item };
+                            for (const key in newItem) {
+                                if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                                    newItem[key] = newItem[key].toDate();
                                 }
-                                return newItem;
-                            });
-                            dataSetters[collectionName]?.(processedData as any);
+                            }
+                            return newItem;
                         });
-                        unsubscribers.push(unsub);
+                        dataSetters[collectionName]?.(processedData as any);
                     });
+                    unsubscribers.push(unsub);
+                });
 
-                    const settingsDocRef = doc(db, 'users', currentUser.uid, 'settings', 'appSettings');
-                    const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            setSettings(docSnap.data() as AppSettings);
-                        }
-                    });
-                    unsubscribers.push(settingsUnsub);
-                    
-                    setIsLoading(false);
+                const settingsDocRef = doc(db, 'users', currentUser.uid, 'settings', 'appSettings');
+                const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        setSettings(docSnap.data() as AppSettings);
+                    }
+                });
+                unsubscribers.push(settingsUnsub);
+                
+                setIsLoading(false);
 
-                } else {
-                    setUser(null);
-                    setUid(null);
-                    setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
-                    setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
-                    setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
-                    setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
-                    setSettings({ currency: 'CLP', background: 'theme-gradient' });
-                    setIsLoading(false);
-                }
-            });
-            unsubscribers.push(authUnsubscribe);
-        };
-    
-        initializeFirebaseServices();
+            } else {
+                setUser(null);
+                setUid(null);
+                setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
+                setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
+                setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
+                setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
+                setSettings({ currency: 'CLP', background: 'theme-gradient' });
+                setIsLoading(false);
+            }
+        });
     
         return () => {
+            authUnsubscribe();
             unsubscribers.forEach(unsub => unsub());
         };
     }, [initializeUserData]);
     
-    
-    const login = async (email: string, pass: string) => {
-        await signInWithEmailAndPassword(auth, email, pass);
-    }
-    
-    const signup = async (email: string, pass: string) => {
-        await createUserWithEmailAndPassword(auth, email, pass);
-    };
-
-    const logout = async () => {
-        await signOut(auth);
-    }
+    const login = async (email: string, pass: string) => await signInWithEmailAndPassword(auth, email, pass);
+    const signup = async (email: string, pass: string) => await createUserWithEmailAndPassword(auth, email, pass);
+    const logout = async () => await signOut(auth);
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<string> => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -314,7 +286,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("Usuario no autenticado");
         await deleteDoc(doc(db, 'users', uid, collectionName, id));
     };
-
 
      const addTransaction = async (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -478,6 +449,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!debtSnap.exists()) throw new Error("Deuda no encontrada.");
         const debt = debtSnap.data() as Debt;
         
+        const batch = writeBatch(db);
+        const paymentRef = doc(collection(db, 'users', uid, 'debtPayments'));
         batch.set(paymentRef, payment);
 
         const newPaidAmount = debt.paidAmount + payment.amount;
@@ -493,7 +466,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: payment.accountId,
             includesTax: false,
         });
-
     };
 
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {

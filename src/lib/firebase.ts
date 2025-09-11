@@ -1,9 +1,7 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, initializeFirestore, type Firestore } from "firebase/firestore";
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   "projectId": "fa-vision",
   "appId": "1:340465179002:web:f4c555150a25ea691d5ec3",
@@ -14,23 +12,26 @@ const firebaseConfig = {
   "messagingSenderId": "340465179002"
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
 
-// Lazy initialization for Firebase
-function getFirebaseInstances() {
-    if (typeof window !== "undefined" && !getApps().length) {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = initializeFirestore(app, {}, "(default)");
-    } else if (getApps().length) {
-        app = getApp();
-        auth = getAuth(app);
-        db = getFirestore(app);
-    }
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
 
-getFirebaseInstances();
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { app, auth, db, enableIndexedDbPersistence };
+// Habilitar la persistencia solo en el navegador
+if (typeof window !== 'undefined') {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.warn('La persistencia de Firestore falló, probablemente por múltiples pestañas abiertas.');
+    } else if (err.code == 'unimplemented') {
+      console.warn('El navegador actual no soporta la persistencia de Firestore.');
+    }
+  });
+}
+
+export { app, db, auth };
