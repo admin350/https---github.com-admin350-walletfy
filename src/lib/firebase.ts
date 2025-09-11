@@ -2,7 +2,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED, initializeFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -11,13 +11,14 @@ const firebaseConfig = {
   "storageBucket": "fa-vision.firebasestorage.app",
   "apiKey": "AIzaSyBpEHk9J_35GMcHw38fjcHu7V4gG0-qNX8",
   "authDomain": "fa-vision.firebaseapp.com",
-  "measurementId": "",
+  "measurementId": "G-9X03F2011M",
   "messagingSenderId": "340465179002"
 };
 
 // Initialize Firebase, checking if apps are already initialized.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+// Robust Firestore initialization specifying the database ID
+const db = initializeFirestore(app, {}, "(default)");
 
 // Enable offline persistence
 try {
@@ -35,3 +36,4 @@ try {
 
 export const auth = getAuth(app);
 export { db };
+

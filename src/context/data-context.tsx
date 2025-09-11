@@ -167,7 +167,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
         if (userDocSnap.exists()) {
             console.log("User data already exists for:", userId);
-            return; // User data already initialized.
+            return;
         }
         
         console.log("Initializing new user data for:", userId);
@@ -240,6 +240,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Subscribe to user data once UID is available
     useEffect(() => {
         if (!uid) {
+            setIsLoading(false); // Ensure loading is false if no user
             return;
         }
         
@@ -248,8 +249,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const setupListeners = async () => {
             setIsLoading(true);
             try {
-                // Data initialization is now handled by the signup function, 
-                // but we can keep a check here for safety.
                 await initializeUserData(uid);
 
                 const collections = [
@@ -312,8 +311,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const signup = async (email: string, pass: string) => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        await initializeUserData(userCredential.user.uid);
+        await createUserWithEmailAndPassword(auth, email, pass);
     };
 
     const logout = async () => {
@@ -1106,3 +1104,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
