@@ -34,18 +34,11 @@ interface ContributeToInvestmentDialogProps {
 
 export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
     const { toast } = useToast();
-    const { addInvestmentContribution, bankAccounts, investmentContributions, formatCurrency } = useData();
+    const { addInvestmentContribution, bankAccounts, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
     
-    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
-    const totalInvestmentTransfers = investmentAccount?.balance ?? 0;
-    
-    const totalContributedToInvestments = useMemo(() => {
-        return investmentContributions.reduce((acc, c) => acc + c.amount, 0);
-    }, [investmentContributions]);
-
-
-    const availableToInvest = totalInvestmentTransfers - totalContributedToInvestments;
+    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment' && acc.profile === investment.profile), [bankAccounts, investment.profile]);
+    const availableToInvest = investmentAccount?.balance ?? 0;
 
     const formSchema = z.object({
       amount: z.coerce.number()
@@ -62,7 +55,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         if (!investmentAccount) {
-            toast({ title: "Error", description: "No se ha configurado una cuenta de inversión.", variant: "destructive" });
+            toast({ title: "Error", description: `No se ha configurado una cuenta de 'Cartera de Inversión' para el perfil '${investment.profile}'.`, variant: "destructive" });
             return;
         }
         setIsLoading(true);
@@ -72,7 +65,6 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 investmentName: investment.name,
                 amount: values.amount,
                 date: new Date(),
-                sourceAccountId: investmentAccount.id,
             });
             toast({
                 title: "¡Aporte Exitoso!",
@@ -105,7 +97,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 <DialogHeader>
                     <DialogTitle>Aportar a: {investment.name}</DialogTitle>
                     <DialogDescription>
-                       Saldo disponible para invertir: <span className="font-bold text-primary">{formatCurrency(availableToInvest)}</span>
+                       Saldo disponible para invertir ({investmentAccount?.name}): <span className="font-bold text-primary">{formatCurrency(availableToInvest)}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -123,9 +115,9 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full" disabled={isLoading || !investmentAccount}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Confirmar Aporte
+                            {!investmentAccount ? "Cartera de Inversión no encontrada" : "Confirmar Aporte"}
                         </Button>
                     </form>
                 </Form>

@@ -34,17 +34,11 @@ interface ContributeToGoalDialogProps {
 
 export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeToGoalDialogProps) {
     const { toast } = useToast();
-    const { addGoalContribution, bankAccounts, goalContributions, formatCurrency } = useData();
+    const { addGoalContribution, bankAccounts, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
     
-    const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
-    const totalSavings = savingsAccount?.balance ?? 0;
-    
-    const totalContributed = useMemo(() => {
-        return goalContributions.reduce((acc, c) => acc + c.amount, 0);
-    }, [goalContributions]);
-
-    const availableSavings = totalSavings - totalContributed;
+    const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings' && acc.profile === goal.profile), [bankAccounts, goal.profile]);
+    const availableSavings = savingsAccount?.balance ?? 0;
 
     const formSchema = z.object({
       amount: z.coerce.number()
@@ -61,7 +55,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         if (!savingsAccount) {
-            toast({ title: "Error", description: "No se ha configurado una cuenta de ahorros.", variant: "destructive"});
+            toast({ title: "Error", description: `No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`, variant: "destructive"});
             return;
         }
         setIsLoading(true);
@@ -71,7 +65,6 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 goalName: goal.name,
                 amount: values.amount,
                 date: new Date(),
-                sourceAccountId: savingsAccount.id,
             });
             toast({
                 title: "¡Aporte Exitoso!",
@@ -104,7 +97,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 <DialogHeader>
                     <DialogTitle>Aportar a: {goal.name}</DialogTitle>
                     <DialogDescription>
-                       Ahorro disponible en cartera: <span className="font-bold text-primary">{formatCurrency(availableSavings)}</span>
+                       Ahorro disponible en cartera ({savingsAccount?.name}): <span className="font-bold text-primary">{formatCurrency(availableSavings)}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -122,9 +115,9 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full" disabled={isLoading || !savingsAccount}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Confirmar Aporte
+                            {!savingsAccount ? "Cartera de Ahorro no encontrada" : "Confirmar Aporte"}
                         </Button>
                     </form>
                 </Form>

@@ -60,14 +60,14 @@ interface DataContextType {
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<string>;
     updateFixedExpense: (expense: FixedExpense) => Promise<void>;
     deleteFixedExpense: (id: string) => Promise<void>;
-    addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => Promise<void>;
+    addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
     paySubscription: (subscription: Subscription) => Promise<void>;
     addTaxPayment: (payment: Omit<TaxPayment, 'id'>) => Promise<void>;
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<string>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<string>;
     updateBudget: (budget: Budget) => Promise<void>;
     deleteBudget: (id: string) => Promise<void>;
@@ -137,6 +137,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [previewBackground, setPreviewBackground] = useState<string | null>(null);
 
     const formatCurrency = useCallback((value: number, withSymbol = true, isCompact = false) => {
+        if (isNaN(value)) return '';
         const options: Intl.NumberFormatOptions = {
             style: 'currency',
             currency: settings.currency,
@@ -245,37 +246,42 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices,
             };
 
-            collections.forEach(collectionName => {
-                const collRef = collection(db, 'users', uid, collectionName);
-                const unsub = onSnapshot(collRef, (snapshot) => {
-                    if (!isMounted) return;
-                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    const processedData = data.map(item => {
-                        const newItem: DocumentData = { ...item };
-                        for (const key in newItem) {
-                            if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                newItem[key] = newItem[key].toDate();
+            const unsubPromises = collections.map(collectionName => {
+                return new Promise<Unsubscribe>((resolve) => {
+                    const collRef = collection(db, 'users', uid, collectionName);
+                    const unsub = onSnapshot(collRef, (snapshot) => {
+                        if (!isMounted) return;
+                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        const processedData = data.map(item => {
+                            const newItem: DocumentData = { ...item };
+                            for (const key in newItem) {
+                                if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                                    newItem[key] = newItem[key].toDate();
+                                }
                             }
-                        }
-                        return newItem;
+                            return newItem;
+                        });
+                        dataSetters[collectionName]?.(processedData as any);
+                        resolve(unsub);
+                    }, (error) => {
+                        console.error(`Error fetching ${collectionName}: `, error);
                     });
-                    dataSetters[collectionName]?.(processedData as any);
-                }, (error) => {
-                    console.error(`Error fetching ${collectionName}: `, error);
                 });
-                unsubscribers.push(unsub);
             });
             
             const settingsRef = doc(db, 'users', uid, 'settings', 'appSettings');
-            const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
-                if (!isMounted) return;
-                if(docSnap.exists()){
-                    setSettings(docSnap.data() as AppSettings);
-                }
+            const settingsPromise = new Promise<Unsubscribe>(resolve => {
+                const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+                    if (!isMounted) return;
+                    if(docSnap.exists()){
+                        setSettings(docSnap.data() as AppSettings);
+                    }
+                     resolve(unsubSettings);
+                });
             });
-            unsubscribers.push(unsubSettings);
-
-            // All subscriptions are set up, so we can set loading to false.
+            
+            const allUnsubs = await Promise.all([...unsubPromises, settingsPromise]);
+            unsubscribers.push(...allUnsubs);
             setIsLoading(false);
         };
 
@@ -293,10 +299,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
     const signup = async (email: string, pass: string) => {
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-            // Initialization is now handled by the useEffect watching the UID
+            await createUserWithEmailAndPassword(auth, email, pass);
         } catch (error: any) {
-            // Forward the error to be handled by the UI component
             throw error;
         }
     }
@@ -417,51 +421,41 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
-        await batch.commit();
+        return batch.commit();
     };
 
 
     const updateTransaction = async (updatedTransaction: Transaction) => {
-        // A full update would require reverting the old transaction's impact and applying the new one.
-        // This is complex logic that should be handled carefully. For now, we will just update the doc.
         return await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
     };
 
     const deleteTransaction = async (id: string) => {
-         // Similar to update, deleting a transaction should revert its financial impact.
-         // This is a simplified version.
          return await deleteDocById('transactions', id);
     };
     
-    // GOAL FUNCTIONS
     const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'completionNotified'>) => await addDoc('goals', { ...goal, currentAmount: 0, completionNotified: false });
     const updateGoal = async (goal: SavingsGoal) => await setDocWithId('goals', goal.id, goal);
     const deleteGoal = async (id: string) => await deleteDocById('goals', id);
-    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
+    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
+        const goal = allGoals.find(g => g.id === contribution.goalId);
+        if (!goal) throw new Error("Meta no encontrada");
+        const account = allBankAccounts.find(a => a.purpose === 'savings' && a.profile === goal.profile);
+        if (!account) throw new Error(`No se encontró una 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
+
         const batch = writeBatch(db);
-        
-        const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
-        const goalSnap = await getDoc(goalRef);
-        if (!goalSnap.exists()) throw new Error("Meta no encontrada.");
-        const goal = goalSnap.data() as SavingsGoal;
-        
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
-        const accountSnap = await getDoc(accountRef);
-        if(!accountSnap.exists()) throw new Error("Cuenta de ahorros no encontrada.");
-        const account = accountSnap.data() as BankAccount;
-
-        if (account.balance < contribution.amount) throw new Error("Saldo insuficiente en la cuenta de ahorros.");
-
         const contribRef = doc(collection(db, 'users', uid, 'goalContributions'));
         batch.set(contribRef, contribution);
+        
+        const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
         batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
+        
+        const accountRef = doc(db, 'users', uid, 'bankAccounts', account.id);
         batch.update(accountRef, { balance: account.balance - contribution.amount });
         
-        return await batch.commit();
+        return batch.commit();
     };
     
-    // DEBT FUNCTIONS
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
         const debtData: Partial<Debt> = {...debt, paidAmount: 0};
         const account = allBankAccounts.find(acc => acc.id === debt.accountId);
@@ -496,7 +490,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     };
 
-    // TAX FUNCTIONS
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
     
@@ -537,38 +530,32 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     
-    // INVESTMENT FUNCTIONS
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => await addDoc('investments', { ...investment, currentValue: investment.initialAmount });
     const updateInvestment = async (investment: Investment) => await setDocWithId('investments', investment.id, investment);
     const deleteInvestment = async (id: string) => await deleteDocById('investments', id);
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'sourceAccountId'> & { sourceAccountId: string }) => {
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
+        const investment = allInvestments.find(i => i.id === contribution.investmentId);
+        if (!investment) throw new Error("Inversión no encontrada.");
+        const account = allBankAccounts.find(a => a.purpose === 'investment' && a.profile === investment.profile);
+        if (!account) throw new Error(`No se encontró una 'Cartera de Inversión' para el perfil '${investment.profile}'.`);
+
         const batch = writeBatch(db);
-        
-        const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
-        const investmentSnap = await getDoc(investmentRef);
-        if (!investmentSnap.exists()) throw new Error("Inversión no encontrada.");
-        const investment = investmentSnap.data() as Investment;
-
-        const accountRef = doc(db, 'users', uid, 'bankAccounts', contribution.sourceAccountId);
-        const accountSnap = await getDoc(accountRef);
-        if(!accountSnap.exists()) throw new Error("Cuenta de inversión no encontrada.");
-        const account = accountSnap.data() as BankAccount;
-
-        if (account.balance < contribution.amount) throw new Error("Saldo insuficiente en la cuenta de inversión.");
-
         const contribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
         batch.set(contribRef, contribution);
+        
+        const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
         batch.update(investmentRef, { 
             initialAmount: investment.initialAmount + contribution.amount,
             currentValue: investment.currentValue + contribution.amount,
         });
+        
+        const accountRef = doc(db, 'users', uid, 'bankAccounts', account.id);
         batch.update(accountRef, { balance: account.balance - contribution.amount });
-
-        return await batch.commit();
+        
+        return batch.commit();
     };
 
-    // BANK ACCOUNT/CARD FUNCTIONS
     const addBankAccount = async (account: Omit<BankAccount, 'id'>) => {
         if (!uid) throw new Error("Usuario no autenticado");
         const accountData: Partial<BankAccount> = { ...account };
@@ -679,7 +666,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     const deleteSubscription = async (id: string) => await deleteDocById('subscriptions', id);
     
-    // OTHER ENTITIES
     const addFixedExpense = async (expense: Omit<FixedExpense, 'id'>) => await addDoc('fixedExpenses', expense);
     const updateFixedExpense = async (expense: FixedExpense) => await setDocWithId('fixedExpenses', expense.id, expense);
     const deleteFixedExpense = async (id: string) => await deleteDocById('fixedExpenses', id);
@@ -785,9 +771,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return allTaxPayments.filter(tp => {
             const monthMatch = filters.month === -1 || tp.month === filters.month;
             const yearMatch = tp.year === filters.year;
-            // Tax payments aren't directly linked to a profile, they are company-wide
-            // but for consistency we can filter if a user has selected a non-"all" profile
-            // This might need refinement based on desired logic.
             return monthMatch && yearMatch;
         });
     }, [allTaxPayments, filters]);

@@ -98,6 +98,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 ...values,
                 type: 'expense',
                 profile: account.profile,
+                date: values.date.toISOString(),
                 includesTax: false,
             });
 
