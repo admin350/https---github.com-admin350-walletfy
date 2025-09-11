@@ -21,10 +21,9 @@ let db: Firestore;
 // Lazy initialization for Firebase
 function getFirebaseInstances() {
     if (typeof window !== "undefined" && !getApps().length) {
-        // This ensures we only initialize on the client
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-        db = getFirestore(app);
+        db = initializeFirestore(app, {}, "(default)");
     } else if (getApps().length) {
         app = getApp();
         auth = getAuth(app);
