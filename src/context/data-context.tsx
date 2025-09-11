@@ -1085,4 +1085,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
