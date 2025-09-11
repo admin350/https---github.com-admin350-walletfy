@@ -161,6 +161,55 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [settings.currency]);
     
     
+    const initializeUserData = useCallback(async (userId: string) => {
+        const userSettingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
+        const userDocSnap = await getDoc(userSettingsDocRef);
+    
+        if (userDocSnap.exists()) {
+            return; // User data already initialized.
+        }
+    
+        const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
+        const defaultCategories = [
+            { name: "Alimentación", type: "Gasto", color: "#f97316" },
+            { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+            { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+            { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+            { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+            { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+            { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+            { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+            { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
+        ];
+        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
+    
+        try {
+            const batch = writeBatch(db);
+            const userDocRef = doc(db, 'users', userId);
+            
+            // 1. Create the anchor user document.
+            batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
+    
+            // 2. Create default subcollections.
+            defaultProfiles.forEach(profile => {
+                const profileRef = doc(collection(db, 'users', userId, 'profiles'));
+                batch.set(profileRef, profile);
+            });
+            defaultCategories.forEach(category => {
+                const categoryRef = doc(collection(db, 'users', userId, 'categories'));
+                batch.set(categoryRef, category);
+            });
+            
+            // 3. Create the settings document.
+            batch.set(userSettingsDocRef, defaultSettings);
+    
+            await batch.commit();
+        } catch (error) {
+            console.error("Failed to initialize user data:", error);
+            throw error;
+        }
+    }, []);
+
     // Subscribe to auth state changes
     useEffect(() => {
         const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -183,54 +232,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return () => authUnsubscribe();
     }, []);
     
-    const initializeUserData = useCallback(async (userId: string) => {
-        const userDocRef = doc(db, 'users', userId);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-            return; // User data already exists.
-        }
-
-        const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
-        const defaultCategories = [
-            { name: "Alimentación", type: "Gasto", color: "#f97316" },
-            { name: "Transporte", type: "Gasto", color: "#3b82f6" },
-            { name: "Vivienda", type: "Gasto", color: "#84cc16" },
-            { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-            { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-            { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-            { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-            { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
-            { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
-        ];
-        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
-
-        try {
-            const batch = writeBatch(db);
-            
-            // Create the anchor user document FIRST.
-            batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
-
-            // Now create the subcollections.
-            defaultProfiles.forEach(profile => {
-                const profileRef = doc(collection(db, 'users', userId, 'profiles'));
-                batch.set(profileRef, profile);
-            });
-            defaultCategories.forEach(category => {
-                const categoryRef = doc(collection(db, 'users', userId, 'categories'));
-                batch.set(categoryRef, category);
-            });
-            
-            const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
-            batch.set(settingsDocRef, defaultSettings);
-
-            await batch.commit();
-        } catch (error) {
-            console.error("Failed to initialize user data:", error);
-            // This is a critical error, you might want to handle it by logging the user out or showing an error message.
-            throw error;
-        }
-    }, []);
 
     // Subscribe to user data once UID is available
     useEffect(() => {
@@ -243,6 +244,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const setupListeners = async () => {
             setIsLoading(true);
             try {
+                // Data initialization is now handled by the signup function, 
+                // but we can keep a check here for safety.
                 await initializeUserData(uid);
 
                 const collections = [
@@ -303,9 +306,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, pass: string) => {
         await signInWithEmailAndPassword(auth, email, pass);
     }
+    
     const signup = async (email: string, pass: string) => {
-        await createUserWithEmailAndPassword(auth, email, pass);
-    }
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        await initializeUserData(userCredential.user.uid);
+    };
+
     const logout = async () => {
         await signOut(auth);
     }
@@ -452,7 +458,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         const batch = writeBatch(db);
         
-        await addDoc('goalContributions', contribution);
+        const newContribRef = doc(collection(db, 'users', uid, 'goalContributions'));
+        batch.set(newContribRef, contribution);
         
         const goalRef = doc(db, 'users', uid, 'goals', contribution.goalId);
         batch.update(goalRef, { currentAmount: goal.currentAmount + contribution.amount });
@@ -506,7 +513,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             includesTax: false,
         });
 
-        await batch.commit();
+        // No need to commit batch here, addTransaction will do it.
     };
 
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
@@ -567,7 +574,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         const batch = writeBatch(db);
         
-        await addDoc('investmentContributions', contribution);
+        const newContribRef = doc(collection(db, 'users', uid, 'investmentContributions'));
+        batch.set(newContribRef, contribution);
         
         const investmentRef = doc(db, 'users', uid, 'investments', contribution.investmentId);
         batch.update(investmentRef, { 
@@ -1094,3 +1102,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
