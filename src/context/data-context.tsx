@@ -184,12 +184,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, []);
     
     const initializeUserData = useCallback(async (userId: string) => {
-        const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
-        const settingsDocSnap = await getDoc(settingsDocRef);
-        if (settingsDocSnap.exists()) {
-            return; // User already initialized
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+            return; // User data already exists.
         }
-        
+
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
         const defaultCategories = [
             { name: "Alimentación", type: "Gasto", color: "#f97316" },
@@ -204,22 +205,31 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         ];
         const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
 
-        const batch = writeBatch(db);
-        const userDocRef = doc(db, 'users', userId);
-        batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
-        
-        defaultProfiles.forEach(profile => {
-            const profileRef = doc(collection(db, 'users', userId, 'profiles'));
-            batch.set(profileRef, profile);
-        });
-        defaultCategories.forEach(category => {
-            const categoryRef = doc(collection(db, 'users', userId, 'categories'));
-            batch.set(categoryRef, category);
-        });
-        
-        batch.set(settingsDocRef, defaultSettings);
+        try {
+            const batch = writeBatch(db);
+            
+            // Create the anchor user document FIRST.
+            batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
 
-        await batch.commit();
+            // Now create the subcollections.
+            defaultProfiles.forEach(profile => {
+                const profileRef = doc(collection(db, 'users', userId, 'profiles'));
+                batch.set(profileRef, profile);
+            });
+            defaultCategories.forEach(category => {
+                const categoryRef = doc(collection(db, 'users', userId, 'categories'));
+                batch.set(categoryRef, category);
+            });
+            
+            const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
+            batch.set(settingsDocRef, defaultSettings);
+
+            await batch.commit();
+        } catch (error) {
+            console.error("Failed to initialize user data:", error);
+            // This is a critical error, you might want to handle it by logging the user out or showing an error message.
+            throw error;
+        }
     }, []);
 
     // Subscribe to user data once UID is available
@@ -228,13 +238,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
         
-        const unsubscribers: Unsubscribe[] = [];
+        let unsubscribers: Unsubscribe[] = [];
         
         const setupListeners = async () => {
+            setIsLoading(true);
             try {
                 await initializeUserData(uid);
 
-                // Now setup all listeners for real-time updates
                 const collections = [
                     'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
                     'categories', 'goalContributions', 'debtPayments', 'taxPayments', 'investments', 
@@ -249,36 +259,35 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     budgets: setAllBudgets, bankAccounts: setAllBankAccounts, bankCards: setAllBankCards, reports: setAllReports, services: setAllServices,
                 };
     
-                unsubscribers.push(
-                    ...collections.map(collectionName => 
-                        onSnapshot(collection(db, 'users', uid, collectionName), snapshot => {
-                            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            const processedData = data.map(item => {
-                                const newItem: DocumentData = { ...item };
-                                for (const key in newItem) {
-                                    if (newItem[key] && typeof newItem[key].toDate === 'function') {
-                                        newItem[key] = newItem[key].toDate();
-                                    }
+                unsubscribers = collections.map(collectionName => 
+                    onSnapshot(collection(db, 'users', uid, collectionName), snapshot => {
+                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        const processedData = data.map(item => {
+                            const newItem: DocumentData = { ...item };
+                            for (const key in newItem) {
+                                if (newItem[key] && typeof newItem[key].toDate === 'function') {
+                                    newItem[key] = newItem[key].toDate();
                                 }
-                                return newItem;
-                            });
-                            dataSetters[collectionName]?.(processedData as any);
-                        }, (error) => {
-                            console.error(`Error fetching ${collectionName}:`, error);
-                        })
-                    )
+                            }
+                            return newItem;
+                        });
+                        dataSetters[collectionName]?.(processedData as any);
+                    }, (error) => {
+                        console.error(`Error fetching ${collectionName}:`, error);
+                    })
                 );
                 
                 const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
-                unsubscribers.push(onSnapshot(settingsDocRef, (docSnap) => {
+                const settingsUnsub = onSnapshot(settingsDocRef, (docSnap) => {
                     if(docSnap.exists()){
                         setSettings(docSnap.data() as AppSettings);
                     }
-                }));
-
-                setIsLoading(false);
+                });
+                unsubscribers.push(settingsUnsub);
+                
             } catch (error) {
                 console.error("Error setting up listeners:", error);
+            } finally {
                 setIsLoading(false);
             }
         };
@@ -1085,7 +1094,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
-    
-
-    
