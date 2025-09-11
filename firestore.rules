@@ -1,20 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Reglas para la colección 'users'
     match /users/{userId} {
-      // Creación: Un usuario puede crear su propio documento de usuario.
-      // Esto es crucial para la inicialización de la cuenta.
+      // Permite que un usuario cree su propio documento de perfil/anclaje
       allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Lectura, Escritura, Borrado: Una vez creado, solo el propietario puede
-      // leer, modificar o borrar su documento principal.
+      // Una vez creado, solo ese usuario puede leer/escribir/borrar sus datos
       allow read, write, delete: if request.auth != null && request.auth.uid == userId;
 
-      // Reglas para todas las subcolecciones dentro del documento de un usuario
       match /{document=**} {
-        // Permite al propietario leer, escribir y borrar cualquier documento
-        // en cualquiera de sus subcolecciones (profiles, transactions, etc.).
+        // Permite leer/escribir/borrar en todas las subcolecciones
         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
       }
     }

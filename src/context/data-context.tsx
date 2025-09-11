@@ -434,8 +434,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
 
-    const updateTransaction = async (updatedTransaction: Transaction) => {
-        await setDocWithId('transactions', updatedTransaction.id, updatedTransaction);
+    const updateTransaction = async (transaction: Transaction) => {
+        await setDocWithId('transactions', transaction.id, transaction);
     };
 
     const deleteTransaction = async (id: string) => {
