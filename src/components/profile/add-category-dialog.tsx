@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,10 +26,9 @@ interface AddCategoryDialogProps {
     categoryToEdit?: Category;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onCategoryAddedOrUpdated: () => void;
 }
 
-export function AddCategoryDialog({ categoryToEdit, open, onOpenChange, onCategoryAddedOrUpdated }: AddCategoryDialogProps) {
+export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCategoryDialogProps) {
     const { toast } = useToast();
     const { addCategory, updateCategory } = useData();
     const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +58,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange, onCatego
                     description: "La categoría ha sido creada exitosamente.",
                 });
             }
-            onCategoryAddedOrUpdated();
+            onOpenChange(false);
         } catch (error) {
              const err = error instanceof Error ? error : new Error('An unknown error occurred');
              toast({

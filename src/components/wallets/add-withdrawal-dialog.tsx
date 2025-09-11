@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -84,7 +85,6 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 if (amountError) {
                     form.setError("amount", { type: "manual", message: amountError.message });
                 }
-                // Stop submission if validation fails
                 setIsLoading(false);
                 return;
             }
