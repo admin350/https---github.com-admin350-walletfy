@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -161,9 +160,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [settings.currency]);
     
     
-    const initializeUserData = useCallback(async (userId: string) => {
-        const userSettingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
-        const userDocSnap = await getDoc(userSettingsDocRef);
+    const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
     
         if (userDocSnap.exists()) {
             console.log("User data already exists for:", userId);
@@ -188,10 +187,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
         try {
             const batch = writeBatch(db);
-            const userDocRef = doc(db, 'users', userId);
             
             // 1. Create the anchor user document. This is CRUCIAL.
-            batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
+            batch.set(userDocRef, { createdAt: new Date(), email: userEmail });
     
             // 2. Create default subcollections.
             defaultProfiles.forEach(profile => {
@@ -204,7 +202,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             });
             
             // 3. Create the settings document.
-            batch.set(userSettingsDocRef, defaultSettings);
+            const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
+            batch.set(settingsDocRef, defaultSettings);
     
             await batch.commit();
             console.log("Successfully initialized user data for:", userId);
@@ -249,7 +248,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const setupListeners = async () => {
             setIsLoading(true);
             try {
-                await initializeUserData(uid);
+                // Initialize user data if it doesn't exist
+                await initializeUserData(uid, auth.currentUser?.email || null);
 
                 const collections = [
                     'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles', 
@@ -1104,4 +1104,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
