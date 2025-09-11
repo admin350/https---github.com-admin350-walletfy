@@ -163,8 +163,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     // Subscribe to auth state changes
     useEffect(() => {
-        setIsLoading(true);
         const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setIsLoading(true);
             if (currentUser) {
                 setUser(currentUser);
                 setUid(currentUser.uid);
@@ -183,6 +183,45 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return () => authUnsubscribe();
     }, []);
     
+    const initializeUserData = useCallback(async (userId: string) => {
+        const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
+        const settingsDocSnap = await getDoc(settingsDocRef);
+        if (settingsDocSnap.exists()) {
+            return; // User already initialized
+        }
+        
+        const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
+        const defaultCategories = [
+            { name: "Alimentación", type: "Gasto", color: "#f97316" },
+            { name: "Transporte", type: "Gasto", color: "#3b82f6" },
+            { name: "Vivienda", type: "Gasto", color: "#84cc16" },
+            { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
+            { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
+            { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
+            { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
+            { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
+            { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
+        ];
+        const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
+
+        const batch = writeBatch(db);
+        const userDocRef = doc(db, 'users', userId);
+        batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
+        
+        defaultProfiles.forEach(profile => {
+            const profileRef = doc(collection(db, 'users', userId, 'profiles'));
+            batch.set(profileRef, profile);
+        });
+        defaultCategories.forEach(category => {
+            const categoryRef = doc(collection(db, 'users', userId, 'categories'));
+            batch.set(categoryRef, category);
+        });
+        
+        batch.set(settingsDocRef, defaultSettings);
+
+        await batch.commit();
+    }, []);
+
     // Subscribe to user data once UID is available
     useEffect(() => {
         if (!uid) {
@@ -193,43 +232,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         const setupListeners = async () => {
             try {
-                // Check for user initialization by fetching settings
-                const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
-                const settingsDocSnap = await getDoc(settingsDocRef);
-    
-                if (!settingsDocSnap.exists()) {
-                    // This is a new user, initialize their data
-                    const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
-                    const defaultCategories = [
-                        { name: "Alimentación", type: "Gasto", color: "#f97316" },
-                        { name: "Transporte", type: "Gasto", color: "#3b82f6" },
-                        { name: "Vivienda", type: "Gasto", color: "#84cc16" },
-                        { name: "Sueldo", type: "Ingreso", color: "#22c55e" },
-                        { name: "Pago de Deuda", type: "Gasto", color: "#ef4444"},
-                        { name: "Suscripciones", type: "Gasto", color: "#a855f7"},
-                        { name: "Otros Gastos", type: "Gasto", color: "#6b7280"},
-                        { name: "Transferencia", type: "Transferencia", color: "#06b6d4"},
-                        { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
-                    ];
-                    const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
-
-                    const batch = writeBatch(db);
-                    const userDocRef = doc(db, 'users', uid);
-                    batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
-                    
-                    defaultProfiles.forEach(profile => {
-                        const profileRef = doc(collection(db, 'users', uid, 'profiles'));
-                        batch.set(profileRef, profile);
-                    });
-                    defaultCategories.forEach(category => {
-                        const categoryRef = doc(collection(db, 'users', uid, 'categories'));
-                        batch.set(categoryRef, category);
-                    });
-                    
-                    batch.set(settingsDocRef, defaultSettings);
-
-                    await batch.commit();
-                }
+                await initializeUserData(uid);
 
                 // Now setup all listeners for real-time updates
                 const collections = [
@@ -260,10 +263,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                                 return newItem;
                             });
                             dataSetters[collectionName]?.(processedData as any);
+                        }, (error) => {
+                            console.error(`Error fetching ${collectionName}:`, error);
                         })
                     )
                 );
                 
+                const settingsDocRef = doc(db, 'users', uid, 'settings', 'appSettings');
                 unsubscribers.push(onSnapshot(settingsDocRef, (docSnap) => {
                     if(docSnap.exists()){
                         setSettings(docSnap.data() as AppSettings);
@@ -283,7 +289,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             unsubscribers.forEach(unsub => unsub());
         }
 
-    }, [uid]);
+    }, [uid, initializeUserData]);
 
     const login = async (email: string, pass: string) => {
         await signInWithEmailAndPassword(auth, email, pass);
@@ -1079,5 +1085,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+
+    
 
     
