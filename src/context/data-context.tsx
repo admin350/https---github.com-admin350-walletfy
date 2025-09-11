@@ -161,10 +161,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [settings.currency]);
     
     
-    const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
-        console.log("Attempting to initialize user data for:", userId);
-        const userDocRef = doc(db, 'users', userId);
-        
+     const initializeUserData = useCallback(async (userId: string, userEmail: string | null) => {
+        const userDocRef = doc(db, "users", userId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+            return; 
+        }
+
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
         const defaultCategories = [
             { name: "Alimentación", type: "Gasto", color: "#f97316" },
@@ -178,26 +182,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             { name: "Impuestos", type: "Gasto", color: "#2dd4bf" },
         ];
         const defaultSettings = { currency: 'CLP', largeTransactionThreshold: 500000, background: 'theme-gradient' };
-    
+
         try {
             const batch = writeBatch(db);
-            
             batch.set(userDocRef, { createdAt: new Date(), email: userEmail });
-    
-            defaultProfiles.forEach(profile => {
-                const profileRef = doc(collection(db, 'users', userId, 'profiles'));
-                batch.set(profileRef, profile);
-            });
-            defaultCategories.forEach(category => {
-                const categoryRef = doc(collection(db, 'users', userId, 'categories'));
-                batch.set(categoryRef, category);
-            });
-            
-            const settingsDocRef = doc(db, 'users', userId, 'settings', 'appSettings');
-            batch.set(settingsDocRef, defaultSettings);
-    
+            defaultProfiles.forEach(p => batch.set(doc(collection(db, 'users', userId, 'profiles')), p));
+            defaultCategories.forEach(c => batch.set(doc(collection(db, 'users', userId, 'categories')), c));
+            batch.set(doc(db, 'users', userId, 'settings', 'appSettings'), defaultSettings);
             await batch.commit();
-            console.log("Successfully initialized user data for:", userId);
         } catch (error) {
             console.error("Failed to initialize user data:", error);
             throw error;
@@ -206,17 +198,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     // Firebase Initialization Effect
     useEffect(() => {
-        setIsLoading(true);
-        enablePersistence()
-            .then(() => {
-                setFirebaseInitialized(true);
-            })
-            .catch(err => {
-                console.error("Firebase Persistence Error:", err);
-                setFirebaseInitialized(true); // Still proceed even if persistence fails
-            });
+        const init = async () => {
+            await enablePersistence();
+            setFirebaseInitialized(true);
+        };
+        init();
     }, []);
-    
 
     // Auth and Data Listener Effect
     useEffect(() => {
@@ -227,20 +214,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (currentUser) {
                 setUser(currentUser);
                 setUid(currentUser.uid);
-                
-                const userDocRef = doc(db, 'users', currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (!userDocSnap.exists()) {
-                    try {
-                        await initializeUserData(currentUser.uid, currentUser.email);
-                    } catch (error) {
-                        console.error("Initialization failed, user may be left in a bad state:", error);
-                    }
-                }
+                await initializeUserData(currentUser.uid, currentUser.email);
             } else {
                 setUser(null);
                 setUid(null);
-                setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
+                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
                 setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
@@ -254,7 +232,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Data listeners
     useEffect(() => {
         if (!uid) {
-            // If user logs out, we still might need to set loading to false if it was on
             if(isLoading) setIsLoading(false);
             return;
         }
@@ -1105,4 +1082,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-

@@ -1,4 +1,3 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -18,9 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase, checking if apps are already initialized.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Export db instance directly. Persistence will be enabled in the context.
-const db = initializeFirestore(app, {}, "(default)");
-
+const db = getFirestore(app);
 export const auth = getAuth(app);
 export { db };
 
@@ -31,7 +28,7 @@ export const enablePersistence = async () => {
         });
     } catch (err: any) {
         if (err.code === 'failed-precondition') {
-            console.warn("Firestore persistence failed: Multiple tabs open.");
+            console.warn("Firestore persistence failed: Multiple tabs open or other initialization issue.");
         } else if (err.code === 'unimplemented') {
             console.warn("Firestore persistence not available in this browser.");
         }
