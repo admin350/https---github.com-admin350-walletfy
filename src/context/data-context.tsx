@@ -4,7 +4,7 @@
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
 import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, useContext } from "react";
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
-import { db, auth } from "@/lib/firebase";
+import { db, auth, enablePersistence } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
 import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
@@ -129,6 +129,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [allServices, setAllServices] = useState<Service[]>([]);
     const [settings, setSettings] = useState<AppSettings>({ currency: 'CLP', background: 'theme-gradient' });
     const [isLoading, setIsLoading] = useState(true);
+    const [firebaseInitialized, setFirebaseInitialized] = useState(false);
     const [filters, setFilters] = useState<IFilters>({
         profile: 'all',
         month: getMonth(new Date()),
@@ -181,7 +182,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         try {
             const batch = writeBatch(db);
             
-            // Anchor Document
             batch.set(userDocRef, { createdAt: new Date(), email: userEmail });
     
             defaultProfiles.forEach(profile => {
@@ -204,14 +204,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    // Auth state listener
+    // Firebase Initialization Effect
     useEffect(() => {
         setIsLoading(true);
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        enablePersistence()
+            .then(() => {
+                setFirebaseInitialized(true);
+            })
+            .catch(err => {
+                console.error("Firebase Persistence Error:", err);
+                setFirebaseInitialized(true); // Still proceed even if persistence fails
+            });
+    }, []);
+    
+
+    // Auth and Data Listener Effect
+    useEffect(() => {
+        if (!firebaseInitialized) return;
+
+        setIsLoading(true);
+        const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 setUid(currentUser.uid);
-                // Setup user data and listeners
+                
                 const userDocRef = doc(db, 'users', currentUser.uid);
                 const userDocSnap = await getDoc(userDocRef);
                 if (!userDocSnap.exists()) {
@@ -224,22 +240,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 setUser(null);
                 setUid(null);
-                 // Clear all data
                 setAllTransactions([]); setAllGoals([]); setAllSubscriptions([]); setAllDebts([]);
                 setAllFixedExpenses([]); setAllProfiles([]); setAllCategories([]); setAllGoalContributions([]);
                 setAllDebtPayments([]); setAllTaxPayments([]); setAllInvestments([]); setAllInvestmentContributions([]); 
                 setAllBudgets([]); setAllBankAccounts([]); setAllBankCards([]); setAllReports([]); setAllServices([]);
                 setSettings({ currency: 'CLP', background: 'theme-gradient' });
+                setIsLoading(false);
             }
-            setIsLoading(false);
         });
-        return () => unsubscribe();
-    }, [initializeUserData]);
-    
+        return () => authUnsubscribe();
+    }, [firebaseInitialized, initializeUserData]);
 
     // Data listeners
     useEffect(() => {
-        if (!uid) return;
+        if (!uid) {
+            // If user logs out, we still might need to set loading to false if it was on
+            if(isLoading) setIsLoading(false);
+            return;
+        }
 
         const collectionsToListen = [
             'transactions', 'goals', 'subscriptions', 'debts', 'fixedExpenses', 'profiles',
@@ -269,6 +287,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     return newItem;
                 });
                 dataSetters[collectionName]?.(processedData as any);
+            }, (error) => {
+                console.error(`Firestore snapshot error on ${collectionName}:`, error);
             });
         });
 
@@ -279,11 +299,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         });
         unsubscribers.push(settingsUnsub);
+        
+        setIsLoading(false);
 
         return () => {
             unsubscribers.forEach(unsub => unsub());
         };
-    }, [uid]);
+    }, [uid, isLoading]);
 
 
     const login = async (email: string, pass: string) => {
@@ -292,7 +314,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const signup = async (email: string, pass: string) => {
         await createUserWithEmailAndPassword(auth, email, pass);
-        // The onAuthStateChanged listener will handle the data initialization
     };
 
     const logout = async () => {
@@ -496,7 +517,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             includesTax: false,
         });
 
-        // No need to commit batch here, addTransaction will do it.
     };
 
     const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
@@ -617,7 +637,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await batch.commit();
     };
 
-    const addBankCard = async (card: Omit<BankCard, 'id' | 'usedAmount'>): Promise<string> => {
+    const addBankCard = async (card: Omit<BankCard, 'id'|'usedAmount'>): Promise<string> => {
         const cardData: Partial<BankCard> = { ...card, usedAmount: 0 };
         if (card.cardType !== 'credit') {
             delete cardData.creditLimit;
@@ -1085,3 +1105,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
+

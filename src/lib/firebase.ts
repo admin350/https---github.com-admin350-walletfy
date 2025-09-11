@@ -17,22 +17,23 @@ const firebaseConfig = {
 
 // Initialize Firebase, checking if apps are already initialized.
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-// Robust Firestore initialization specifying the database ID
+
+// Export db instance directly. Persistence will be enabled in the context.
 const db = initializeFirestore(app, {}, "(default)");
-
-// Enable offline persistence
-try {
-    enableIndexedDbPersistence(db, {
-        cacheSizeBytes: CACHE_SIZE_UNLIMITED
-    });
-} catch (err: any) {
-    if (err.code === 'failed-precondition') {
-        // This can happen with multiple tabs open.
-    } else if (err.code === 'unimplemented') {
-        // The current browser does not support it.
-    }
-}
-
 
 export const auth = getAuth(app);
 export { db };
+
+export const enablePersistence = async () => {
+    try {
+        await enableIndexedDbPersistence(db, {
+            cacheSizeBytes: CACHE_SIZE_UNLIMITED
+        });
+    } catch (err: any) {
+        if (err.code === 'failed-precondition') {
+            console.warn("Firestore persistence failed: Multiple tabs open.");
+        } else if (err.code === 'unimplemented') {
+            console.warn("Firestore persistence not available in this browser.");
+        }
+    }
+}
