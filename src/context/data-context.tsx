@@ -166,8 +166,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const userDocSnap = await getDoc(userSettingsDocRef);
     
         if (userDocSnap.exists()) {
+            console.log("User data already exists for:", userId);
             return; // User data already initialized.
         }
+        
+        console.log("Initializing new user data for:", userId);
     
         const defaultProfiles = [ { name: "Personal", color: "#3b82f6" }, { name: "Negocio", color: "#14b8a6" }, ];
         const defaultCategories = [
@@ -187,7 +190,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const batch = writeBatch(db);
             const userDocRef = doc(db, 'users', userId);
             
-            // 1. Create the anchor user document.
+            // 1. Create the anchor user document. This is CRUCIAL.
             batch.set(userDocRef, { createdAt: new Date(), email: auth.currentUser?.email }, { merge: true });
     
             // 2. Create default subcollections.
@@ -204,6 +207,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             batch.set(userSettingsDocRef, defaultSettings);
     
             await batch.commit();
+            console.log("Successfully initialized user data for:", userId);
         } catch (error) {
             console.error("Failed to initialize user data:", error);
             throw error;
@@ -1102,4 +1106,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         </DataContext.Provider>
     );
 };
-
