@@ -235,6 +235,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                             return newItem;
                         });
                         dataSetters[collectionName]?.(processedData as any);
+                    }, (error) => {
+                        console.error(`Error fetching ${collectionName}: `, error);
                     });
                     unsubscribers.push(unsub);
                 });
