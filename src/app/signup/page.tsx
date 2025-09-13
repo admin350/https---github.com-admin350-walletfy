@@ -52,7 +52,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
-      <Card className="w-full max-w-md bg-card/20 backdrop-blur-lg border-white/10 rounded-2xl shadow-2xl">
+      <Card className="w-full max-w-md bg-card/20 backdrop-blur-lg border-white/10 rounded-2xl shadow-2xl transition-shadow duration-300 hover:shadow-primary/20 hover:shadow-2xl">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-2 mb-2 animate-pulse animation-delay-4000">
                  <Wallet className="h-8 w-8 text-primary" />
