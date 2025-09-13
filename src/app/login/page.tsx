@@ -94,8 +94,8 @@ export default function LoginPage() {
         }
         return (
             <>
-                <Button variant="ghost" size="sm" onClick={() => setIsResetting(false)} className="absolute top-4 left-4 text-muted-foreground hover:text-foreground">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+                <Button variant="ghost" size="icon" onClick={() => setIsResetting(false)} className="absolute top-4 left-4 text-muted-foreground hover:text-foreground">
+                    <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <CardHeader className="text-center pt-12">
                     <CardTitle>Restablecer Contraseña</CardTitle>
