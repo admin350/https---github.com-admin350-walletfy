@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -6,7 +5,7 @@ import { createContext, useState, useEffect, ReactNode, useMemo, useCallback, us
 import { getYear, getMonth, isPast, startOfMonth, endOfMonth, subDays, isSameDay, addMonths } from "date-fns";
 import { db, auth } from "@/lib/firebase";
 import { collection, doc, getDocs, writeBatch, onSnapshot, Unsubscribe, DocumentData, deleteDoc, setDoc, getDoc, query, where, updateDoc, addDoc as addFirestoreDoc } from "firebase/firestore";
-import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 
 interface IFilters {
     profile: string;
@@ -43,6 +42,7 @@ interface DataContextType {
     login: (email: string, pass: string) => Promise<void>;
     signup: (email: string, pass: string) => Promise<void>;
     logout: () => Promise<void>;
+    sendPasswordReset: (email: string) => Promise<void>;
     addTransaction: (transaction: Omit<Transaction, 'id'> & { isInstallment?: boolean; installments?: number, paymentMethod?: string, includesTax?: boolean, taxRate?: number }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -272,6 +272,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, pass: string) => await signInWithEmailAndPassword(auth, email, pass);
     const signup = async (email: string, pass: string) => await createUserWithEmailAndPassword(auth, email, pass);
     const logout = async () => await signOut(auth);
+    const sendPasswordReset = async (email: string) => await sendPasswordResetEmail(auth, email);
 
     const addDoc = async <T extends { id?: string }>(collectionName: string, data: Omit<T, 'id'>): Promise<string> => {
         if (!uid) throw new Error("Usuario no autenticado");
@@ -1002,6 +1003,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             login,
             signup,
             logout,
+            sendPasswordReset,
             addTransaction,
             updateTransaction,
             deleteTransaction,
