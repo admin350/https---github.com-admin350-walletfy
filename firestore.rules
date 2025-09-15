@@ -1,22 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId} {
-      // Permite al usuario autenticado leer y escribir en su propio documento
+    // Reglas Públicas: Permitir la lectura de datos no sensibles sin autenticación.
+    // Esto es necesario para que la aplicación cargue su configuración inicial.
+    match /users/{userId}/profiles/{profileId} {
+      allow read: if true;
+    }
+    match /users/{userId}/categories/{categoryId} {
+      allow read: if true;
+    }
+
+    // Reglas Privadas: Proteger los datos sensibles del usuario.
+    match /users/{userId}/{documents=**} {
+      // Un usuario solo puede leer y escribir en sus propios documentos.
       allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Permite a CUALQUIERA leer las colecciones de 'profiles' y 'categories'
-      // Esto es necesario para que la app cargue los datos de los menús desplegables
-      match /(profiles|categories)/{docId} {
-        allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // El resto de las subcolecciones (transactions, goals, etc.)
-      // solo pueden ser accedidas por el usuario propietario.
-      match /{subcollection}/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId && subcollection != 'profiles' && subcollection != 'categories';
-      }
     }
   }
 }
