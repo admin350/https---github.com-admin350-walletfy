@@ -2,17 +2,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Permite la lectura pública de perfiles y categorías,
-    // que son necesarios para la configuración inicial de la aplicación.
-    match /(profiles|categories)/{docId} {
+    // Regla #1: PERFILES (Lectura pública, escritura privada)
+    // Permite que CUALQUIERA lea la lista de perfiles (necesario para los menús),
+    // pero solo el usuario dueño puede crearlos, editarlos o borrarlos.
+    match /users/{userId}/profiles/{profileId} {
       allow read: if true;
-      allow write: if false; // Nadie puede escribir directamente aquí.
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Las reglas para la colección de usuarios permanecen seguras.
-    match /users/{userId}/{documents=**} {
-      // Un usuario autenticado puede leer y escribir en su propia ruta de datos.
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Regla #2: CATEGORÍAS (Lectura pública, escritura privada)
+    // Permite que CUALQUIERA lea la lista de categorías, pero solo el
+    // usuario dueño puede gestionarlas.
+    match /users/{userId}/categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regla #3: REGLA DE SEGURIDAD PARA TODOS LOS DEMÁS DATOS
+    // Esta regla protege todas las demás subcolecciones (transactions, goals, debts, etc.).
+    // Solo el usuario que ha iniciado sesión puede leer, escribir, crear o borrar
+    // documentos en sus propias subcolecciones.
+    match /users/{userId}/{subcollection}/{docId} {
+      allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+     // Regla #4: PERMISO SOBRE EL DOCUMENTO PRINCIPAL DEL USUARIO
+     // Permite al usuario gestionar su propio documento de nivel superior.
+     match /users/{userId} {
+      allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
