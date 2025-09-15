@@ -9,19 +9,19 @@ import { redirect } from "next/navigation";
 const AppContent = ({ children }: { children: ReactNode }) => {
   const { isLoading, user } = useData();
 
-  // useEffect(() => {
-  //   if (!isLoading && !user) {
-  //     redirect('/login');
-  //   }
-  // }, [isLoading, user]);
+  useEffect(() => {
+    if (!isLoading && !user) {
+      redirect('/login');
+    }
+  }, [isLoading, user]);
 
-  // if (isLoading || !user) {
-  //   return (
-  //     <div className="flex h-screen w-full items-center justify-center bg-background">
-  //       <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  //     </div>
-  //   );
-  // }
+  if (isLoading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full">

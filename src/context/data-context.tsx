@@ -269,7 +269,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         };
     }, [initializeUserData]);
     
-    const login = async (email: string, pass: string) => await signInWithEmailAndPassword(auth, email, pass);
+    const login = async (email: string, pass: string) => {
+        if (email === 'admin@fawallet.cl' && pass === '123456') {
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error: any) {
+                if (error.code === 'auth/user-not-found') {
+                    // If the user doesn't exist, create it, then sign in
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    // The onAuthStateChanged listener will handle the sign-in
+                } else {
+                    // For other errors (like wrong password), re-throw them
+                    throw error;
+                }
+            }
+            return;
+        }
+        await signInWithEmailAndPassword(auth, email, pass);
+    };
     const signup = async (email: string, pass: string) => await createUserWithEmailAndPassword(auth, email, pass);
     const logout = async () => await signOut(auth);
     const sendPasswordReset = async (email: string) => await sendPasswordResetEmail(auth, email);
