@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface KpiCardProps {
-  title: string;
+  title: string | ReactNode; // <- Cambio de string a ReactNode para permitir JSX
   value: string | ReactNode;
   icon: LucideIcon;
   description: string;
@@ -25,5 +25,3 @@ export function KpiCard({ title, value, icon: Icon, description, iconClassName }
     </Card>
   );
 }
-
-    
