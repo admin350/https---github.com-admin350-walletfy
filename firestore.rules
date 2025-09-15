@@ -1,31 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
 
-    // Regla para el documento principal del usuario
-    match /users/{userId} {
-      // Permite a un usuario crear, leer, actualizar y borrar su propio documento ancla.
-      allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+    // Permitir lectura pública para colecciones de configuración global
+    match /categories/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Solo usuarios autenticados pueden escribir
+    }
 
-      // Regla para la subcolección 'profiles'
-      match /profiles/{profileId} {
-        allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Regla para la subcolección 'categories'
-      match /categories/{categoryId} {
-        allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Regla para la subcolección 'settings'
-      match /settings/{settingsId} {
-        allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Regla para TODAS las demás subcolecciones (transactions, goals, etc.)
-      match /{document=**} {
-        allow read, write, create, delete: if request.auth != null && request.auth.uid == userId;
-      }
+    match /profiles/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Solo usuarios autenticados pueden escribir
     }
   }
 }
