@@ -5,13 +5,13 @@ import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/fires
 
 // This function determines which config to use.
 const getFirebaseConfig = () => {
-  // If the server-side config is available (on App Hosting), use it.
-  if (process.env.FIREBASE_WEBAPP_CONFIG) {
+  // If running on the server (during build or in a server component), 
+  // and the server-side config is available, use it.
+  if (typeof window === 'undefined' && process.env.FIREBASE_WEBAPP_CONFIG) {
     return JSON.parse(process.env.FIREBASE_WEBAPP_CONFIG);
   }
   
-  // Otherwise, fall back to the client-side public environment variables.
-  // This is used for local development.
+  // Otherwise, we are on the client side. Use the public environment variables.
   return {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
