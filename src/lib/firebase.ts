@@ -4,12 +4,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
-  "projectId": "fa-vision",
-  "appId": "1:340465179002:web:f4c555150a25ea691d5ec3",
-  "storageBucket": "fa-vision.firebasestorage.app",
-  "apiKey": "AIzaSyBpEHk9J_35GMcHw38fjcHu7V4gG0-qNX8",
-  "authDomain": "fa-vision.firebaseapp.com",
-  "messagingSenderId": "340465179002"
+  apiKey: "AIzaSyAooE58pfmLlwtJYqVYtbBY-iweawgrWYY",
+  authDomain: "eng-name-468403-f5.firebaseapp.com",
+  projectId: "eng-name-468403-f5",
+  storageBucket: "eng-name-468403-f5.firebasestorage.app",
+  messagingSenderId: "20250015401",
+  appId: "1:20250015401:web:0f872d6a105841d6e4dbb8"
 };
 
 
