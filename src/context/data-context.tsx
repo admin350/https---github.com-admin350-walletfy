@@ -250,6 +250,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             for (const field of dateFields) {
                 if (data[field] && data[field] instanceof Timestamp) {
                     data[field] = data[field].toDate();
+                } else if (data[field] && typeof data[field] === 'string') { // Also handle string dates
+                    const parsedDate = new Date(data[field]);
+                    if (!isNaN(parsedDate.getTime())) {
+                        data[field] = parsedDate;
+                    }
                 }
             }
             return { id: doc.id, ...data };
@@ -487,7 +492,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!years.has(currentYear)) {
             years.add(currentYear);
         }
-        return Array.from(years).sort((a, b) => b - a);
+        return Array.from(years).filter(year => !isNaN(year)).sort((a, b) => b - a);
     }, [allTransactions]);
     
      const getAllDataForMonth = useCallback((month: number, year: number) => {
@@ -594,9 +599,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const dataToSave = { ...transaction, date: transaction.date };
-        const newDoc = await addDocToCollection('transactions', { ...dataToSave, date: Timestamp.fromDate(dataToSave.date) });
-        setAllTransactions(prev => [...prev, newDoc]);
+        const dataToSave = { ...transaction, date: transaction.date.toISOString() };
+        const newDoc = await addDocToCollection('transactions', dataToSave);
+        setAllTransactions(prev => [...prev, { ...newDoc, date: transaction.date }]);
 
         const batch = writeBatch(db);
         const sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
@@ -651,7 +656,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
-        const dataToSave = { ...transaction, date: Timestamp.fromDate(transaction.date as Date) };
+        const dataToSave: any = { ...transaction, date: (transaction.date as Date).toISOString() };
         await updateDocInCollection('transactions', transaction.id, dataToSave);
         setAllTransactions(prev => prev.map(t => t.id === transaction.id ? { ...t, ...transaction } as Transaction : t));
     };
@@ -708,7 +713,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateDebt = async (debt: Partial<Debt> & {id: string}) => {
-        const dataToSave = { ...debt, dueDate: Timestamp.fromDate(debt.dueDate as Date) };
+        const dataToSave: any = { ...debt };
+        if (debt.dueDate) {
+            dataToSave.dueDate = Timestamp.fromDate(debt.dueDate);
+        }
         await updateDocInCollection('debts', debt.id, dataToSave);
         setDebts(prev => prev.map(d => d.id === debt.id ? { ...d, ...debt } : d));
     };
@@ -799,8 +807,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
-        const newSub = { ...subscription, status: 'active' as const, dueDate: Timestamp.fromDate(subscription.dueDate) };
-        const savedDoc = await addDocToCollection('subscriptions', newSub);
+        const newSub = { ...subscription, status: 'active' as const, dueDate: subscription.dueDate };
+        const savedDoc = await addDocToCollection('subscriptions', { ...newSub, dueDate: Timestamp.fromDate(newSub.dueDate) });
         setSubscriptions(prev => [...prev, { ...savedDoc, dueDate: subscription.dueDate }]);
     };
     
@@ -994,3 +1002,4 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
