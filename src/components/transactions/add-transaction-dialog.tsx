@@ -131,16 +131,16 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 const card = bankCards.find(c => c.id === values.paymentMethod);
                 if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
 
-                const newDebt: Omit<Debt, 'id' | 'paidAmount'> = {
+                const newDebt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & { dueDate: Date } = {
                     name: `Compra en cuotas: ${values.description}`,
                     totalAmount: values.amount,
                     monthlyPayment: values.amount / (values.installments || 1),
                     installments: values.installments || 1,
-                    dueDate: addMonths(values.date, 1),
                     debtType: 'credit-card' as const,
                     profile: values.profile,
                     accountId: values.accountId,
                     cardId: card.id,
+                    dueDate: addMonths(values.date, 1),
                 };
 
                 await addDebt(newDebt);
@@ -162,7 +162,10 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                     description: `La transacción ha sido actualizada exitosamente.`,
                 });
             } else {
-                await addTransaction(values);
+                await addTransaction({
+                    ...values,
+                    date: values.date,
+                });
                 toast({
                     title: "Transacción añadida",
                     description: `La transacción ha sido registrada exitosamente.`,
@@ -195,8 +198,8 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 destinationAccountId: transactionToEdit?.destinationAccountId || undefined,
                 paymentMethod: transactionToEdit?.cardId || 'account-balance',
                 date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
-                isInstallment: false, // Default to false
-                installments: undefined, // Default to undefined
+                isInstallment: false,
+                installments: undefined,
                 includesTax: hasTax,
                 taxRate: transactionToEdit?.taxDetails?.rate || 19,
             };
@@ -580,4 +583,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 }
 
     
+
 

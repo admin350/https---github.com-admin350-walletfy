@@ -105,7 +105,7 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date}) => Promise<void>;
-    updateDebt: (debt: Debt) => Promise<void>;
+    updateDebt: (debt: Omit<Debt, 'id' | 'dueDate'> & { dueDate: Date }) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -120,7 +120,7 @@ interface DataContextType {
     deleteFixedExpense: (id: string) => Promise<void>;
 
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date}) => Promise<void>;
-    updateGoal: (goal: SavingsGoal) => Promise<void>;
+    updateGoal: (goal: Omit<SavingsGoal, 'id' | 'estimatedDate'> & { estimatedDate: Date }) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -662,13 +662,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('debts', setDebts).add(newDebt);
     };
 
-    const updateDebt = async (debt: Debt) => {
+    const updateDebt = async (debt: Omit<Debt, 'id' | 'dueDate'> & { dueDate: Date }) => {
         const debtToSave = {
             ...debt,
             dueDate: Timestamp.fromDate(new Date(debt.dueDate))
         };
         await updateDocInCollection('debts', debt.id, debtToSave);
-        setDebts(prev => prev.map(d => d.id === debt.id ? debt : d));
+        setDebts(prev => prev.map(d => d.id === debt.id ? debt as Debt : d));
     };
     
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
@@ -904,13 +904,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('goals', setGoals).add(newGoal);
     };
 
-    const updateGoal = async (goal: SavingsGoal) => {
+    const updateGoal = async (goal: Omit<SavingsGoal, 'id' | 'estimatedDate'> & { estimatedDate: Date }) => {
         const goalToSave = {
             ...goal,
             estimatedDate: Timestamp.fromDate(new Date(goal.estimatedDate))
         };
         await updateDocInCollection('goals', goal.id, goalToSave);
-        setGoals(prev => prev.map(g => g.id === goal.id ? goal : g));
+        setGoals(prev => prev.map(g => g.id === goal.id ? goal as SavingsGoal : g));
     };
 
 
