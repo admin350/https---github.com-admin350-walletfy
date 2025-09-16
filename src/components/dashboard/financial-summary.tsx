@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
-import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale } from 'lucide-react';
+import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale, Library } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution, BankAccount, BankCard } from '@/types';
 
@@ -28,8 +28,15 @@ export function FinancialSummary() {
 
     // Bank Cards Calculation
     const creditCards = bankCards.filter((c: BankCard) => c.cardType === 'credit');
-    const totalUsedAmount = creditCards.reduce((acc: number, card: BankCard) => acc + (card.usedAmount || 0), 0);
-    const totalAvailableCredit = creditCards.reduce((acc: number, card: BankCard) => acc + ((card.creditLimit || 0) - (card.usedAmount || 0)), 0);
+    const totalUsedAmountOnCards = creditCards.reduce((acc: number, card: BankCard) => acc + (card.usedAmount || 0), 0);
+    const totalAvailableCreditOnCards = creditCards.reduce((acc: number, card: BankCard) => acc + ((card.creditLimit || 0) - (card.usedAmount || 0)), 0);
+
+    // Credit Lines Calculation
+    const accountsWithCreditLine = bankAccounts.filter((acc: BankAccount) => acc.hasCreditLine);
+    const totalCreditLineUsed = accountsWithCreditLine.reduce((acc: number, account: BankAccount) => acc + (account.creditLineUsed || 0), 0);
+    const totalCreditLineLimit = accountsWithCreditLine.reduce((acc: number, account: BankAccount) => acc + (account.creditLineLimit || 0), 0);
+    const totalAvailableCreditLine = totalCreditLineLimit - totalCreditLineUsed;
+
 
     // Savings & Investment Calculations
     const totalSavings = savingsAccount?.balance ?? 0;
@@ -119,13 +126,31 @@ export function FinancialSummary() {
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Deuda Total:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(totalUsedAmount)}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalUsedAmountOnCards)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Crédito Disponible:</span>
-                        <span className="font-medium text-foreground">{formatCurrency(totalAvailableCredit)}</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalAvailableCreditOnCards)}</span>
                     </div>
                 </div>
+                
+                {/* Credit Lines */}
+                {accountsWithCreditLine.length > 0 && (
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 font-semibold text-amber-400">
+                            <Library className="h-5 w-5" />
+                            <span>Líneas de Crédito</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Cupo Utilizado Total:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(totalCreditLineUsed)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Cupo Disponible Total:</span>
+                            <span className="font-medium text-foreground">{formatCurrency(totalAvailableCreditLine)}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Savings Portfolio */}
                 {savingsAccount && (
