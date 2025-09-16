@@ -1,14 +1,16 @@
+
 'use client';
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
 import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution } from '@/types';
+import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution, BankAccount, BankCard } from '@/types';
 
 export function FinancialSummary() {
     const { 
         bankAccounts,
+        bankCards,
         goalContributions, 
         investmentContributions,
         debts,
@@ -21,7 +23,15 @@ export function FinancialSummary() {
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
 
-    // Calculations now respect filters as they use filtered data from context
+    // Bank Accounts Calculation
+    const totalBalance = bankAccounts.reduce((acc: number, account: BankAccount) => acc + account.balance, 0);
+
+    // Bank Cards Calculation
+    const creditCards = bankCards.filter((c: BankCard) => c.cardType === 'credit');
+    const totalUsedAmount = creditCards.reduce((acc: number, card: BankCard) => acc + (card.usedAmount || 0), 0);
+    const totalAvailableCredit = creditCards.reduce((acc: number, card: BankCard) => acc + ((card.creditLimit || 0) - (card.usedAmount || 0)), 0);
+
+    // Savings & Investment Calculations
     const totalSavings = savingsAccount?.balance ?? 0;
     const totalContributedToGoals = goalContributions.reduce((acc: number, c: GoalContribution) => acc + c.amount, 0);
     const availableSavings = totalSavings - totalContributedToGoals;
@@ -30,11 +40,13 @@ export function FinancialSummary() {
     const totalContributedToAssets = investmentContributions.reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 
+    // Debts & Subscriptions Calculations
     const remainingDebt = debts.reduce((acc: number, debt: Debt) => acc + (debt.totalAmount - debt.paidAmount), 0);
     const totalMonthlySubscriptionCost = subscriptions
         .filter((s: Subscription) => s.status === 'active')
         .reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);
         
+    // Tax Calculation
     const taxData = useMemo(() => {
         const incomeWithTax = transactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
         const expensesWithTax = transactions.filter((t: Transaction) => t.type === 'expense' && t.taxDetails);
@@ -87,6 +99,34 @@ export function FinancialSummary() {
             </CardHeader>
             <CardContent className="grid gap-6">
                 
+                 {/* Bank Accounts */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-primary">
+                        <Wallet className="h-5 w-5" />
+                        <span>Cuentas Bancarias</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Balance Total:</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalBalance)}</span>
+                    </div>
+                </div>
+
+                {/* Bank Cards */}
+                 <div className="space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-orange-400">
+                        <CreditCard className="h-5 w-5" />
+                        <span>Tarjetas de Crédito</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Deuda Total:</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalUsedAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Crédito Disponible:</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalAvailableCredit)}</span>
+                    </div>
+                </div>
+
                 {/* Savings Portfolio */}
                 {savingsAccount && (
                     <div className="space-y-2">
