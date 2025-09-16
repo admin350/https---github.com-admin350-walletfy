@@ -21,8 +21,8 @@ import { useState } from "react";
 import type { Subscription } from "@/types";
 import { useData } from "@/context/data-context";
 import { format, isPast, getMonth, getYear, isThisMonth, differenceInMonths } from "date-fns";
-import { MoreHorizontal, Pencil, Trash2, HandCoins, CheckCircle } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash2, HandCoins, CheckCircle, XCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { PaySubscriptionDialog } from "./pay-subscription-dialog";
@@ -36,14 +36,14 @@ interface SubscriptionsDataTableProps {
 }
 
 export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
-    const { cancelSubscription, bankCards, deleteSubscription, formatCurrency } = useData();
+    const { cancelSubscription, bankCards, deleteSubscription, formatCurrency, updateSubscriptionAmount } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [subscriptionToUpdate, setSubscriptionToUpdate] = useState<Subscription | undefined>(undefined);
     const [isPayModalOpen, setIsPayModalOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     
-    const handleUpdateAmount = (item: Subscription) => {
+    const handleUpdate = (item: Subscription) => {
         setSubscriptionToUpdate(item);
         setIsUpdateModalOpen(true);
     };
@@ -210,28 +210,33 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleUpdateAmount(item)}>
+                                    <DropdownMenuItem onClick={() => handleUpdate(item)}>
                                         <Pencil className="mr-2 h-4 w-4" />
-                                        Actualizar Monto
+                                        Editar Suscripción
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleCancelSubscription(item.id)} disabled={item.status === 'cancelled'}>
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Cancelar Suscripción
                                     </DropdownMenuItem>
                                     <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem disabled={item.status === 'cancelled'}>
+                                        <DropdownMenuItem>
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            Cancelar Suscripción
+                                            Eliminar Suscripción
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Dar de baja la suscripción?</AlertDialogTitle>
+                                    <AlertDialogTitle>¿Eliminar esta suscripción?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acción no eliminará los pagos históricos, pero moverá la suscripción a la pestaña "Canceladas" y no se te recordará pagarla.
+                                        Esta acción no se puede deshacer y eliminará permanentemente la suscripción. Si solo quieres dejar de pagarla, puedes cancelarla.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cerrar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleCancelSubscription(item.id)}>Continuar</AlertDialogAction>
+                                    <AlertDialogAction onClick={() => handleDeleteSubscription(item.id)}>Eliminar Permanentemente</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>

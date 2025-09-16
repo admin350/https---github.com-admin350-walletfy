@@ -127,10 +127,10 @@ interface DataContextType {
     addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
     
     addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
+    updateSubscription: (subscription: Partial<Subscription> & { id: string }) => Promise<void>;
     paySubscription: (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string }) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
-    updateSubscriptionAmount: (id: string, newAmount: number) => Promise<void>;
 
     addFixedExpense: (expense: Omit<FixedExpense, 'id'>) => Promise<void>;
     updateFixedExpense: (expense: Partial<FixedExpense> & {id: string}) => Promise<void>;
@@ -812,6 +812,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => [...prev, { ...savedDoc, dueDate: subscription.dueDate }]);
     };
     
+    const updateSubscription = async (subscription: Partial<Subscription> & {id: string}) => {
+        const dataToSave: any = { ...subscription };
+        if (subscription.dueDate) {
+            dataToSave.dueDate = Timestamp.fromDate(subscription.dueDate);
+        }
+        await updateDocInCollection('subscriptions', subscription.id, dataToSave);
+        setSubscriptions(prev => prev.map(s => s.id === subscription.id ? { ...s, ...subscription } : s));
+    };
+
     const paySubscription = async (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
@@ -859,11 +868,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const deleteSubscription = async (id: string) => {
          await deleteDocFromCollection('subscriptions', id);
          setSubscriptions(prev => prev.filter(s => s.id !== id));
-    };
-
-    const updateSubscriptionAmount = async (id: string, newAmount: number) => {
-         await updateDocInCollection('subscriptions', id, { amount: newAmount });
-         setSubscriptions(prev => prev.map(s => s.id === id ? {...s, amount: newAmount} : s));
     };
     
     const addReport = async (report: Omit<MonthlyReport, 'id'>) => {
@@ -951,10 +955,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         deleteDebt,
         addDebtPayment,
         addSubscription,
+        updateSubscription,
         paySubscription,
         cancelSubscription,
         deleteSubscription,
-        updateSubscriptionAmount,
         addFixedExpense: fixedExpensesCrud.add,
         updateFixedExpense: fixedExpensesCrud.update,
         deleteFixedExpense: fixedExpensesCrud.delete,
@@ -1002,4 +1006,3 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
-
