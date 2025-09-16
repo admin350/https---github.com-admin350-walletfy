@@ -106,7 +106,6 @@ export const useData = () => {
     return context;
 };
 
-
 // PROVIDER
 export function DataProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -391,7 +390,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         await batch.commit();
     };
 
-
     const updateTransaction = async (transaction: Transaction) => {
         await setDocWithId('transactions', transaction.id, transaction);
     };
@@ -637,7 +635,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
             lastPaymentYear: getYear(today)
         });
     };
-
 
     const addSubscription = async (subData: Omit<Subscription, 'id' | 'status'>) => {
         const subscriptionRecord: Omit<Subscription, 'id'> = {
@@ -972,91 +969,92 @@ export function DataProvider({ children }: { children: ReactNode }) {
             });
         }
 
-
         return newNotifications.sort((a,b) => b.date.getTime() - a.date.getTime());
     }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments, uid, isLoading]);
 
+    const contextValue = {
+        user,
+        transactions: filteredTransactions,
+        goals: filteredGoals,
+        subscriptions: filteredSubscriptions,
+        debts: filteredDebts,
+        fixedExpenses: filteredFixedExpenses,
+        services: filteredServices,
+        profiles: allProfiles,
+        categories: allCategories,
+        goalContributions: filteredGoalContributions,
+        debtPayments: filteredDebtPayments,
+        taxPayments: filteredTaxPayments,
+        investments: filteredInvestments,
+        investmentContributions: filteredInvestmentContributions,
+        budgets: filteredBudgets,
+        bankAccounts: filteredBankAccounts,
+        bankCards: filteredBankCards,
+        reports: allReports,
+        settings,
+        notifications,
+        isLoading,
+        filters,
+        setFilters,
+        availableYears,
+        login,
+        signup,
+        logout,
+        sendPasswordReset,
+        addTransaction,
+        updateTransaction,
+        deleteTransaction,
+        addGoal,
+        updateGoal,
+        deleteGoal,
+        addSubscription,
+        updateSubscription,
+        updateSubscriptionAmount,
+        cancelSubscription,
+        deleteSubscription,
+        addDebt,
+        updateDebt,
+        deleteDebt,
+        addFixedExpense,
+        updateFixedExpense,
+        deleteFixedExpense,
+        addGoalContribution,
+        addDebtPayment,
+        paySubscription,
+        addTaxPayment,
+        addInvestment,
+        updateInvestment,
+        deleteInvestment,
+        addInvestmentContribution,
+        addBudget,
+        updateBudget,
+        deleteBudget,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        addService,
+        updateService,
+        deleteService,
+        addProfile,
+        updateProfile,
+        deleteProfile,
+        getAllDataForMonth,
+        formatCurrency,
+        previewBackground,
+        setPreviewBackground,
+        addBankAccount,
+        updateBankAccount,
+        deleteBankAccount,
+        addBankCard,
+        updateBankCard,
+        deleteBankCard,
+        addReport,
+        deleteReport,
+        updateSettings,
+    };
+
     return (
-        <DataContext.Provider value={{ 
-            user,
-            transactions: filteredTransactions,
-            goals: filteredGoals,
-            subscriptions: filteredSubscriptions,
-            debts: filteredDebts,
-            fixedExpenses: filteredFixedExpenses,
-            services: filteredServices,
-            profiles: allProfiles,
-            categories: allCategories,
-            goalContributions: filteredGoalContributions,
-            debtPayments: filteredDebtPayments,
-            taxPayments: filteredTaxPayments,
-            investments: filteredInvestments,
-            investmentContributions: filteredInvestmentContributions,
-            budgets: filteredBudgets,
-            bankAccounts: filteredBankAccounts,
-            bankCards: filteredBankCards,
-            reports: allReports,
-            settings,
-            notifications,
-            isLoading,
-            filters,
-            setFilters,
-            availableYears,
-            login,
-            signup,
-            logout,
-            sendPasswordReset,
-            addTransaction,
-            updateTransaction,
-            deleteTransaction,
-            addGoal,
-            updateGoal,
-            deleteGoal,
-            addSubscription,
-            updateSubscription,
-            updateSubscriptionAmount,
-            cancelSubscription,
-            deleteSubscription,
-            addDebt,
-            updateDebt,
-            deleteDebt,
-            addFixedExpense,
-            updateFixedExpense,
-            deleteFixedExpense,
-            addGoalContribution,
-            addDebtPayment,
-            paySubscription,
-            addTaxPayment,
-            addInvestment,
-            updateInvestment,
-            deleteInvestment,
-            addInvestmentContribution,
-            addBudget,
-            updateBudget,
-            deleteBudget,
-            addCategory,
-            updateCategory,
-            deleteCategory,
-            addService,
-            updateService,
-            deleteService,
-            addProfile,
-            updateProfile,
-            deleteProfile,
-            getAllDataForMonth,
-            formatCurrency,
-            previewBackground,
-            setPreviewBackground,
-            addBankAccount,
-            updateBankAccount,
-            deleteBankAccount,
-            addBankCard,
-            updateBankCard,
-            deleteBankCard,
-            addReport,
-            deleteReport,
-            updateSettings,
-        }}>
+        <DataContext.Provider value={contextValue}>
             {children}
         </DataContext.Provider>
     );

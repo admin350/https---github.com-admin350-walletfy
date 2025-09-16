@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { DataProvider } from '@/context/data-context';
 import { AppBodyWrapper } from './app-body-wrapper';
 
-
 export const metadata: Metadata = {
   title: 'FA WALLET',
   description: 'Gestión financiera integral para necesidades personales, familiares y de negocios.',
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
   }
 };
-
 
 export default function RootLayout({
   children,
@@ -36,4 +34,3 @@ export default function RootLayout({
     </html>
   );
 }
-
