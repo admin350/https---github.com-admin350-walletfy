@@ -87,7 +87,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     } as React.CSSProperties;
 
     const hasLimit = account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0;
-    const limitUsage = hasLimit ? (monthlyIncome / account.monthlyLimit) * 100 : 0;
+    const limitUsage = hasLimit ? (monthlyIncome / (account.monthlyLimit ?? 1)) * 100 : 0;
     
     const creditLineAvailable = (account.creditLineLimit || 0) - (account.creditLineUsed || 0);
     const creditLineProgress = account.creditLineLimit ? ((account.creditLineUsed || 0) / account.creditLineLimit) * 100 : 0;

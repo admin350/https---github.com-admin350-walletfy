@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
@@ -80,7 +81,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                     )
                     .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
-                if ((currentMonthIncome + values.amount) > selectedAccount.monthlyLimit) {
+                if ((currentMonthIncome + values.amount) > (selectedAccount.monthlyLimit ?? Infinity)) {
                     form.setError("amount", { type: "manual", message: "Este depósito supera el límite de ingresos mensuales para esta cuenta." });
                     throw new Error("Límite de depósito mensual excedido.");
                 }
