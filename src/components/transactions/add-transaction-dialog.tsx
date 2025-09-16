@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -130,17 +131,19 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 const card = bankCards.find(c => c.id === values.paymentMethod);
                 if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
 
-                await addDebt({
+                const newDebt: Omit<Transaction, 'id'> & { dueDate: Date } = {
                     name: `Compra en cuotas: ${values.description}`,
                     totalAmount: values.amount,
                     monthlyPayment: values.amount / (values.installments || 1),
                     installments: values.installments || 1,
                     dueDate: addMonths(values.date, 1),
-                    debtType: 'credit-card',
+                    debtType: 'credit-card' as const,
                     profile: values.profile,
                     accountId: values.accountId,
                     cardId: card.id,
-                });
+                };
+
+                await addDebt(newDebt);
 
                 toast({
                     title: "Deuda por Cuotas Creada",

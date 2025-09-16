@@ -121,10 +121,9 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         action: async (values: FormValues) => {
              const transactionData = {
                 ...values,
-                date: values.date.toISOString(),
             };
             if (transactionToEdit && transactionToEdit.id) {
-                await addTransaction(transactionData);
+                await updateTransaction({ ...transactionToEdit, ...transactionData, id: transactionToEdit.id });
             } else {
                 await addTransaction(transactionData);
             }
@@ -493,4 +492,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
 
