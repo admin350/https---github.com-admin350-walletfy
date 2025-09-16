@@ -5,15 +5,22 @@ import { useData } from "@/context/data-context";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { redirect } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const AppContent = ({ children }: { children: ReactNode }) => {
-  const { isLoading, user } = useData();
+  const { isLoading, user, settings, previewBackground } = useData();
 
   useEffect(() => {
     if (!isLoading && !user) {
       redirect('/login');
     }
   }, [isLoading, user]);
+
+  const backgroundClass = previewBackground || settings?.background || 'theme-gradient';
+
+  useEffect(() => {
+    document.body.className = cn("font-body antialiased", backgroundClass);
+  }, [backgroundClass]);
 
   if (isLoading || !user) {
     return (

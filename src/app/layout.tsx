@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
-import './globals.css';
 import { DataProvider } from '@/context/data-context';
-import AppContent from './app-content';
+import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'FA WALLET',
-  description: 'Gestión financiera integral para necesidades personales, familiares y de negocios.',
+  description:
+    'Gestión financiera integral para necesidades personales, familiares y de negocios.',
   icons: {
     icon: '/favicon.ico',
-  }
+  },
 };
 
 export default function RootLayout({
@@ -20,12 +21,20 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         <DataProvider>
-          <AppContent>{children}</AppContent>
+          {children}
+          <Toaster />
         </DataProvider>
       </body>
     </html>
