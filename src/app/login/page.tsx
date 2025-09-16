@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useData } from "@/context/data-context";
+import { DataProvider, useData } from "@/context/data-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Wallet, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +15,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
-import { DataProvider } from "@/context/data-context";
 
 
 const loginSchema = z.object({
@@ -204,7 +203,7 @@ function LoginPageContent() {
                     </div>
 
                     {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                    <Button variant="destructive" type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Iniciar Sesión
                     </Button>
