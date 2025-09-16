@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsGoalsWidget } from "@/components/dashboard/savings-goals-widget";

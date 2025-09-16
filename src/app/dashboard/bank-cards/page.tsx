@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,7 +82,7 @@ export default function BankCardsPage() {
                          </div>
                     ) : bankCards.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {bankCards.map(card => (
+                            {bankCards.map((card: BankCard) => (
                                 <BankCardComponent key={card.id} card={card} />
                             ))}
                         </div>

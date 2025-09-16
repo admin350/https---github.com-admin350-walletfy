@@ -1,5 +1,3 @@
-
-
 'use client';
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
@@ -32,6 +30,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import { Transaction } from '@/types';
 
 
 const formSchema = z.object({
@@ -63,51 +62,30 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
         },
     });
 
-    const selectedAccountId = form.watch("accountId");
-    const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
-    
-    const currentMonthIncome = useMemo(() => {
-        if (!selectedAccount || selectedAccount.accountType !== 'Cuenta Vista' || !selectedAccount.monthlyLimit) return 0;
-        
-        const currentMonth = getMonth(new Date());
-        const currentYear = getYear(new Date());
-
-        return transactions
-            .filter(t => 
-                ((t.type === 'income' && t.accountId === selectedAccount.id) || 
-                 (t.type === 'transfer' && t.destinationAccountId === selectedAccount.id)) &&
-                 getMonth(new Date(t.date)) === currentMonth &&
-                 getYear(new Date(t.date)) === currentYear
-            )
-            .reduce((sum, t) => sum + t.amount, 0);
-    }, [selectedAccount, transactions]);
-
-
-    const dynamicFormSchema = formSchema.refine(data => {
-        if (selectedAccount && selectedAccount.accountType === 'Cuenta Vista' && selectedAccount.monthlyLimit) {
-            return (currentMonthIncome + data.amount) <= selectedAccount.monthlyLimit;
-        }
-        return true;
-    }, {
-        message: "Este depósito supera el límite de ingresos mensuales para esta cuenta.",
-        path: ["amount"],
-    });
-
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
-            const validationResult = dynamicFormSchema.safeParse(values);
-            if (!validationResult.success) {
-                const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
-                if (amountError) {
-                    form.setError("amount", { type: "manual", message: amountError.message });
+            const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
+
+            if (selectedAccount && selectedAccount.accountType === 'Cuenta Vista' && selectedAccount.monthlyLimit) {
+                const currentMonth = getMonth(new Date());
+                const currentYear = getYear(new Date());
+                
+                const currentMonthIncome = transactions
+                    .filter((t: Transaction) => 
+                        ((t.type === 'income' && t.accountId === selectedAccount.id) || 
+                         (t.type === 'transfer' && t.destinationAccountId === selectedAccount.id)) &&
+                         getMonth(new Date(t.date)) === currentMonth &&
+                         getYear(new Date(t.date)) === currentYear
+                    )
+                    .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+
+                if ((currentMonthIncome + values.amount) > selectedAccount.monthlyLimit) {
+                    form.setError("amount", { type: "manual", message: "Este depósito supera el límite de ingresos mensuales para esta cuenta." });
+                    throw new Error("Límite de depósito mensual excedido.");
                 }
-                // Stop submission if validation fails
-                setIsLoading(false);
-                return;
             }
 
-            const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
             if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
             }

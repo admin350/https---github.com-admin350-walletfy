@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,7 +105,7 @@ export default function BankAccountsPage() {
                          </div>
                     ) : bankAccounts.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {bankAccounts.map(account => (
+                            {bankAccounts.map((account: BankAccount) => (
                                 <BankAccountComponent key={account.id} account={account} />
                             ))}
                         </div>
