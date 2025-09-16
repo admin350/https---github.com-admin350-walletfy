@@ -46,7 +46,7 @@ export function PreviousMonthExpenseChart() {
     const expenseData = expenseCategories.map((category) => {
         const total = prevMonthTransactions
             .filter((t: Transaction) => t.type === 'expense' && t.category === category.name)
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
         
         if (total > 0) {
           return { name: category.name, value: total, fill: category.color };
@@ -56,7 +56,7 @@ export function PreviousMonthExpenseChart() {
 
     const transferTotal = prevMonthTransactions
         .filter((t: Transaction) => t.type === 'transfer')
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
         
     const data = [...expenseData];
     if (transferTotal > 0) {
