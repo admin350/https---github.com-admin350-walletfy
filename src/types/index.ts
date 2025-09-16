@@ -114,7 +114,8 @@ export type Subscription = {
   paymentDetails?: { // Optional details for overriding payment method
     accountId?: string;
     cardId?: string;
-  }
+  };
+  paidThisPeriod?: boolean;
 };
 
 

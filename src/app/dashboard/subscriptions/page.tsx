@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { SubscriptionsDataTable } from "@/components/transactions/subscriptions-
 import { AddSubscriptionDialog } from "@/components/transactions/add-subscription-dialog";
 import { useData } from "@/context/data-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isPast, isThisMonth, isFuture, startOfToday, format } from "date-fns";
+import { isPast, isThisMonth, isFuture, startOfToday, format, getMonth, getYear } from "date-fns";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
@@ -19,14 +20,25 @@ export default function SubscriptionsPage() {
     const activeSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'active');
     const cancelledSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'cancelled');
 
-    // Vencidas: Fecha es anterior al día de hoy y no es de este mes.
-    const overdueSubscriptions = activeSubscriptions.filter((s: Subscription) => isPast(s.dueDate) && !isThisMonth(s.dueDate));
+    // Vencidas: Fecha de pago es anterior al mes actual Y no se ha pagado en el mes que correspondía.
+    const overdueSubscriptions = activeSubscriptions.filter((s: Subscription) => {
+        const dueDate = new Date(s.dueDate);
+        const lastPaymentPeriod = s.lastPaymentYear ? `${s.lastPaymentYear}-${s.lastPaymentMonth}` : null;
+        const duePeriod = `${getYear(dueDate)}-${getMonth(dueDate)}`;
+        return isPast(dueDate) && !isThisMonth(dueDate) && lastPaymentPeriod !== duePeriod;
+    });
 
-    // Este Mes: Fecha está en el mes actual.
-    const thisMonthSubscriptions = activeSubscriptions.filter((s: Subscription) => isThisMonth(s.dueDate));
+    // Este Mes: (1) Vence este mes Y no está pagada O (2) Fue pagada en este período.
+    const thisMonthSubscriptions = activeSubscriptions.filter((s: Subscription) => {
+        const dueDate = new Date(s.dueDate);
+        return (isThisMonth(dueDate) && !s.paidThisPeriod) || s.paidThisPeriod;
+    });
 
     // Próximas: Fecha es futura y no es de este mes.
-    const upcomingSubscriptions = activeSubscriptions.filter((s: Subscription) => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
+    const upcomingSubscriptions = activeSubscriptions.filter((s: Subscription) => {
+        const dueDate = new Date(s.dueDate);
+        return isFuture(dueDate) && !isThisMonth(dueDate);
+    });
     
     const totalActiveSubscriptions = activeSubscriptions.length;
     const totalMonthlyCost = activeSubscriptions.reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);

@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Subscription } from "@/types";
 import { useData } from "@/context/data-context";
-import { format, isPast, getMonth, getYear } from "date-fns";
+import { format, isPast, getMonth, getYear, isThisMonth } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2, HandCoins, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -133,10 +133,9 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             id: "actions",
             cell: ({ row }) => {
                 const item = row.original;
-                const today = new Date();
-                const isPaidThisMonth = item.lastPaymentMonth === getMonth(today) && item.lastPaymentYear === getYear(today);
+                const isPaid = tab === 'this-month' && item.paidThisPeriod;
                 
-                const showPayButton = (tab === 'overdue' || tab === 'this-month') && !isPaidThisMonth;
+                const showPayButton = (tab === 'overdue' || (tab === 'this-month' && !isPaid));
 
                 if (tab === 'cancelled') {
                     return (
@@ -179,7 +178,7 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                 Pagar
                             </Button>
                         )}
-                        {isPaidThisMonth && (
+                        {isPaid && (
                              <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
