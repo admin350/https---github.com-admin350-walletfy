@@ -36,7 +36,7 @@ export function FinancialCalendar() {
         const activeDebts = debts.filter(d => d.paidAmount < d.totalAmount && d.dueDate >= monthStart && d.dueDate <= monthEnd);
         const debtEvents: CalendarEvent[] = activeDebts.map(debt => ({
             date: debt.dueDate,
-            type: 'debt',
+            type: 'debt' as const,
             data: debt,
             title: debt.name,
             amount: debt.monthlyPayment
@@ -45,7 +45,7 @@ export function FinancialCalendar() {
         const activeSubscriptions = subscriptions.filter(s => s.status === 'active' && s.dueDate >= monthStart && s.dueDate <= monthEnd);
         const subscriptionEvents: CalendarEvent[] = activeSubscriptions.map(sub => ({
             date: sub.dueDate,
-            type: 'subscription',
+            type: 'subscription' as const,
             data: sub,
             title: sub.name,
             amount: sub.amount
@@ -57,7 +57,7 @@ export function FinancialCalendar() {
                  const eventDate = setDate(currentMonth, fe.paymentDay);
                  return {
                     date: eventDate,
-                    type: 'fixedExpense',
+                    type: 'fixedExpense' as const,
                     data: fe,
                     title: fe.name,
                     amount: fe.amount
