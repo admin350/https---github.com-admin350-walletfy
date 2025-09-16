@@ -132,7 +132,7 @@ interface DataContextType {
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'| 'date'> & {date: Date}) => Promise<void>;
     
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
@@ -534,7 +534,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const investmentsCrud = crudOperations('investments', setInvestments);
     const budgetsCrud = crudOperations('budgets', setBudgets);
     const servicesCrud = crudOperations('services', setServices);
-    const goalsCrud = crudOperations('goals', setGoals);
     
     // #region Specific CRUD implementations
     
@@ -687,7 +686,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             dueDate: Timestamp.fromDate(debt.dueDate)
         };
         await updateDocInCollection('debts', debt.id, debtToSave);
-        setDebts(prev => prev.map(d => d.id === debt.id ? { ...d, ...debt } : d));
+        // Ensure local state `dueDate` is also a Date object for consistency
+        setDebts(prev => prev.map(d => d.id === debt.id ? { ...d, ...debt, dueDate: debt.dueDate } : d));
+    };
+    
+    const deleteDebt = async (id: string) => {
+        await crudOperations('debts', setDebts).delete(id);
     };
     
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
@@ -929,7 +933,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             estimatedDate: Timestamp.fromDate(goal.estimatedDate)
         };
         await updateDocInCollection('goals', goal.id, goalToSave);
-        setGoals(prev => prev.map(g => g.id === goal.id ? { ...d, ...goal } as SavingsGoal : g));
+        setGoals(prev => prev.map(g => g.id === goal.id ? { ...g, ...goal } : g));
+    };
+
+    const deleteGoal = async (id: string) => {
+        await crudOperations('goals', setGoals).delete(id);
     };
 
 
@@ -976,7 +984,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         deleteBankCard,
         addDebt,
         updateDebt,
-        deleteDebt: crudOperations('debts', setDebts).delete,
+        deleteDebt,
         addDebtPayment,
         addSubscription,
         paySubscription,
@@ -988,7 +996,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         deleteFixedExpense: fixedExpensesCrud.delete,
         addGoal,
         updateGoal,
-        deleteGoal: goalsCrud.delete,
+        deleteGoal,
         addGoalContribution,
         addInvestment: investmentsCrud.add,
         updateInvestment: investmentsCrud.update,
