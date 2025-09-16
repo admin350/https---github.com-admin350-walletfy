@@ -74,7 +74,12 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
         setIsLoading(true);
         try {
             if (goalToEdit) {
-                await updateGoal({ ...values, id: goalToEdit.id, currentAmount: goalToEdit.currentAmount });
+                 const goalToUpdate = { 
+                    ...goalToEdit, 
+                    ...values, 
+                    estimatedDate: values.estimatedDate 
+                };
+                await updateGoal(goalToUpdate);
                 toast({
                     title: "Meta actualizada",
                     description: "La meta ha sido actualizada exitosamente.",

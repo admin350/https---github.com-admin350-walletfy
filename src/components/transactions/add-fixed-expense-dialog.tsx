@@ -72,10 +72,11 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
     const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
         try {
+            const dataToSubmit = { ...values, paymentDay: values.paymentDay || 0 };
             if (expenseToEdit) {
-                await updateFixedExpense({ id: expenseToEdit.id, ...values, paymentDay: values.paymentDay || 0 });
+                await updateFixedExpense({ id: expenseToEdit.id, ...dataToSubmit });
             } else {
-                await addFixedExpense({ ...values, paymentDay: values.paymentDay || 0 });
+                await addFixedExpense(dataToSubmit);
             }
             toast({
                 title: expenseToEdit ? "Plantilla actualizada" : "Gasto Fijo Añadido",

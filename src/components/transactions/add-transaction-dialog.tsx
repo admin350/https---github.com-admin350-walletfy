@@ -127,7 +127,12 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         try {
             if (transactionToEdit?.id) {
                 // For now, we'll just update the details for now. A full update would require more complex logic.
-                 await updateTransaction({ ...transactionToEdit, ...values, id: transactionToEdit.id } as Transaction);
+                 const transactionToUpdate: Transaction = {
+                    ...(transactionToEdit as Transaction),
+                    ...values,
+                    date: values.date.toISOString(),
+                 };
+                 await updateTransaction(transactionToUpdate);
                  toast({
                     title: "Transacción actualizada",
                     description: `La transacción ha sido actualizada exitosamente.`,
@@ -549,4 +554,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
-

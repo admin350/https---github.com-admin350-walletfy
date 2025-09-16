@@ -66,29 +66,14 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
     const selectedAccountId = form.watch("accountId");
     const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
 
-    const dynamicFormSchema = formSchema.refine(data => {
-        if (selectedAccount && data.amount > selectedAccount.balance) {
-            return false;
-        }
-        return true;
-    }, {
-        message: "El retiro no puede exceder el saldo de la cuenta.",
-        path: ["amount"],
-    });
-
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
-            const validationResult = dynamicFormSchema.safeParse(values);
-             if (!validationResult.success) {
-                const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
-                if (amountError) {
-                    form.setError("amount", { type: "manual", message: amountError.message });
-                }
-                setIsLoading(false);
-                return;
+            if (selectedAccount && values.amount > selectedAccount.balance) {
+                form.setError("amount", { type: "manual", message: "El retiro no puede exceder el saldo de la cuenta." });
+                throw new Error("Saldo insuficiente");
             }
-
+            
             const account = bankAccounts.find(acc => acc.id === values.accountId);
              if (!account) {
                 throw new Error("Cuenta no encontrada.");
@@ -98,7 +83,6 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 ...values,
                 type: 'expense' as const,
                 profile: account.profile,
-                date: values.date.toISOString(),
                 includesTax: false,
             });
 

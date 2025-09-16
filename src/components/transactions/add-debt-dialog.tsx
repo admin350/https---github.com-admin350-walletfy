@@ -83,7 +83,8 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         setIsLoading(true);
         try {
             if (debtToEdit) {
-                await updateDebt({ ...debtToEdit, ...values });
+                const debtToUpdate = { ...debtToEdit, ...values, dueDate: values.dueDate };
+                await updateDebt(debtToUpdate);
                 toast({
                     title: "Deuda actualizada",
                     description: `La deuda ha sido actualizada exitosamente.`,
