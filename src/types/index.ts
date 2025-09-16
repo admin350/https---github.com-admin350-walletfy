@@ -162,6 +162,7 @@ export type TaxPayment = {
   amount: number;
   date: Date; // payment date
   sourceAccountId: string; // the tax portfolio account
+  profile: string; // Profile associated with the tax payment
   remanente?: number; // Credit carryover to the next month
 };
 

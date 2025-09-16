@@ -14,39 +14,42 @@ import { PayTaxDialog } from "@/components/transactions/pay-tax-dialog";
 import type { Transaction, TaxPayment } from "@/types";
 
 export default function TaxesPage() {
-    const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts } = useData();
+    const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts, filters } = useData();
     const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
-    const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax'), [bankAccounts]);
+    const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax' && (filters.profile === 'all' || acc.profile === filters.profile)), [bankAccounts, filters.profile]);
 
     const taxData = useMemo(() => {
-        const incomeWithTax = transactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
-        const expensesWithTax = transactions.filter((t: Transaction) => t.type === 'expense' && t.taxDetails);
+        const relevantTransactions = filters.profile === 'all' 
+            ? transactions 
+            : transactions.filter((t: Transaction) => t.profile === filters.profile);
+
+        const incomeWithTax = relevantTransactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
+        const expensesWithTax = relevantTransactions.filter((t: Transaction) => t.type === 'expense' && t.taxDetails);
 
         const totalDebit = incomeWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         const totalCredit = expensesWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         
-        // Remanente Logic
         const currentPeriod = new Date();
         const prevPeriod = subMonths(currentPeriod, 1);
         const prevMonth = getMonth(prevPeriod);
         const prevYear = getYear(prevPeriod);
         
-        const previousPayment = taxPayments.find((p: TaxPayment) => p.month === prevMonth && p.year === prevYear);
+        const previousPayment = taxPayments.find((p: TaxPayment) => p.month === prevMonth && p.year === prevYear && (filters.profile === 'all' || p.profile === filters.profile));
         const remanente = previousPayment?.remanente ?? 0;
         
         const adjustedDebit = totalDebit - remanente;
         const netTax = adjustedDebit - totalCredit;
 
         return { incomeWithTax, expensesWithTax, totalDebit, totalCredit, remanente, netTax };
-    }, [transactions, taxPayments]); 
+    }, [transactions, taxPayments, filters.profile]); 
     
     const isCurrentPeriodPaid = useMemo(() => {
          const currentPeriod = new Date();
          const currentMonth = getMonth(currentPeriod);
          const currentYear = getYear(currentPeriod);
-         return taxPayments.some((p: TaxPayment) => p.month === currentMonth && p.year === currentYear);
-    }, [taxPayments]);
+         return taxPayments.some((p: TaxPayment) => p.month === currentMonth && p.year === currentYear && (filters.profile === 'all' || p.profile === filters.profile));
+    }, [taxPayments, filters.profile]);
 
     const handleExportCSV = () => {
         const headers = ["Fecha", "Tipo", "Descripción", "Monto Neto", "Monto Impuesto", "Monto Total"];
@@ -111,7 +114,7 @@ export default function TaxesPage() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
                     <p className="text-muted-foreground">
-                        Resumen de tu débito y crédito fiscal para el período seleccionado.
+                        Resumen de tu débito y crédito fiscal para el perfil <span className="text-primary font-semibold">{filters.profile === 'all' ? 'Consolidado' : filters.profile}</span>.
                     </p>
                 </div>
                  <Button onClick={handleExportCSV}>
@@ -189,7 +192,7 @@ export default function TaxesPage() {
                     </CardHeader>
                      {!taxAccount && (
                         <CardContent>
-                             <p className="text-xs text-amber-400/80">Para pagar, primero debes configurar una <a href="/dashboard/bank-accounts" className="underline">Cartera Tributaria</a>.</p>
+                             <p className="text-xs text-amber-400/80">Para pagar, primero debes configurar una <a href="/dashboard/bank-accounts" className="underline">Cartera Tributaria</a> para este perfil.</p>
                         </CardContent>
                     )}
                      {taxAccount && taxAccount.balance < taxData.netTax && (
@@ -286,6 +289,7 @@ export default function TaxesPage() {
                     onOpenChange={setIsPayDialogOpen}
                     taxAccount={taxAccount}
                     amountToPay={taxData.netTax}
+                    profile={filters.profile}
                     period={{ month: getMonth(new Date()), year: getYear(new Date()) }}
                  />
             )}

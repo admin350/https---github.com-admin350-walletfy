@@ -19,12 +19,13 @@ import { Terminal } from 'lucide-react';
 interface PayTaxDialogProps {
     taxAccount: BankAccount;
     amountToPay: number;
+    profile: string;
     period: { month: number; year: number; };
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export function PayTaxDialog({ taxAccount, amountToPay, period, open, onOpenChange }: PayTaxDialogProps) {
+export function PayTaxDialog({ taxAccount, amountToPay, profile, period, open, onOpenChange }: PayTaxDialogProps) {
     const { toast } = useToast();
     const { addTaxPayment, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +39,7 @@ export function PayTaxDialog({ taxAccount, amountToPay, period, open, onOpenChan
                 month: period.month,
                 year: period.year,
                 sourceAccountId: taxAccount.id,
+                profile: profile
             });
             toast({
                 title: "¡Impuesto Pagado!",
