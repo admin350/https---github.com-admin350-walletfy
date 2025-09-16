@@ -1051,7 +1051,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deleteReport,
         updateSettings,
     };
-
+    
     return (
         <DataContext.Provider value={contextValue}>
             {children}
