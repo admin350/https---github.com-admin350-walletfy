@@ -68,7 +68,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
         try {
             const selectedAccount = bankAccounts.find(acc => acc.id === values.accountId);
 
-            if (selectedAccount && selectedAccount.accountType === 'Cuenta Vista' && selectedAccount.monthlyLimit) {
+            if (selectedAccount && selectedAccount.accountType === 'Cuenta Vista') {
                 const currentMonth = getMonth(new Date());
                 const currentYear = getYear(new Date());
                 
