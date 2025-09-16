@@ -19,10 +19,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { Transaction } from '@/types';
 
 function CardTransactionsTable({ cardId }: { cardId: string }) {
     const { transactions, formatCurrency } = useData();
-    const cardTransactions = transactions.filter(t => t.cardId === cardId);
+    const cardTransactions = transactions.filter((t: Transaction) => t.cardId === cardId);
 
     return (
         <Table>
@@ -139,7 +140,7 @@ export default function BankCardDetailPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <CardTransactionsTable cardId={card.id} />
+                    <CardTransactionsTable cardId={card.id as string} />
                 </CardContent>
             </Card>
 

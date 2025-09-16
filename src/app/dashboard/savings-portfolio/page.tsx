@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalContributionsTable } from "@/components/goals/goal-contributions-table";
+import type { GoalContribution } from "@/types";
 
 
 export default function SavingsPortfolioPage() {
@@ -17,7 +18,7 @@ export default function SavingsPortfolioPage() {
     
     const totalSavings = savingsAccount?.balance ?? 0;
 
-    const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+    const totalContributedToGoals = goalContributions.reduce((acc: number, c: GoalContribution) => acc + c.amount, 0);
 
     const availableSavings = totalSavings - totalContributedToGoals;
 

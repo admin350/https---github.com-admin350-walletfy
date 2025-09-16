@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 function AccountTransactionsTable({ accountId }: { accountId: string }) {
     const { transactions, formatCurrency } = useData();
     // Exclude transactions that are from the credit line but associated with this account
-    const accountTransactions = transactions.filter(t => 
+    const accountTransactions = transactions.filter((t: Transaction) => 
         (t.accountId === accountId && !t.isCreditLinePayment) || 
         (t.type === 'transfer' && t.destinationAccountId === accountId)
     );
@@ -72,7 +72,7 @@ function AccountTransactionsTable({ accountId }: { accountId: string }) {
 
 function CreditLineTransactionsTable({ accountId }: { accountId: string }) {
     const { transactions, formatCurrency } = useData();
-    const creditLineTransactions = transactions.filter(t => t.isCreditLinePayment && t.accountId === accountId);
+    const creditLineTransactions = transactions.filter((t: Transaction) => t.isCreditLinePayment && t.accountId === accountId);
 
     return (
         <Table>
@@ -207,4 +207,3 @@ export default function BankAccountDetailPage() {
         </div>
     )
 }
-

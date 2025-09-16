@@ -11,6 +11,7 @@ import { isPast, isThisMonth, isFuture, startOfToday, format } from "date-fns";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { es } from "date-fns/locale";
+import type { Subscription, Transaction } from "@/types";
 
 export default function SubscriptionsPage() {
     const { subscriptions, transactions, isLoading, formatCurrency } = useData();
@@ -29,11 +30,11 @@ export default function SubscriptionsPage() {
     const upcomingSubscriptions = activeSubscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
     
     const totalActiveSubscriptions = activeSubscriptions.length;
-    const totalMonthlyCost = activeSubscriptions.reduce((acc, sub) => acc + sub.amount, 0);
+    const totalMonthlyCost = activeSubscriptions.reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);
 
     const totalExpenses = transactions
-      .filter(t => t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .filter((t: Transaction) => t.type === 'expense')
+      .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
     const expenseParticipation = totalExpenses > 0 ? (totalMonthlyCost / totalExpenses) * 100 : 0;
 

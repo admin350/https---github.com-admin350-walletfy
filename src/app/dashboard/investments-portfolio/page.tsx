@@ -8,6 +8,7 @@ import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 import { InvestmentsPortfolioDataTable } from "@/components/transactions/investments-portfolio-data-table";
+import type { InvestmentContribution } from "@/types";
 
 
 export default function InvestmentsPortfolioPage() {
@@ -17,7 +18,7 @@ export default function InvestmentsPortfolioPage() {
     
     const totalTransferredToInvestment = investmentAccount?.balance ?? 0;
 
-    const totalContributedToAssets = investmentContributions.reduce((acc, c) => acc + c.amount, 0);
+    const totalContributedToAssets = investmentContributions.reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
 
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useData } from '@/context/data-context';
 import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution } from '@/types';
 
 export function FinancialSummary() {
     const { 
@@ -23,24 +24,24 @@ export function FinancialSummary() {
 
     // Calculations now respect filters as they use filtered data from context
     const totalSavings = savingsAccount?.balance ?? 0;
-    const totalContributedToGoals = goalContributions.reduce((acc, c) => acc + c.amount, 0);
+    const totalContributedToGoals = goalContributions.reduce((acc: number, c: GoalContribution) => acc + c.amount, 0);
     const availableSavings = totalSavings - totalContributedToGoals;
 
     const totalTransferredToInvestment = investmentAccount?.balance ?? 0;
-    const totalContributedToAssets = investmentContributions.reduce((acc, c) => acc + c.amount, 0);
+    const totalContributedToAssets = investmentContributions.reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 
-    const remainingDebt = debts.reduce((acc, debt) => acc + (debt.totalAmount - debt.paidAmount), 0);
+    const remainingDebt = debts.reduce((acc: number, debt: Debt) => acc + (debt.totalAmount - debt.paidAmount), 0);
     const totalMonthlySubscriptionCost = subscriptions
-        .filter(s => s.status === 'active')
-        .reduce((acc, sub) => acc + sub.amount, 0);
+        .filter((s: Subscription) => s.status === 'active')
+        .reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);
         
     const taxData = useMemo(() => {
-        const incomeWithTax = transactions.filter(t => t.type === 'income' && t.taxDetails);
-        const expensesWithTax = transactions.filter(t => t.type === 'expense' && t.taxDetails);
+        const incomeWithTax = transactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
+        const expensesWithTax = transactions.filter((t: Transaction) => t.type === 'expense' && t.taxDetails);
 
-        const totalDebit = incomeWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
-        const totalCredit = expensesWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalDebit = incomeWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalCredit = expensesWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         const netTax = totalDebit - totalCredit;
 
         return { totalDebit, totalCredit, netTax };

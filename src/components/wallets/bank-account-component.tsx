@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -38,13 +37,13 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
         const currentYear = getYear(new Date());
 
         return transactions
-            .filter(t => 
+            .filter((t: Transaction) => 
                 ((t.type === 'income' && t.accountId === account.id) ||
                  (t.type === 'transfer' && t.destinationAccountId === account.id)) &&
                  getMonth(new Date(t.date)) === currentMonth &&
                  getYear(new Date(t.date)) === currentYear
             )
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
     }, [transactions, account]);
 
     const handleEdit = () => {

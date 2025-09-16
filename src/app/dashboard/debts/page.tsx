@@ -10,12 +10,13 @@ import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isPast } from "date-fns";
+import type { Debt } from "@/types";
 
 export default function DebtsPage() {
     const { debts, isLoading, formatCurrency } = useData();
 
-    const totalOwed = debts.reduce((acc, debt) => acc + debt.totalAmount, 0);
-    const totalPaid = debts.reduce((acc, debt) => acc + debt.paidAmount, 0);
+    const totalOwed = debts.reduce((acc: number, debt: Debt) => acc + debt.totalAmount, 0);
+    const totalPaid = debts.reduce((acc: number, debt: Debt) => acc + debt.paidAmount, 0);
     const remainingDebt = totalOwed - totalPaid;
     
     const overdueDebts = debts.filter(d => isPast(d.dueDate) && d.paidAmount < d.totalAmount);

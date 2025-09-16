@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { PayTaxDialog } from "@/components/transactions/pay-tax-dialog";
+import type { Transaction, TaxPayment } from "@/types";
 
 export default function TaxesPage() {
     const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts } = useData();
@@ -19,11 +20,11 @@ export default function TaxesPage() {
     const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax'), [bankAccounts]);
 
     const taxData = useMemo(() => {
-        const incomeWithTax = transactions.filter(t => t.type === 'income' && t.taxDetails);
-        const expensesWithTax = transactions.filter(t => t.type === 'expense' && t.taxDetails);
+        const incomeWithTax = transactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
+        const expensesWithTax = transactions.filter((t: Transaction) => t.type === 'expense' && t.taxDetails);
 
-        const totalDebit = incomeWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
-        const totalCredit = expensesWithTax.reduce((sum, t) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalDebit = incomeWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
+        const totalCredit = expensesWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         
         // Remanente Logic
         const currentPeriod = new Date();
@@ -31,7 +32,7 @@ export default function TaxesPage() {
         const prevMonth = getMonth(prevPeriod);
         const prevYear = getYear(prevPeriod);
         
-        const previousPayment = taxPayments.find(p => p.month === prevMonth && p.year === prevYear);
+        const previousPayment = taxPayments.find((p: TaxPayment) => p.month === prevMonth && p.year === prevYear);
         const remanente = previousPayment?.remanente ?? 0;
         
         const adjustedDebit = totalDebit - remanente;
@@ -44,12 +45,12 @@ export default function TaxesPage() {
          const currentPeriod = new Date();
          const currentMonth = getMonth(currentPeriod);
          const currentYear = getYear(currentPeriod);
-         return taxPayments.some(p => p.month === currentMonth && p.year === currentYear);
+         return taxPayments.some((p: TaxPayment) => p.month === currentMonth && p.year === currentYear);
     }, [taxPayments]);
 
     const handleExportCSV = () => {
         const headers = ["Fecha", "Tipo", "Descripción", "Monto Neto", "Monto Impuesto", "Monto Total"];
-        const incomeRows = taxData.incomeWithTax.map(t => [
+        const incomeRows = taxData.incomeWithTax.map((t: Transaction) => [
             format(new Date(t.date), 'dd/MM/yyyy'),
             "Débito Fiscal",
             t.description,
@@ -57,7 +58,7 @@ export default function TaxesPage() {
             t.taxDetails?.amount || 0,
             t.amount
         ]);
-        const expenseRows = taxData.expensesWithTax.map(t => [
+        const expenseRows = taxData.expensesWithTax.map((t: Transaction) => [
             format(new Date(t.date), 'dd/MM/yyyy'),
             "Crédito Fiscal",
             t.description,
@@ -218,7 +219,7 @@ export default function TaxesPage() {
                             </TableHeader>
                             <TableBody>
                                 {taxData.incomeWithTax.length > 0 ? (
-                                    taxData.incomeWithTax.map(t => {
+                                    taxData.incomeWithTax.map((t: Transaction) => {
                                         const netAmount = t.amount - (t.taxDetails?.amount || 0);
                                         return (
                                             <TableRow key={t.id}>
@@ -256,7 +257,7 @@ export default function TaxesPage() {
                             </TableHeader>
                             <TableBody>
                                  {taxData.expensesWithTax.length > 0 ? (
-                                    taxData.expensesWithTax.map(t => {
+                                    taxData.expensesWithTax.map((t: Transaction) => {
                                         const netAmount = t.amount - (t.taxDetails?.amount || 0);
                                         return (
                                             <TableRow key={t.id}>

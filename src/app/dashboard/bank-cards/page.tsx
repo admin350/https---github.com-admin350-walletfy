@@ -8,13 +8,14 @@ import { useData } from "@/context/data-context";
 import { BankCardComponent } from "@/components/wallets/bank-card-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/dashboard/kpi-card";
+import type { BankCard } from "@/types";
 
 export default function BankCardsPage() {
     const { bankCards, isLoading, formatCurrency } = useData();
 
     const creditCards = bankCards.filter(c => c.cardType === 'credit');
-    const totalCreditLimit = creditCards.reduce((acc, card) => acc + (card.creditLimit || 0), 0);
-    const totalUsedAmount = creditCards.reduce((acc, card) => acc + (card.usedAmount || 0), 0);
+    const totalCreditLimit = creditCards.reduce((acc: number, card: BankCard) => acc + (card.creditLimit || 0), 0);
+    const totalUsedAmount = creditCards.reduce((acc: number, card: BankCard) => acc + (card.usedAmount || 0), 0);
     const totalAvailableCredit = totalCreditLimit - totalUsedAmount;
     
     const KpiSkeleton = () => (

@@ -9,19 +9,20 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { SavingsGoal } from "@/types";
 
 export default function GoalsPage() {
     const { goals, isLoading, formatCurrency } = useData();
     
     const totalGoals = goals.length;
-    const totalTargetAmount = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+    const totalTargetAmount = goals.reduce((acc: number, goal: SavingsGoal) => acc + goal.targetAmount, 0);
 
     const completedGoals = goals.filter(goal => goal.currentAmount >= goal.targetAmount);
     const activeGoals = goals.filter(goal => goal.currentAmount < goal.targetAmount);
     const completedGoalsCount = completedGoals.length;
-    const completedGoalsAmount = completedGoals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+    const completedGoalsAmount = completedGoals.reduce((acc: number, goal: SavingsGoal) => acc + goal.targetAmount, 0);
 
-    const remainingAmount = goals.reduce((acc, goal) => {
+    const remainingAmount = goals.reduce((acc: number, goal: SavingsGoal) => {
         const remaining = goal.targetAmount - goal.currentAmount;
         return acc + (remaining > 0 ? remaining : 0);
     }, 0);

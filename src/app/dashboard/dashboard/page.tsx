@@ -22,6 +22,7 @@ import { GoalsSummaryChart } from "@/components/dashboard/goals-summary-chart";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
+import type { Transaction } from "@/types";
 
 
 export default function DashboardPage() {
@@ -33,12 +34,12 @@ export default function DashboardPage() {
   }, []);
 
   const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .filter((t: Transaction) => t.type === 'income')
+    .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
     
   const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .filter((t: Transaction) => t.type === 'expense')
+    .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
   const netBalance = totalIncome - totalExpenses;
 

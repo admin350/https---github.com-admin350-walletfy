@@ -11,13 +11,14 @@ import { BankAccountComponent } from "@/components/wallets/bank-account-componen
 import { AddDepositDialog } from "@/components/wallets/add-deposit-dialog";
 import { AddWithdrawalDialog } from "@/components/wallets/add-withdrawal-dialog";
 import { AddTransferDialog } from "@/components/wallets/add-transfer-dialog";
+import type { BankAccount } from "@/types";
 
 export default function BankAccountsPage() {
     const { bankAccounts, isLoading, formatCurrency } = useData();
     
-    const totalBalance = bankAccounts.reduce((acc, account) => acc + account.balance, 0);
-    const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc, a) => acc + a.balance, 0);
-    const businessBalance = bankAccounts.filter(a => a.profile === 'Negocio').reduce((acc, a) => acc + a.balance, 0);
+    const totalBalance = bankAccounts.reduce((acc: number, account: BankAccount) => acc + account.balance, 0);
+    const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
+    const businessBalance = bankAccounts.filter(a => a.profile === 'Negocio').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
     
     const KpiSkeleton = () => (
       <div className="space-y-2">

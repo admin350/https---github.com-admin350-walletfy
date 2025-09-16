@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AddInvestmentDialog } from "@/components/investments/add-investment-dialog";
 import { InvestmentsWidget } from "@/components/investments/investments-widget";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
+import type { Investment } from "@/types";
 
 export default function InvestmentsPage() {
     const { investments, isLoading, formatCurrency } = useData();
     
-    const totalInvested = investments.reduce((acc, investment) => acc + investment.initialAmount, 0);
-    const totalCurrentValue = investments.reduce((acc, investment) => acc + investment.currentValue, 0);
+    const totalInvested = investments.reduce((acc: number, investment: Investment) => acc + investment.initialAmount, 0);
+    const totalCurrentValue = investments.reduce((acc: number, investment: Investment) => acc + investment.currentValue, 0);
     const totalProfit = totalCurrentValue - totalInvested;
     const profitPercentage = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
     
