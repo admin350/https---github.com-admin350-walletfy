@@ -93,7 +93,7 @@ interface DataContextType {
 
     // CRUD Functions
     addTransaction: (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => Promise<void>;
-    updateTransaction: (transaction: Transaction) => Promise<void>;
+    updateTransaction: (transaction: Omit<Transaction, 'date'> & { date: Date }) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     
     addBankAccount: (account: Omit<BankAccount, 'id' | 'balance' | 'creditLineUsed'> & {balance?: number}) => Promise<void>;
@@ -105,7 +105,7 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date}) => Promise<void>;
-    updateDebt: (debt: Debt) => Promise<void>;
+    updateDebt: (debt: Omit<Debt, 'dueDate'> & {dueDate: Date}) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -120,7 +120,7 @@ interface DataContextType {
     deleteFixedExpense: (id: string) => Promise<void>;
 
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date}) => Promise<void>;
-    updateGoal: (goal: SavingsGoal) => Promise<void>;
+    updateGoal: (goal: Omit<SavingsGoal, 'estimatedDate'> & { estimatedDate: Date }) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -536,15 +536,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const date = transaction.date.toISOString();
-
         const finalTransaction = {
             ...transaction,
-            date
+            date: transaction.date.toISOString()
         };
         
         const newDoc = await addDocToCollection('transactions', finalTransaction);
-        setAllTransactions(prev => [...prev, newDoc]);
+        setAllTransactions(prev => [...prev, { ...newDoc, date: newDoc.date.toString() }]);
+
 
         const batch = writeBatch(db);
 
@@ -602,11 +601,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    // updateTransaction and deleteTransaction would need to handle balance rollbacks, which is complex.
-    // For now, we'll just update/delete the transaction document.
-    const updateTransaction = async (transaction: Transaction) => {
-        await updateDocInCollection('transactions', transaction.id, transaction);
-        setAllTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
+    const updateTransaction = async (transaction: Omit<Transaction, 'date'> & { date: Date }) => {
+        const transactionToSave = {
+            ...transaction,
+            date: transaction.date.toISOString(),
+        };
+        await updateDocInCollection('transactions', transaction.id, transactionToSave);
+        setAllTransactions(prev => prev.map(t => t.id === transaction.id ? transactionToSave : t));
     };
 
     const deleteTransaction = async (id: string) => {
@@ -665,9 +666,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const addDebt = async (debt: Omit<Debt, 'id'|'paidAmount' | 'dueDate'> & {dueDate: Date}) => {
-        const newDebt = {...debt, paidAmount: 0};
-        const docToAdd = { ...newDebt, dueDate: Timestamp.fromDate(newDebt.dueDate) };
-        await crudOperations('debts', setDebts).add(docToAdd);
+        const newDebt = {...debt, paidAmount: 0, dueDate: Timestamp.fromDate(debt.dueDate)};
+        await crudOperations('debts', setDebts).add(newDebt);
+    };
+
+    const updateDebt = async (debt: Omit<Debt, 'dueDate'> & {dueDate: Date}) => {
+        const debtToSave = {
+            ...debt,
+            dueDate: Timestamp.fromDate(debt.dueDate)
+        };
+        await updateDocInCollection('debts', debt.id, debtToSave);
+        setDebts(prev => prev.map(d => d.id === debt.id ? { ...debtToSave, dueDate: debt.dueDate } as Debt : d));
     };
     
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
@@ -676,7 +685,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         // 1. Add debt payment record
         const paymentRef = doc(collection(db, `users/${uid}/debtPayments`));
-        batch.set(paymentRef, payment);
+        batch.set(paymentRef, { ...payment, date: Timestamp.fromDate(payment.date) });
         
         // 2. Add corresponding expense transaction
         const transactionRef = doc(collection(db, `users/${uid}/transactions`));
@@ -834,9 +843,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const cancelSubscription = async (id: string) => {
-        const subData = { status: 'cancelled' as const, cancellationDate: new Date() };
+        const subData = { status: 'cancelled' as const, cancellationDate: Timestamp.fromDate(new Date()) };
         await updateDocInCollection('subscriptions', id, subData);
-        setSubscriptions(prev => prev.map(s => s.id === id ? {...s, ...subData} : s));
+        setSubscriptions(prev => prev.map(s => s.id === id ? {...s, status: 'cancelled', cancellationDate: new Date()} : s));
     };
 
     const deleteSubscription = async (id: string) => {
@@ -903,6 +912,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('goals', setGoals).add(newGoal);
     };
 
+    const updateGoal = async (goal: Omit<SavingsGoal, 'estimatedDate'> & { estimatedDate: Date }) => {
+        const goalToSave = {
+            ...goal,
+            estimatedDate: Timestamp.fromDate(goal.estimatedDate)
+        };
+        await updateDocInCollection('goals', goal.id, goalToSave);
+        setGoals(prev => prev.map(g => g.id === goal.id ? { ...goalToSave, estimatedDate: goal.estimatedDate } as SavingsGoal : g));
+    };
+
 
     // #endregion
 
@@ -946,7 +964,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateBankCard: crudOperations('bankCards', setBankCards).update,
         deleteBankCard,
         addDebt,
-        updateDebt: crudOperations('debts', setDebts).update,
+        updateDebt,
         deleteDebt: crudOperations('debts', setDebts).delete,
         addDebtPayment,
         addSubscription,
@@ -958,7 +976,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateFixedExpense: fixedExpensesCrud.update,
         deleteFixedExpense: fixedExpensesCrud.delete,
         addGoal,
-        updateGoal: goalsCrud.update,
+        updateGoal,
         deleteGoal: goalsCrud.delete,
         addGoalContribution,
         addInvestment: investmentsCrud.add,

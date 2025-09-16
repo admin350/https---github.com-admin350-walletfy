@@ -25,7 +25,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, addMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
@@ -43,6 +43,7 @@ const formSchema = z.object({
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
   cardId: z.string().optional(),
   dueNotificationDays: z.coerce.number().optional(),
+  sourceTransactionId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -84,11 +85,11 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         setIsLoading(true);
         try {
             if (debtToEdit) {
-                const debtToUpdate = { 
+                 const debtToUpdate = { 
                     ...debtToEdit, 
                     ...values,
-                    dueDate: values.date,
-                };
+                    dueDate: values.dueDate,
+                 };
                 await updateDebt(debtToUpdate);
                 toast({
                     title: "Deuda actualizada",
@@ -96,16 +97,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                 });
             } else {
                  await addDebt({
-                    name: values.name,
-                    totalAmount: values.totalAmount,
-                    monthlyPayment: values.monthlyPayment,
-                    installments: values.installments,
-                    dueDate: values.dueDate,
-                    debtType: values.debtType,
-                    profile: values.profile,
-                    accountId: values.accountId,
-                    cardId: values.cardId,
-                    dueNotificationDays: values.dueNotificationDays,
+                    ...values,
                  });
                 toast({
                     title: "Deuda añadida",

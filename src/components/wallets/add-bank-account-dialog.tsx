@@ -1,5 +1,3 @@
-
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -312,7 +310,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     <FormItem>
                                         <FormLabel>Saldo Inicial</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="1000000" {...field} value={field.value ?? ''} />
+                                            <Input type="number" placeholder="1000000" {...field} value={field.value ?? ''} disabled={!!accountToEdit} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
