@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -38,7 +39,7 @@ import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
-import type { Transaction } from '@/types';
+import type { Transaction, Debt } from '@/types';
 import { Checkbox } from '../ui/checkbox';
 import { useSubmitAction } from '@/hooks/use-submit-action';
 
@@ -85,6 +86,8 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type FormDebt = Omit<Debt, 'id' | 'paidAmount'>;
+
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
@@ -129,7 +132,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 const card = bankCards.find(c => c.id === values.paymentMethod);
                 if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
 
-                const newDebtPayload = {
+                const newDebt: Omit<Debt, 'id' | 'paidAmount'> = {
                     name: `Compra en cuotas: ${values.description}`,
                     totalAmount: values.amount,
                     monthlyPayment: values.amount / (values.installments || 1),
@@ -141,7 +144,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                     dueDate: addMonths(values.date, 1),
                 };
 
-                await addDebt(newDebtPayload);
+                await addDebt(newDebt);
                 
                 toast({
                     title: "Deuda por Cuotas Creada",

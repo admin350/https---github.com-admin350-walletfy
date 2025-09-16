@@ -117,7 +117,6 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             if (debtToEdit) {
                 form.reset({
                     ...debtToEdit,
-                    dueDate: new Date(debtToEdit.dueDate),
                     dueNotificationDays: debtToEdit.dueNotificationDays ?? 3,
                 });
             } else {

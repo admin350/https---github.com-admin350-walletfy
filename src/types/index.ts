@@ -7,7 +7,7 @@ export type Transaction = {
   description: string;
   category: string;
   profile: string;
-  date: Date; // ISO 8601 format
+  date: Date;
   accountId: string; // source account
   destinationAccountId?: string; // destination account for transfers
   cardId?: string; // Optional: link to a BankCard for expenses
@@ -208,5 +208,3 @@ export type Service = {
   profile: string;
   paymentUrl: string;
 };
-
-    

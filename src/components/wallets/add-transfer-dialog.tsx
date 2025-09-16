@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -108,7 +109,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
                 description: values.description,
                 category: transferCategory?.name || 'Transferencia',
                 profile: sourceProfile,
-                date: values.date.toISOString(),
+                date: values.date,
                 accountId: values.sourceAccountId,
                 destinationAccountId: values.destinationAccountId,
             });
