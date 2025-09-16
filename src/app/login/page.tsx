@@ -200,7 +200,7 @@ export default function LoginPage() {
                     </div>
 
                     {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                    <Button type="submit" className="w-full bg-green-400 text-black hover:bg-green-500" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-red-500 text-white hover:bg-red-600" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Iniciar Sesión
                     </Button>
