@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Pie, PieChart, Cell, Tooltip } from "recharts"
@@ -16,6 +17,7 @@ import { useMemo } from "react"
 import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 import { subMonths, getMonth, getYear } from "date-fns"
+import type { Transaction } from "@/types";
 
 const COLORS = {
   transfer: "hsl(var(--chart-5))",
@@ -36,14 +38,14 @@ export function PreviousMonthExpenseChart() {
     const { transactions: prevMonthTransactions } = getAllDataForMonth(prevMonth, prevMonthYear);
 
     const totalIncome = prevMonthTransactions
-        .filter(t => t.type === 'income')
+        .filter((t: Transaction) => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
 
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
     const expenseData = expenseCategories.map((category) => {
         const total = prevMonthTransactions
-            .filter(t => t.type === 'expense' && t.category === category.name)
+            .filter((t: Transaction) => t.type === 'expense' && t.category === category.name)
             .reduce((sum, t) => sum + t.amount, 0);
         
         if (total > 0) {
@@ -53,7 +55,7 @@ export function PreviousMonthExpenseChart() {
     }).filter(d => d !== null) as { name: string; value: number; fill: string }[];
 
     const transferTotal = prevMonthTransactions
-        .filter(t => t.type === 'transfer')
+        .filter((t: Transaction) => t.type === 'transfer')
         .reduce((sum, t) => sum + t.amount, 0);
         
     const data = [...expenseData];
