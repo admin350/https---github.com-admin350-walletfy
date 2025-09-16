@@ -1,5 +1,6 @@
+
 'use client';
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,11 +26,12 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, getMonth, getYear } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
+import { Transaction } from '@/types';
 
 
 const formSchema = z.object({
@@ -72,20 +74,19 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 throw new Error("Saldo insuficiente");
             }
             
-            const account = bankAccounts.find(acc => acc.id === values.accountId);
-             if (!account) {
+             if (!selectedAccount) {
                 throw new Error("Cuenta no encontrada.");
             }
             
              await addTransaction({
                 ...values,
                 type: 'expense',
-                profile: account.profile,
+                profile: selectedAccount.profile,
             });
 
             toast({
                 title: "Retiro Registrado",
-                description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${account?.name}.`,
+                description: `Se ha registrado un egreso de ${formatCurrency(values.amount)} de la cuenta ${selectedAccount?.name}.`,
             });
             setOpen(false);
         } catch (error) {
