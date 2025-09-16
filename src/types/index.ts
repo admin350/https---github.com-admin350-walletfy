@@ -98,6 +98,10 @@ export type DebtPayment = {
     amount: number;
     date: Date;
     accountId: string;
+    taxDetails?: {
+        rate: number;
+        amount: number;
+    };
 }
 
 export type Subscription = {
@@ -114,6 +118,10 @@ export type Subscription = {
   paymentDetails?: { // Optional details for overriding payment method
     accountId?: string;
     cardId?: string;
+    taxDetails?: {
+        rate: number;
+        amount: number;
+    };
   };
   paidThisPeriod?: boolean;
 };

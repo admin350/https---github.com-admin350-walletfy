@@ -128,7 +128,7 @@ interface DataContextType {
     
     addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
     updateSubscription: (subscription: Partial<Subscription> & { id: string }) => Promise<void>;
-    paySubscription: (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string }) => Promise<void>;
+    paySubscription: (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string; taxDetails?: any }) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
 
@@ -746,6 +746,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: accountProfile,
             date: payment.date,
             accountId: payment.accountId,
+            taxDetails: payment.taxDetails
         };
         await addTransaction(transactionToSave);
         
@@ -821,7 +822,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSubscriptions(prev => prev.map(s => s.id === subscription.id ? { ...s, ...subscription } : s));
     };
 
-    const paySubscription = async (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string }) => {
+    const paySubscription = async (subscription: Subscription, paymentDetails?: { accountId?: string; cardId?: string; taxDetails?: any }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
         const accountId = paymentDetails?.accountId || bankCards.find(c => c.id === subscription.cardId)?.accountId;
@@ -841,6 +842,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             date: new Date(),
             accountId: accountId,
             cardId: cardId,
+            taxDetails: paymentDetails?.taxDetails,
         };
         await addTransaction(transactionData); 
 
