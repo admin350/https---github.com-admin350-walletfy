@@ -6,43 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 import { useData } from "@/context/data-context";
-import { generateFinancialSummary } from "@/ai/flows/generate-financial-summary";
 import { useToast } from "@/hooks/use-toast";
 
 export function FinancialAnalysisIA() {
     const [question, setQuestion] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [analysis, setAnalysis] = useState("");
-    const { transactions, goals, debts, subscriptions, fixedExpenses } = useData();
     const { toast } = useToast();
 
     const handleAsk = async () => {
         if (!question.trim()) return;
         setIsLoading(true);
         setAnalysis("");
-        try {
-            const financialData = `
-                Transacciones: ${JSON.stringify(transactions, null, 2)}
-                Metas de Ahorro: ${JSON.stringify(goals, null, 2)}
-                Deudas: ${JSON.stringify(debts, null, 2)}
-                Suscripciones: ${JSON.stringify(subscriptions, null, 2)}
-                Gastos Fijos: ${JSON.stringify(fixedExpenses, null, 2)}
-            `;
-            const result = await generateFinancialSummary({
-                financialData,
-                question
-            });
-            setAnalysis(result);
-        } catch (error) {
-            console.error("Error generating financial summary:", error);
-            toast({
-                title: "Error",
-                description: "No se pudo generar el análisis. Inténtalo de nuevo.",
-                variant: "destructive"
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        toast({
+            title: "Función no disponible",
+            description: "Las funciones de IA se han deshabilitado temporalmente para resolver problemas de dependencias.",
+            variant: "destructive"
+        });
+        setIsLoading(false);
     };
 
     return (
@@ -64,8 +45,9 @@ export function FinancialAnalysisIA() {
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+                            disabled
                         />
-                        <Button onClick={handleAsk} disabled={isLoading}>
+                        <Button onClick={handleAsk} disabled={isLoading || true}>
                             {isLoading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
@@ -73,11 +55,6 @@ export function FinancialAnalysisIA() {
                             )}
                         </Button>
                     </div>
-                    {isLoading && (
-                         <div className="text-sm text-muted-foreground p-4 border rounded-md">
-                            Analizando tus datos...
-                         </div>
-                    )}
                     {analysis && (
                         <div className="prose prose-invert max-w-none text-sm p-4 border rounded-md whitespace-pre-wrap">
                             {analysis}
