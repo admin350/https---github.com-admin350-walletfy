@@ -81,7 +81,6 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
                 ...values,
                 type: 'expense',
                 profile: account.profile,
-                includesTax: false,
             });
 
             toast({

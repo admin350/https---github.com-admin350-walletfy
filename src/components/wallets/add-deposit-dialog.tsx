@@ -94,7 +94,6 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                 ...values,
                 type: 'income',
                 profile: selectedAccount.profile,
-                includesTax: false,
             });
 
             toast({

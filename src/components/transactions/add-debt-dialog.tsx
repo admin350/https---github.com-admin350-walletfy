@@ -25,7 +25,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
@@ -41,6 +41,7 @@ const formSchema = z.object({
   debtType: z.enum(['consumo', 'hipotecario', 'auto', 'line-of-credit', 'credit-card', 'otro'], { required_error: "El tipo de deuda es requerido." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
   accountId: z.string().min(1, { message: "La cuenta de origen es requerida." }),
+  cardId: z.string().optional(),
   dueNotificationDays: z.coerce.number().optional(),
 });
 
@@ -74,6 +75,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             debtType: 'consumo',
             profile: "",
             accountId: "",
+            cardId: undefined,
             dueNotificationDays: 3,
         },
     });
@@ -82,14 +84,29 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         setIsLoading(true);
         try {
             if (debtToEdit) {
-                const debtToUpdate = { ...debtToEdit, ...values };
+                const debtToUpdate = { 
+                    ...debtToEdit, 
+                    ...values,
+                    dueDate: values.date,
+                };
                 await updateDebt(debtToUpdate);
                 toast({
                     title: "Deuda actualizada",
                     description: `La deuda ha sido actualizada exitosamente.`,
                 });
             } else {
-                await addDebt(values);
+                 await addDebt({
+                    name: values.name,
+                    totalAmount: values.totalAmount,
+                    monthlyPayment: values.monthlyPayment,
+                    installments: values.installments,
+                    dueDate: values.dueDate,
+                    debtType: values.debtType,
+                    profile: values.profile,
+                    accountId: values.accountId,
+                    cardId: values.cardId,
+                    dueNotificationDays: values.dueNotificationDays,
+                 });
                 toast({
                     title: "Deuda añadida",
                     description: `La deuda ha sido creada exitosamente.`,
@@ -126,6 +143,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                     debtType: 'consumo',
                     profile: "",
                     accountId: "",
+                    cardId: undefined,
                     dueNotificationDays: 3,
                 });
             }
