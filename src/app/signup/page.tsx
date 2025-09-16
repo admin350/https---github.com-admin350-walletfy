@@ -13,13 +13,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { motion } from "framer-motion";
+import { DataProvider } from "@/context/data-context";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
 });
 
-export default function SignupPage() {
+function SignupPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useData();
@@ -119,4 +120,13 @@ export default function SignupPage() {
       </motion.div>
     </div>
   );
+}
+
+
+export default function SignupPage() {
+    return (
+        <DataProvider>
+            <SignupPageContent />
+        </DataProvider>
+    )
 }

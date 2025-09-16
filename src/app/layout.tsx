@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { DataProvider } from '@/context/data-context';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -32,10 +31,8 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <DataProvider>
           {children}
           <Toaster />
-        </DataProvider>
       </body>
     </html>
   );

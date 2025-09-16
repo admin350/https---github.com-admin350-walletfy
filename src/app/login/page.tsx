@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
+import { DataProvider } from "@/context/data-context";
+
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
@@ -25,7 +28,8 @@ const resetSchema = z.object({
     email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
 });
 
-export default function LoginPage() {
+
+function LoginPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -230,4 +234,12 @@ export default function LoginPage() {
       </motion.div>
     </div>
   );
+}
+
+export default function LoginPage() {
+    return (
+        <DataProvider>
+            <LoginPageContent />
+        </DataProvider>
+    )
 }

@@ -1,7 +1,7 @@
 'use client';
 import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
-import { useData } from "@/context/data-context";
+import { DataProvider, useData } from "@/context/data-context";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { redirect } from "next/navigation";
@@ -20,6 +20,10 @@ const AppContent = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     document.body.className = cn("font-body antialiased", backgroundClass);
+     return () => {
+      // Cleanup effect when leaving the dashboard
+      document.body.className = "font-body antialiased";
+    };
   }, [backgroundClass]);
 
   if (isLoading || !user) {
@@ -44,6 +48,8 @@ const AppContent = ({ children }: { children: ReactNode }) => {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-      <AppContent>{children}</AppContent>
+      <DataProvider>
+        <AppContent>{children}</AppContent>
+      </DataProvider>
   );
 }
