@@ -28,8 +28,8 @@ export default function RootLayout({
       </head>
       <DataProvider>
         <AppBody>
-            {children}
             <Toaster />
+            {children}
         </AppBody>
       </DataProvider>
     </html>
