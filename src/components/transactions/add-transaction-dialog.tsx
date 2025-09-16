@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -38,7 +39,7 @@ import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
-import type { Transaction } from '@/types';
+import type { Debt, Transaction } from '@/types';
 import { Checkbox } from '../ui/checkbox';
 
 
@@ -127,11 +128,10 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         setIsLoading(true);
         try {
             if (values.isInstallment) {
-                // Create a Debt instead of a Transaction
                 const card = bankCards.find(c => c.id === values.paymentMethod);
                 if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
 
-                const newDebt: Omit<Transaction, 'id'> & { dueDate: Date } = {
+                const newDebt: Omit<Debt, 'id' | 'paidAmount'> = {
                     name: `Compra en cuotas: ${values.description}`,
                     totalAmount: values.amount,
                     monthlyPayment: values.amount / (values.installments || 1),
@@ -151,7 +151,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 });
 
             } else if (transactionToEdit?.id) {
-                // Logic to update an existing transaction
                 const transactionToUpdate: Transaction = {
                     ...(transactionToEdit as Transaction),
                     ...values,
@@ -163,7 +162,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                     description: `La transacción ha sido actualizada exitosamente.`,
                 });
             } else {
-                // Logic to add a new single transaction
                 await addTransaction(values);
                 toast({
                     title: "Transacción añadida",
@@ -197,12 +195,12 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 destinationAccountId: transactionToEdit?.destinationAccountId || undefined,
                 paymentMethod: transactionToEdit?.cardId || 'account-balance',
                 date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
-                isInstallment: false, // Always start with false for installments
-                installments: undefined,
+                isInstallment: false, // Default to false
+                installments: undefined, // Default to undefined
                 includesTax: hasTax,
                 taxRate: transactionToEdit?.taxDetails?.rate || 19,
             };
-
+    
             form.reset(initialValues as FormValues);
         } else {
             form.reset({
@@ -582,3 +580,4 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 }
 
     
+
