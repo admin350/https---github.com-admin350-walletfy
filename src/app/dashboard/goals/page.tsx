@@ -17,8 +17,8 @@ export default function GoalsPage() {
     const totalGoals = goals.length;
     const totalTargetAmount = goals.reduce((acc: number, goal: SavingsGoal) => acc + goal.targetAmount, 0);
 
-    const completedGoals = goals.filter(goal => goal.currentAmount >= goal.targetAmount);
-    const activeGoals = goals.filter(goal => goal.currentAmount < goal.targetAmount);
+    const completedGoals = goals.filter((goal: SavingsGoal) => goal.currentAmount >= goal.targetAmount);
+    const activeGoals = goals.filter((goal: SavingsGoal) => goal.currentAmount < goal.targetAmount);
     const completedGoalsCount = completedGoals.length;
     const completedGoalsAmount = completedGoals.reduce((acc: number, goal: SavingsGoal) => acc + goal.targetAmount, 0);
 

@@ -13,7 +13,7 @@ import type { BankCard } from "@/types";
 export default function BankCardsPage() {
     const { bankCards, isLoading, formatCurrency } = useData();
 
-    const creditCards = bankCards.filter(c => c.cardType === 'credit');
+    const creditCards = bankCards.filter((c: BankCard) => c.cardType === 'credit');
     const totalCreditLimit = creditCards.reduce((acc: number, card: BankCard) => acc + (card.creditLimit || 0), 0);
     const totalUsedAmount = creditCards.reduce((acc: number, card: BankCard) => acc + (card.usedAmount || 0), 0);
     const totalAvailableCredit = totalCreditLimit - totalUsedAmount;

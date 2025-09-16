@@ -37,7 +37,7 @@ function CardTransactionsTable({ cardId }: { cardId: string }) {
             </TableHeader>
             <TableBody>
                 {cardTransactions.length > 0 ? (
-                    cardTransactions.map(t => (
+                    cardTransactions.map((t: Transaction) => (
                         <TableRow key={t.id}>
                             <TableCell>{format(new Date(t.date), 'dd/MM/yy')}</TableCell>
                             <TableCell>{t.description}</TableCell>

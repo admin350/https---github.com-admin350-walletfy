@@ -17,17 +17,17 @@ export default function SubscriptionsPage() {
     const { subscriptions, transactions, isLoading, formatCurrency } = useData();
     const today = startOfToday();
 
-    const activeSubscriptions = subscriptions.filter(s => s.status === 'active');
-    const cancelledSubscriptions = subscriptions.filter(s => s.status === 'cancelled');
+    const activeSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'active');
+    const cancelledSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'cancelled');
 
     // Vencidas: Fecha es anterior al día de hoy y no es de este mes.
-    const overdueSubscriptions = activeSubscriptions.filter(s => isPast(s.dueDate) && !isThisMonth(s.dueDate));
+    const overdueSubscriptions = activeSubscriptions.filter((s: Subscription) => isPast(s.dueDate) && !isThisMonth(s.dueDate));
 
     // Este Mes: Fecha está en el mes actual.
-    const thisMonthSubscriptions = activeSubscriptions.filter(s => isThisMonth(s.dueDate));
+    const thisMonthSubscriptions = activeSubscriptions.filter((s: Subscription) => isThisMonth(s.dueDate));
 
     // Próximas: Fecha es futura y no es de este mes.
-    const upcomingSubscriptions = activeSubscriptions.filter(s => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
+    const upcomingSubscriptions = activeSubscriptions.filter((s: Subscription) => isFuture(s.dueDate) && !isThisMonth(s.dueDate));
     
     const totalActiveSubscriptions = activeSubscriptions.length;
     const totalMonthlyCost = activeSubscriptions.reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);

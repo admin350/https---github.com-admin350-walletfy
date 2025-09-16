@@ -17,8 +17,8 @@ export default function BankAccountsPage() {
     const { bankAccounts, isLoading, formatCurrency } = useData();
     
     const totalBalance = bankAccounts.reduce((acc: number, account: BankAccount) => acc + account.balance, 0);
-    const personalBalance = bankAccounts.filter(a => a.profile === 'Personal').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
-    const businessBalance = bankAccounts.filter(a => a.profile === 'Negocio').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
+    const personalBalance = bankAccounts.filter((a: BankAccount) => a.profile === 'Personal').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
+    const businessBalance = bankAccounts.filter((a: BankAccount) => a.profile === 'Negocio').reduce((acc: number, a: BankAccount) => acc + a.balance, 0);
     
     const KpiSkeleton = () => (
       <div className="space-y-2">

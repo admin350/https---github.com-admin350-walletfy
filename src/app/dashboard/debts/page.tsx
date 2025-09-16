@@ -19,9 +19,9 @@ export default function DebtsPage() {
     const totalPaid = debts.reduce((acc: number, debt: Debt) => acc + debt.paidAmount, 0);
     const remainingDebt = totalOwed - totalPaid;
     
-    const overdueDebts = debts.filter(d => isPast(d.dueDate) && d.paidAmount < d.totalAmount);
-    const activeDebts = debts.filter(d => d.paidAmount < d.totalAmount && !overdueDebts.some(od => od.id === d.id));
-    const paidDebts = debts.filter(d => d.paidAmount >= d.totalAmount);
+    const overdueDebts = debts.filter((d: Debt) => isPast(d.dueDate) && d.paidAmount < d.totalAmount);
+    const activeDebts = debts.filter((d: Debt) => d.paidAmount < d.totalAmount && !overdueDebts.some(od => od.id === d.id));
+    const paidDebts = debts.filter((d: Debt) => d.paidAmount >= d.totalAmount);
 
     const KpiSkeleton = () => (
         <div className="space-y-2">
