@@ -1,5 +1,3 @@
-
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -72,6 +70,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
     const sourceAccountId = form.watch("sourceAccountId");
     const sourceAccount = bankAccounts.find(acc => acc.id === sourceAccountId);
 
+    // This dynamic schema check is great, but we still need to handle the initial submission logic carefully.
     const dynamicSchema = formSchema.refine(data => {
         if (sourceAccount && data.amount > sourceAccount.balance) {
             return false;
@@ -85,8 +84,10 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
     const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
         try {
+            // Re-validate with the most current data right before submitting
             const validationResult = dynamicSchema.safeParse(values);
             if (!validationResult.success) {
+                // Find the specific error and set it on the form
                 const amountError = validationResult.error.errors.find(e => e.path.includes('amount'));
                 if (amountError) {
                     form.setError("amount", { type: "manual", message: amountError.message });
@@ -119,6 +120,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
             });
             setOpen(false);
         } catch (error) {
+            // Only show a generic toast if the form itself doesn't have a more specific error
             if (!form.formState.errors.amount && !form.formState.errors.destinationAccountId) {
                  const err = error instanceof Error ? error : new Error('An unknown error occurred');
                  toast({
