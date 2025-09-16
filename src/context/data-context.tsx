@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -56,9 +57,20 @@ type DataFilters = {
 };
 
 type FormTransaction = Omit<Transaction, 'id'>;
-type FormDebt = Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date};
-type FormGoal = Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date};
-type FormSubscription = Omit<Subscription, 'id' | 'status' | 'dueDate'> & {dueDate: Date};
+type FormDebt = Omit<Debt, 'id' | 'paidAmount'>;
+type FormGoal = Omit<SavingsGoal, 'id' | 'currentAmount'>;
+type FormSubscription = Omit<Subscription, 'id' | 'status'>;
+
+// Helper function to remove undefined properties from an object
+const cleanupUndefineds = (obj: any) => {
+    const newObj: any = {};
+    for (const key in obj) {
+        if (obj[key] !== undefined) {
+            newObj[key] = obj[key];
+        }
+    }
+    return newObj;
+};
 
 interface DataContextType {
     user: User | null;
@@ -111,9 +123,9 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     
     addDebt: (debt: FormDebt) => Promise<void>;
-    updateDebt: (debt: Partial<Debt> & {id: string, dueDate: Date}) => Promise<void>;
+    updateDebt: (debt: Partial<Debt> & {id: string}) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
-    addDebtPayment: (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
+    addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
     
     addSubscription: (subscription: FormSubscription) => Promise<void>;
     paySubscription: (subscription: Subscription) => Promise<void>;
@@ -126,14 +138,14 @@ interface DataContextType {
     deleteFixedExpense: (id: string) => Promise<void>;
 
     addGoal: (goal: FormGoal) => Promise<void>;
-    updateGoal: (goal: Partial<SavingsGoal> & {id: string, estimatedDate: Date}) => Promise<void>;
+    updateGoal: (goal: Partial<SavingsGoal> & {id: string}) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
-    addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
+    addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
     
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'| 'date'> & {date: Date}) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
     
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
@@ -147,10 +159,10 @@ interface DataContextType {
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
     
-    addReport: (report: Omit<MonthlyReport, 'generatedAt'> & {generatedAt?: Date}) => Promise<void>;
+    addReport: (report: Omit<MonthlyReport, 'id'>) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
 
-    addTaxPayment: (payment: Omit<TaxPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
+    addTaxPayment: (payment: Omit<TaxPayment, 'id'>) => Promise<void>;
 
     addService: (service: Omit<Service, 'id'>) => Promise<void>;
     updateService: (service: Service) => Promise<void>;
@@ -495,7 +507,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // #region Generic CRUD Functions
     const addDocToCollection = async (collectionName: string, data: any) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), data);
+        const cleanedData = cleanupUndefineds(data);
+        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), cleanedData);
         const savedData = (await getDoc(docRef)).data();
         const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate'];
         for (const field of dateFields) {
@@ -510,7 +523,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const updateDocInCollection = async (collectionName: string, id: string, data: any) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), data);
+        const cleanedData = cleanupUndefineds(data);
+        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), cleanedData);
     };
 
     const deleteDocFromCollection = async (collectionName: string, id: string) => {
@@ -540,7 +554,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const investmentsCrud = crudOperations('investments', setInvestments);
     const budgetsCrud = crudOperations('budgets', setBudgets);
     const servicesCrud = crudOperations('services', setServices);
-    const goalsCrud = crudOperations('goals', setGoals);
     
     // #region Specific CRUD implementations
     
@@ -621,7 +634,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
         const dataToSave = {
             ...transaction,
-            date: transaction.date.toISOString()
+            date: (transaction.date as Date).toISOString()
         };
         await updateDocInCollection('transactions', transaction.id, dataToSave);
         setAllTransactions(prev => prev.map(t => t.id === transaction.id ? {...t, ...dataToSave} as Transaction : t));
@@ -687,21 +700,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('debts', setDebts).add(newDebt);
     };
 
-    const updateDebt = async (debt: Partial<Debt> & {id: string, dueDate: Date}) => {
+    const updateDebt = async (debt: Partial<Debt> & {id: string}) => {
         const debtToSave = {
             ...debt,
-            dueDate: Timestamp.fromDate(debt.dueDate)
+            dueDate: Timestamp.fromDate(debt.dueDate as Date)
         };
         await updateDocInCollection('debts', debt.id, debtToSave);
         // Ensure local state `dueDate` is also a Date object for consistency
-        setDebts(prev => prev.map(d => d.id === debt.id ? { ...d, ...debt, dueDate: debt.dueDate } : d));
+        setDebts(prev => prev.map(d => d.id === debt.id ? { ...d, ...debt } : d));
     };
     
     const deleteDebt = async (id: string) => {
         await crudOperations('debts', setDebts).delete(id);
     };
     
-    const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
+    const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
@@ -750,7 +763,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setBankAccounts(prev => prev.map(acc => acc.id === payment.accountId ? {...acc, balance: newBalance} : acc));
     };
     
-    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => {
+    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
@@ -770,7 +783,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.map(g => g.id === contribution.goalId ? {...g, currentAmount: newCurrentAmount} : g));
     };
     
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'| 'date'> & {date: Date}) => {
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
@@ -880,12 +893,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
          setSubscriptions(prev => prev.map(s => s.id === id ? {...s, amount: newAmount} : s));
     };
     
-    const addReport = async (report: Omit<MonthlyReport, 'generatedAt'> & {generatedAt?: Date}) => {
+    const addReport = async (report: Omit<MonthlyReport, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        const finalReport = {...report, generatedAt: report.generatedAt || new Date()}
-        const reportRef = doc(db, `users/${uid}/reports`, finalReport.id);
+        const reportId = `${report.year}-${report.month}`;
+        const finalReport = {...report, id: reportId, generatedAt: new Date()}
+        const reportRef = doc(db, `users/${uid}/reports`, reportId);
         await setDoc(reportRef, { ...finalReport, generatedAt: Timestamp.fromDate(finalReport.generatedAt) });
-        setReports(prev => [...prev.filter(r => r.id !== finalReport.id), finalReport]);
+        setReports(prev => [...prev.filter(r => r.id !== reportId), finalReport]);
     };
     
     const deleteReport = async (id: string) => {
@@ -893,7 +907,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setReports(prev => prev.filter(r => r.id !== id));
     };
     
-    const addTaxPayment = async (payment: Omit<TaxPayment, 'id' | 'date'> & {date: Date}) => {
+    const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
          if (!uid) throw new Error("No hay un usuario autenticado.");
          const batch = writeBatch(db);
         const finalPayment = { ...payment, date: Timestamp.fromDate(payment.date) };
@@ -934,10 +948,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('goals', setGoals).add(newGoal);
     };
 
-    const updateGoal = async (goal: Partial<SavingsGoal> & {id: string, estimatedDate: Date}) => {
+    const updateGoal = async (goal: Partial<SavingsGoal> & {id: string}) => {
         const goalToSave = {
             ...goal,
-            estimatedDate: Timestamp.fromDate(goal.estimatedDate)
+            estimatedDate: Timestamp.fromDate(goal.estimatedDate as Date)
         };
         await updateDocInCollection('goals', goal.id, goalToSave);
         setGoals(prev => prev.map(g => g.id === goal.id ? { ...g, ...goal } : g));
@@ -1045,3 +1059,4 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
