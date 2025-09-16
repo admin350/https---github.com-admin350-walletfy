@@ -9,7 +9,7 @@ import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { generateMonthlyReport } from '@/ai/flows/generate-monthly-report';
 import { Loader2, Sparkles } from 'lucide-react';
-import type { MonthlyReport } from '@/types';
+import type { MonthlyReport, Transaction } from '@/types';
 
 export function GenerateReportForm() {
     const { availableYears, reports, getAllDataForMonth, addReport } = useData();
@@ -42,11 +42,11 @@ export function GenerateReportForm() {
                 return;
             }
 
-            const totalIncome = dataForMonth.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const totalExpenses = dataForMonth.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const totalIncome = dataForMonth.transactions.filter((t: Transaction) => t.type === 'income').reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+            const totalExpenses = dataForMonth.transactions.filter((t: Transaction) => t.type === 'expense').reduce((sum: number, t: Transaction) => sum + t.amount, 0);
             const expensesByCategory = dataForMonth.transactions
-                .filter(t => t.type === 'expense')
-                .reduce((acc, t) => {
+                .filter((t: Transaction) => t.type === 'expense')
+                .reduce((acc: Record<string, number>, t: Transaction) => {
                     if (!acc[t.category]) acc[t.category] = 0;
                     acc[t.category] += t.amount;
                     return acc;
@@ -59,8 +59,8 @@ export function GenerateReportForm() {
                 totalExpenses,
                 netBalance: totalIncome - totalExpenses,
                 expensesByCategory: JSON.stringify(expensesByCategory),
-                activeDebts: dataForMonth.debts.filter(d => d.paidAmount < d.totalAmount).length,
-                activeGoals: dataForMonth.goals.filter(g => g.currentAmount < g.targetAmount).length,
+                activeDebts: dataForMonth.debts.filter((d: any) => d.paidAmount < d.totalAmount).length,
+                activeGoals: dataForMonth.goals.filter((g: any) => g.currentAmount < g.targetAmount).length,
                 activeInvestments: dataForMonth.investments.length,
             });
             
