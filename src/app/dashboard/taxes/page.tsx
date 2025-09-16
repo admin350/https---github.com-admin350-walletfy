@@ -1,10 +1,10 @@
 
 'use client';
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useData } from "@/context/data-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { ArrowDown, ArrowUp, Scale, Info, FileDown, HandCoins } from "lucide-react";
+import { ArrowDown, ArrowUp, Scale, Info, FileDown, HandCoins, Loader2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, subMonths, getMonth, getYear } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,10 +12,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { PayTaxDialog } from "@/components/transactions/pay-tax-dialog";
 import type { Transaction, TaxPayment } from "@/types";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { TaxReportPDF } from "@/components/transactions/tax-report-pdf";
+
 
 export default function TaxesPage() {
     const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts, filters } = useData();
     const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const pdfRef = useRef<HTMLDivElement>(null);
+
 
     const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax' && (filters.profile === 'all' || acc.profile === filters.profile)), [bankAccounts, filters.profile]);
 
@@ -30,7 +37,7 @@ export default function TaxesPage() {
         const totalDebit = incomeWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         const totalCredit = expensesWithTax.reduce((sum: number, t: Transaction) => sum + (t.taxDetails?.amount || 0), 0);
         
-        const currentPeriod = new Date();
+        const currentPeriod = new Date(filters.year, filters.month);
         const prevPeriod = subMonths(currentPeriod, 1);
         const prevMonth = getMonth(prevPeriod);
         const prevYear = getYear(prevPeriod);
@@ -42,49 +49,34 @@ export default function TaxesPage() {
         const netTax = adjustedDebit - totalCredit;
 
         return { incomeWithTax, expensesWithTax, totalDebit, totalCredit, remanente, netTax };
-    }, [transactions, taxPayments, filters.profile]); 
+    }, [transactions, taxPayments, filters.profile, filters.year, filters.month]); 
     
     const isCurrentPeriodPaid = useMemo(() => {
-         const currentPeriod = new Date();
-         const currentMonth = getMonth(currentPeriod);
-         const currentYear = getYear(currentPeriod);
+         const currentMonth = getMonth(new Date(filters.year, filters.month));
+         const currentYear = getYear(new Date(filters.year, filters.month));
          return taxPayments.some((p: TaxPayment) => p.month === currentMonth && p.year === currentYear && (filters.profile === 'all' || p.profile === filters.profile));
-    }, [taxPayments, filters.profile]);
+    }, [taxPayments, filters]);
 
-    const handleExportCSV = () => {
-        const headers = ["Fecha", "Tipo", "Descripción", "Monto Neto", "Monto Impuesto", "Monto Total"];
-        const incomeRows = taxData.incomeWithTax.map((t: Transaction) => [
-            format(new Date(t.date), 'dd/MM/yyyy'),
-            "Débito Fiscal",
-            t.description,
-            t.amount - (t.taxDetails?.amount || 0),
-            t.taxDetails?.amount || 0,
-            t.amount
-        ]);
-        const expenseRows = taxData.expensesWithTax.map((t: Transaction) => [
-            format(new Date(t.date), 'dd/MM/yyyy'),
-            "Crédito Fiscal",
-            t.description,
-            t.amount - (t.taxDetails?.amount || 0),
-            t.taxDetails?.amount || 0,
-            t.amount
-        ]);
-    
-        const csvContent = [
-            headers.join(','),
-            ...incomeRows.map(row => row.join(',')),
-            ...expenseRows.map(row => row.join(','))
-        ].join('\n');
-    
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `detalle_impuestos_${getMonth(new Date()) + 1}_${getYear(new Date())}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleDownloadPDF = async () => {
+        if (!pdfRef.current) return;
+        setIsDownloading(true);
+
+        const canvas = await html2canvas(pdfRef.current, {
+            scale: 2,
+            backgroundColor: '#111827' // A dark background matching the theme
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`informe_tributario_${filters.profile}_${filters.month + 1}_${filters.year}.pdf`);
+
+        setIsDownloading(false);
     };
 
 
@@ -110,6 +102,11 @@ export default function TaxesPage() {
 
     return (
         <div className="space-y-6">
+            <div className="absolute -left-[9999px] -top-[9999px] opacity-0 pointer-events-none">
+                <div ref={pdfRef}>
+                    <TaxReportPDF taxData={taxData} filters={filters} formatCurrency={formatCurrency} />
+                </div>
+            </div>
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
@@ -117,9 +114,9 @@ export default function TaxesPage() {
                         Resumen de tu débito y crédito fiscal para el perfil <span className="text-primary font-semibold">{filters.profile === 'all' ? 'Consolidado' : filters.profile}</span>.
                     </p>
                 </div>
-                 <Button onClick={handleExportCSV}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Exportar a CSV
+                 <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+                    {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                    Exportar a PDF
                 </Button>
             </div>
             
@@ -290,7 +287,7 @@ export default function TaxesPage() {
                     taxAccount={taxAccount}
                     amountToPay={taxData.netTax}
                     profile={filters.profile}
-                    period={{ month: getMonth(new Date()), year: getYear(new Date()) }}
+                    period={{ month: getMonth(new Date(filters.year, filters.month)), year: getYear(new Date(filters.year, filters.month)) }}
                  />
             )}
         </div>
