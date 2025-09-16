@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -972,7 +971,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return newNotifications.sort((a,b) => b.date.getTime() - a.date.getTime());
     }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments, uid, isLoading]);
 
-    const contextValue = {
+    const contextValue: DataContextType = {
         user,
         transactions: filteredTransactions,
         goals: filteredGoals,
