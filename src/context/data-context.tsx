@@ -975,7 +975,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return newNotifications.sort((a,b) => b.date.getTime() - a.date.getTime());
     }, [allBankAccounts, allTransactions, allDebts, allSubscriptions, allGoals, allBudgets, settings, formatCurrency, allTaxPayments, uid, isLoading]);
 
-
     return (
         <DataContext.Provider value={{ 
             user,
