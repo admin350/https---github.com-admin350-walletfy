@@ -154,7 +154,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 const transactionToUpdate: Transaction = {
                     ...(transactionToEdit as Transaction),
                     ...values,
-                    date: values.date.toISOString(),
                 };
                 await updateTransaction(transactionToUpdate);
                 toast({
@@ -583,5 +582,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 }
 
     
+
 
 
