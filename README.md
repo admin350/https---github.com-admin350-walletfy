@@ -1,6 +1,6 @@
-# FA Vision - Your Personal Power BI
+# walletfy - Your Personal Power BI
 
-"FA Vision" is a comprehensive financial management web application designed to function as a personal Power BI. It allows users to manage personal, family, and business finances in separate workspaces, with a core feature of a dynamic, real-time budgeting system.
+"walletfy" is a comprehensive financial management web application designed to function as a personal Power BI. It allows users to manage personal, family, and business finances in separate workspaces, with a core feature of a dynamic, real-time budgeting system.
 
 Built with Next.js, TypeScript, Tailwind CSS, Shadcn/UI, and Firebase.
 
@@ -27,8 +27,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-repo/fa-vision.git
-    cd fa-vision
+    git clone https://github.com/admin350/https---github.com-admin350-walletfy.git
+    cd https---github.com-admin350-walletfy
     ```
 
 2.  **Install dependencies:**
