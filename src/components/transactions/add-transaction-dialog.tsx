@@ -33,7 +33,7 @@ import { CalendarIcon, Loader2, Percent } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
@@ -96,7 +96,7 @@ interface AddTransactionDialogProps {
 export function AddTransactionDialog({ children, transactionToEdit, defaultType = 'expense', open, onOpenChange, onFinish }: AddTransactionDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const { toast } = useToast();
-    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency } = useData();
+    const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency, addDebt } = useData();
     const [isLoading, setIsLoading] = useState(false);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
@@ -125,19 +125,42 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
      const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
         try {
-            if (transactionToEdit?.id) {
-                // For now, we'll just update the details for now. A full update would require more complex logic.
-                 const transactionToUpdate: Transaction = {
+            if (values.isInstallment) {
+                // Create a Debt instead of a Transaction
+                const card = bankCards.find(c => c.id === values.paymentMethod);
+                if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
+
+                await addDebt({
+                    name: `Compra en cuotas: ${values.description}`,
+                    totalAmount: values.amount,
+                    monthlyPayment: values.amount / (values.installments || 1),
+                    installments: values.installments || 1,
+                    dueDate: addMonths(values.date, 1),
+                    debtType: 'credit-card',
+                    profile: values.profile,
+                    accountId: values.accountId,
+                    cardId: card.id,
+                });
+
+                toast({
+                    title: "Deuda por Cuotas Creada",
+                    description: `Se ha creado una nueva deuda para tu compra en ${values.installments} cuotas.`,
+                });
+
+            } else if (transactionToEdit?.id) {
+                // Logic to update an existing transaction
+                const transactionToUpdate: Transaction = {
                     ...(transactionToEdit as Transaction),
                     ...values,
                     date: values.date.toISOString(),
-                 };
-                 await updateTransaction(transactionToUpdate);
-                 toast({
+                };
+                await updateTransaction(transactionToUpdate);
+                toast({
                     title: "Transacción actualizada",
                     description: `La transacción ha sido actualizada exitosamente.`,
                 });
             } else {
+                // Logic to add a new single transaction
                 await addTransaction(values);
                 toast({
                     title: "Transacción añadida",
@@ -150,7 +173,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
              const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: err.message || `No se pudo ${transactionToEdit?.id ? 'actualizar' : 'añadir'} la transacción.`,
+                description: err.message || `No se pudo procesar la operación.`,
                 variant: 'destructive'
             });
         } finally {
@@ -171,8 +194,8 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 destinationAccountId: transactionToEdit?.destinationAccountId || undefined,
                 paymentMethod: transactionToEdit?.cardId || 'account-balance',
                 date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
-                isInstallment: transactionToEdit?.installments ? transactionToEdit.installments > 1 : false,
-                installments: transactionToEdit?.installments,
+                isInstallment: false,
+                installments: undefined,
                 includesTax: hasTax,
                 taxRate: transactionToEdit?.taxDetails?.rate || 19,
             };
@@ -554,3 +577,5 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
+
+    
