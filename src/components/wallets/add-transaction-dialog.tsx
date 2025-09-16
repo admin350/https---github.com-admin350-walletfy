@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -37,7 +38,7 @@ import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
-import type { Debt, Transaction } from '@/types';
+import type { Transaction } from '@/types';
 import { Checkbox } from '../ui/checkbox';
 import { useSubmitAction } from '@/hooks/use-submit-action';
 
@@ -87,7 +88,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
-    transactionToEdit?: Partial<Omit<Transaction, 'date'> & { date: string | Date }>;
+    transactionToEdit?: Partial<Transaction>;
     defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -122,7 +123,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         },
     });
 
-    const { performAction, isLoading, isSuccess } = useSubmitAction({
+    const { performAction, isLoading, isSuccess } = useSubmitAction<FormValues>({
         action: async (values: FormValues) => {
             if (values.isInstallment) {
                 const card = bankCards.find(c => c.id === values.paymentMethod);

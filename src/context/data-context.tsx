@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -54,7 +55,7 @@ type DataFilters = {
     year: number;
 };
 
-type FormTransaction = Omit<Transaction, 'id' | 'date'> & { date: Date };
+type FormTransaction = Omit<Transaction, 'id'>;
 type FormDebt = Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date};
 type FormGoal = Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date};
 type FormSubscription = Omit<Subscription, 'id' | 'status' | 'dueDate'> & {dueDate: Date};
@@ -98,7 +99,7 @@ interface DataContextType {
 
     // CRUD Functions
     addTransaction: (transaction: FormTransaction) => Promise<void>;
-    updateTransaction: (transaction: Partial<Transaction> & {id: string, date?: Date | string}) => Promise<void>;
+    updateTransaction: (transaction: Partial<Transaction> & {id: string}) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     
     addBankAccount: (account: Omit<BankAccount, 'id' | 'balance' | 'creditLineUsed'> & {balance?: number}) => Promise<void>;
@@ -238,6 +239,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             for (const field of dateFields) {
                 if (data[field] && data[field] instanceof Timestamp) {
                     data[field] = data[field].toDate();
+                } else if (data[field] && typeof data[field] === 'string' && dateFields.includes(field)) {
+                    // Handle string dates (from Transaction type)
+                    data[field] = new Date(data[field]);
                 }
             }
             return { id: doc.id, ...data };
@@ -497,6 +501,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         for (const field of dateFields) {
             if (savedData?.[field] && savedData[field] instanceof Timestamp) {
                 savedData[field] = savedData[field].toDate();
+            } else if (savedData?.[field] && typeof savedData[field] === 'string' && dateFields.includes(field)) {
+                savedData[field] = new Date(savedData[field]);
             }
         }
         return { id: docRef.id, ...savedData };
@@ -534,6 +540,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const investmentsCrud = crudOperations('investments', setInvestments);
     const budgetsCrud = crudOperations('budgets', setBudgets);
     const servicesCrud = crudOperations('services', setServices);
+    const goalsCrud = crudOperations('goals', setGoals);
     
     // #region Specific CRUD implementations
     
@@ -547,7 +554,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: FormTransaction) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const dataToSave: Omit<Transaction, 'id'> = {
+        const dataToSave = {
              ...transaction,
              date: transaction.date.toISOString()
         };
@@ -611,10 +618,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    const updateTransaction = async (transaction: Partial<Transaction> & {id: string, date?: Date | string}) => {
+    const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
         const dataToSave = {
             ...transaction,
-            date: typeof transaction.date === 'string' ? transaction.date : transaction.date?.toISOString()
+            date: transaction.date.toISOString()
         };
         await updateDocInCollection('transactions', transaction.id, dataToSave);
         setAllTransactions(prev => prev.map(t => t.id === transaction.id ? {...t, ...dataToSave} as Transaction : t));
@@ -738,7 +745,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         // Update local state
         setDebtPayments(prev => [...prev, {id: paymentRef.id, ...payment}]);
-        setAllTransactions(prev => [...prev, {id: transactionRef.id, type: 'expense', amount: payment.amount, description: `Abono a ${payment.debtName}`, category: expenseCategory, profile: accountProfile, date: payment.date.toISOString(), accountId: payment.accountId} as Transaction]);
+        setAllTransactions(prev => [...prev, {id: transactionRef.id, type: 'expense', amount: payment.amount, description: `Abono a ${payment.debtName}`, category: expenseCategory, profile: accountProfile, date: payment.date, accountId: payment.accountId} as Transaction]);
         setDebts(prev => prev.map(d => d.id === payment.debtId ? {...d, paidAmount: newPaidAmount, dueDate: nextDueDate} : d));
         setBankAccounts(prev => prev.map(acc => acc.id === payment.accountId ? {...acc, balance: newBalance} : acc));
     };
@@ -843,7 +850,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             description: `Pago ${subscription.name}`,
             category: expenseCategory,
             profile: subscription.profile,
-            date: new Date().toISOString(),
+            date: new Date(),
             accountId: card.accountId,
             cardId: subscription.cardId
         } as Transaction]);
@@ -919,7 +926,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         // Update local state
         setTaxPayments(prev => [...prev, {id: paymentRef.id, ...payment}]);
         setBankAccounts(prev => prev.map(acc => acc.id === payment.sourceAccountId ? { ...acc, balance: newBalance } : acc));
-        setAllTransactions(prev => [...prev, {id: transactionRef.id, type: 'expense', amount: payment.amount, description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`, category: 'Impuestos', profile: account.profile, date: payment.date.toISOString(), accountId: payment.sourceAccountId} as Transaction]);
+        setAllTransactions(prev => [...prev, {id: transactionRef.id, type: 'expense', amount: payment.amount, description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`, category: 'Impuestos', profile: account.profile, date: payment.date, accountId: payment.sourceAccountId} as Transaction]);
     };
     
     const addGoal = async (goal: FormGoal) => {
