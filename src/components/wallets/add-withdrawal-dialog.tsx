@@ -96,7 +96,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
             
              await addTransaction({
                 ...values,
-                type: 'expense',
+                type: 'expense' as const,
                 profile: account.profile,
                 date: values.date.toISOString(),
                 includesTax: false,

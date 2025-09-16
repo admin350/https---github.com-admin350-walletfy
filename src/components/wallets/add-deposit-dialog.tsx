@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect, useMemo } from 'react';
 import {
@@ -113,7 +114,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
             
             await addTransaction({
                 ...values,
-                type: 'income',
+                type: 'income' as const,
                 profile: selectedAccount.profile,
                 includesTax: false,
             });

@@ -685,7 +685,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!accountProfile) throw new Error("Perfil de cuenta no encontrado.");
 
         batch.set(transactionRef, {
-            type: 'expense',
+            type: 'expense' as const,
             amount: payment.amount,
             description: `Abono a ${payment.debtName}`,
             category: expenseCategory,
@@ -777,7 +777,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const transactionRef = doc(collection(db, `users/${uid}/transactions`));
         const expenseCategory = categories.find(c => c.name.toLowerCase() === 'suscripciones' || c.name.toLowerCase() === 'cuentas')?.name || 'Suscripciones';
         batch.set(transactionRef, {
-            type: 'expense',
+            type: 'expense' as const,
             amount: subscription.amount,
             description: `Pago ${subscription.name}`,
             category: expenseCategory,
@@ -875,7 +875,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!account) throw new Error("No se encontró la cuenta de cartera tributaria.");
         
         batch.set(transactionRef, {
-            type: 'expense',
+            type: 'expense' as const,
             amount: payment.amount,
             description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`,
             category: 'Impuestos',
