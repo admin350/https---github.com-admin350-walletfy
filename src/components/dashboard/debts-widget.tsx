@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
-import type { UpcomingPayment } from '@/types';
 import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 
