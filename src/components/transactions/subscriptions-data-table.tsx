@@ -36,7 +36,7 @@ interface SubscriptionsDataTableProps {
 }
 
 export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsDataTableProps) {
-    const { cancelSubscription, bankCards, deleteSubscription, formatCurrency, updateSubscriptionAmount } = useData();
+    const { cancelSubscription, bankCards, deleteSubscription, formatCurrency } = useData();
     const { toast } = useToast();
     const [subscriptionToPay, setSubscriptionToPay] = useState<Subscription | undefined>(undefined);
     const [subscriptionToUpdate, setSubscriptionToUpdate] = useState<Subscription | undefined>(undefined);
