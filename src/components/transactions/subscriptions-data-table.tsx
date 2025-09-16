@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { Subscription } from "@/types";
 import { useData } from "@/context/data-context";
-import { format, isPast, getMonth, getYear, isThisMonth } from "date-fns";
+import { format, isPast, getMonth, getYear, isThisMonth, differenceInMonths } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2, HandCoins, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -118,12 +118,20 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                  const date = tab === 'cancelled' ? subscription.cancellationDate : subscription.dueDate;
                  if (!date) return null;
 
-                 const isOverdue = isPast(new Date(subscription.dueDate));
+                 const isOverdue = tab === 'overdue';
 
                  return (
                     <div className="flex items-center gap-2">
                         <span>{format(new Date(date), "dd/MM/yyyy")}</span>
-                        {isOverdue && tab !== 'cancelled' && <Badge variant="destructive">Vencida</Badge>}
+                         {isOverdue && (
+                            <Badge variant="destructive">
+                                {(() => {
+                                    const overdueMonths = differenceInMonths(new Date(), new Date(subscription.dueDate));
+                                    const count = overdueMonths > 0 ? overdueMonths : 1;
+                                    return `Atrasada (${count} cuota${count > 1 ? 's' : ''})`
+                                })()}
+                            </Badge>
+                        )}
                         {tab === 'cancelled' && <Badge variant="outline">Cancelada</Badge>}
                     </div>
                  )

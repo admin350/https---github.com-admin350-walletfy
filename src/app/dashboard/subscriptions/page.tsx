@@ -16,6 +16,8 @@ import type { Subscription, Transaction } from "@/types";
 export default function SubscriptionsPage() {
     const { subscriptions, transactions, isLoading, formatCurrency } = useData();
     const today = startOfToday();
+    const currentMonth = getMonth(today);
+    const currentYear = getYear(today);
 
     const activeSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'active');
     const cancelledSubscriptions = subscriptions.filter((s: Subscription) => s.status === 'cancelled');
@@ -23,16 +25,30 @@ export default function SubscriptionsPage() {
     // Vencidas: Fecha de pago es anterior al mes actual Y no se ha pagado en el mes que correspondía.
     const overdueSubscriptions = activeSubscriptions.filter((s: Subscription) => {
         const dueDate = new Date(s.dueDate);
-        const lastPaymentPeriod = s.lastPaymentYear ? `${s.lastPaymentYear}-${s.lastPaymentMonth}` : null;
-        const duePeriod = `${getYear(dueDate)}-${getMonth(dueDate)}`;
-        return isPast(dueDate) && !isThisMonth(dueDate) && lastPaymentPeriod !== duePeriod;
+        const dueMonth = getMonth(dueDate);
+        const dueYear = getYear(dueDate);
+        // Is the due date in the past relative to the current month/year?
+        return (dueYear < currentYear) || (dueYear === currentYear && dueMonth < currentMonth);
     });
-
+    
     // Este Mes: (1) Vence este mes Y no está pagada O (2) Fue pagada en este período.
     const thisMonthSubscriptions = activeSubscriptions.filter((s: Subscription) => {
         const dueDate = new Date(s.dueDate);
-        return (isThisMonth(dueDate) && !s.paidThisPeriod) || s.paidThisPeriod;
+        const isDueThisMonth = isThisMonth(dueDate);
+        
+        // It was paid in the current period
+        if (s.paidThisPeriod && s.lastPaymentMonth === currentMonth && s.lastPaymentYear === currentYear) {
+            return true;
+        }
+        
+        // It is due this month and not yet paid for this period
+        if (isDueThisMonth && !s.paidThisPeriod) {
+            return true;
+        }
+
+        return false;
     });
+
 
     // Próximas: Fecha es futura y no es de este mes.
     const upcomingSubscriptions = activeSubscriptions.filter((s: Subscription) => {
@@ -54,7 +70,7 @@ export default function SubscriptionsPage() {
           <Skeleton className="h-6 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
         </div>
-    )
+      )
 
     return (
         <div className="grid gap-6">
