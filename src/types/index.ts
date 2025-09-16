@@ -111,6 +111,10 @@ export type Subscription = {
   cancellationDate?: Date;
   lastPaymentMonth?: number; // 0-11
   lastPaymentYear?: number;
+  paymentDetails?: { // Optional details for overriding payment method
+    accountId?: string;
+    cardId?: string;
+  }
 };
 
 

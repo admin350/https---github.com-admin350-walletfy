@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Subscription } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface PaySubscriptionDialogProps {
     subscription: Subscription;
@@ -37,34 +38,66 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
     const { paySubscription, bankAccounts, bankCards, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
 
-    const card = useMemo(() => bankCards.find(c => c.id === subscription.cardId), [bankCards, subscription]);
-    const account = useMemo(() => bankAccounts.find(a => a.id === card?.accountId), [bankAccounts, card]);
-
     const formSchema = z.object({
-        amount: z.coerce.number()
-          .positive({ message: "El monto debe ser positivo." })
+        amount: z.coerce.number().positive({ message: "El monto debe ser positivo." }),
+        paymentMethod: z.string().min(1, "Debes seleccionar un método de pago."),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             amount: subscription.amount,
+            paymentMethod: subscription.cardId,
         },
     });
 
-     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const paymentOptions = useMemo(() => {
+        const accountsForProfile = bankAccounts.filter(acc => acc.profile === subscription.profile);
+        const cardsForProfile = bankCards.filter(card => card.profile === subscription.profile);
+
+        const options = [];
+
+        // Add bank accounts (for debit payments)
+        options.push(...accountsForProfile.map(acc => ({
+            value: acc.id,
+            label: `Cuenta: ${acc.name} (${acc.bank}) - Saldo: ${formatCurrency(acc.balance)}`,
+            type: 'account'
+        })));
+        
+        // Add credit cards
+        options.push(...cardsForProfile.filter(c => c.cardType === 'credit').map(card => ({
+             value: card.id,
+             label: `Tarjeta: ${card.name} (**** ${card.last4Digits}) - Disp: ${formatCurrency((card.creditLimit || 0) - (card.usedAmount || 0))}`,
+             type: 'card'
+        })));
+
+        return options;
+
+    }, [bankAccounts, bankCards, subscription.profile, formatCurrency]);
+
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
+            const selectedOption = paymentOptions.find(opt => opt.value === values.paymentMethod);
+            if (!selectedOption) throw new Error("Método de pago no válido.");
+
+            const paymentDetails = {
+                accountId: selectedOption.type === 'account' ? selectedOption.value : bankCards.find(c => c.id === selectedOption.value)?.accountId,
+                cardId: selectedOption.type === 'card' ? selectedOption.value : undefined
+            };
+            
+            if (!paymentDetails.accountId) throw new Error("La cuenta asociada al método de pago no se encontró.");
+
             await paySubscription({
                 ...subscription,
                 amount: values.amount
-            });
+            }, paymentDetails);
+
             toast({
                 title: "¡Suscripción Pagada!",
                 description: `Has pagado ${formatCurrency(values.amount)} por tu suscripción a "${subscription.name}".`,
             });
             onOpenChange(false);
-            form.reset();
         } catch (error) {
             const err = error instanceof Error ? error : new Error('An unknown error occurred');
              toast({
@@ -79,7 +112,10 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
     
     useEffect(() => {
         if(open){
-            form.reset({ amount: subscription.amount });
+            form.reset({ 
+                amount: subscription.amount,
+                paymentMethod: subscription.cardId,
+            });
         }
     }, [open, subscription, form]);
 
@@ -89,7 +125,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
                 <DialogHeader>
                     <DialogTitle>Pagar Suscripción: {subscription.name}</DialogTitle>
                     <DialogDescription>
-                       Se registrará un gasto desde la cuenta: <span className="font-bold text-primary">{account?.name} ({formatCurrency(account?.balance ?? 0)})</span>
+                       Confirma el monto y selecciona el método de pago para esta suscripción.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -103,6 +139,30 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
                                     <FormControl>
                                         <Input type="number" {...field} value={field.value ?? ''} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="paymentMethod"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Pagar Con</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona un método de pago" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {paymentOptions.map(option => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
