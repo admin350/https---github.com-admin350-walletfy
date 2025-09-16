@@ -93,7 +93,7 @@ interface DataContextType {
 
     // CRUD Functions
     addTransaction: (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => Promise<void>;
-    updateTransaction: (transaction: Omit<Transaction, 'date'> & { date: Date }) => Promise<void>;
+    updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     
     addBankAccount: (account: Omit<BankAccount, 'id' | 'balance' | 'creditLineUsed'> & {balance?: number}) => Promise<void>;
@@ -105,7 +105,7 @@ interface DataContextType {
     deleteBankCard: (id: string) => Promise<void>;
     
     addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date}) => Promise<void>;
-    updateDebt: (debt: Omit<Debt, 'dueDate'> & {dueDate: Date}) => Promise<void>;
+    updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
     addDebtPayment: (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -120,7 +120,7 @@ interface DataContextType {
     deleteFixedExpense: (id: string) => Promise<void>;
 
     addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date}) => Promise<void>;
-    updateGoal: (goal: Omit<SavingsGoal, 'estimatedDate'> & { estimatedDate: Date }) => Promise<void>;
+    updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
     addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
@@ -519,10 +519,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const profilesCrud = crudOperations('profiles', setProfiles);
     const categoriesCrud = crudOperations('categories', setCategories);
     const fixedExpensesCrud = crudOperations('fixedExpenses', setFixedExpenses);
-    const goalsCrud = crudOperations('goals', setGoals);
     const investmentsCrud = crudOperations('investments', setInvestments);
     const budgetsCrud = crudOperations('budgets', setBudgets);
     const servicesCrud = crudOperations('services', setServices);
+    const goalsCrud = crudOperations('goals', setGoals);
     
     // #region Specific CRUD implementations
     
@@ -536,47 +536,43 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const finalTransaction = {
-            ...transaction,
-            date: transaction.date.toISOString()
-        };
-        
-        const newDoc = await addDocToCollection('transactions', finalTransaction);
-        setAllTransactions(prev => [...prev, { ...newDoc, date: newDoc.date.toString() }]);
+        const dataToSave = { ...transaction, date: transaction.date.toISOString() };
+        const newDoc = await addDocToCollection('transactions', dataToSave);
+        setAllTransactions(prev => [...prev, newDoc as Transaction]);
 
 
         const batch = writeBatch(db);
 
         // Update account balances
-        const sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, finalTransaction.accountId);
+        const sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
         const sourceAccountSnap = await getDoc(sourceAccountRef);
         if (!sourceAccountSnap.exists()) throw new Error("La cuenta de origen no existe.");
         const sourceAccountData = sourceAccountSnap.data() as BankAccount;
         
         let newSourceBalance = sourceAccountData.balance;
 
-        if (finalTransaction.type === 'expense' || finalTransaction.type === 'transfer') {
-            newSourceBalance -= finalTransaction.amount;
-        } else if (finalTransaction.type === 'income') {
-            newSourceBalance += finalTransaction.amount;
+        if (transaction.type === 'expense' || transaction.type === 'transfer') {
+            newSourceBalance -= transaction.amount;
+        } else if (transaction.type === 'income') {
+            newSourceBalance += transaction.amount;
         }
         batch.update(sourceAccountRef, { balance: newSourceBalance });
         
-        if (finalTransaction.type === 'transfer' && finalTransaction.destinationAccountId) {
-            const destAccountRef = doc(db, `users/${uid}/bankAccounts`, finalTransaction.destinationAccountId);
+        if (transaction.type === 'transfer' && transaction.destinationAccountId) {
+            const destAccountRef = doc(db, `users/${uid}/bankAccounts`, transaction.destinationAccountId);
             const destAccountSnap = await getDoc(destAccountRef);
              if (!destAccountSnap.exists()) throw new Error("La cuenta de destino no existe.");
             const destAccountData = destAccountSnap.data() as BankAccount;
-            batch.update(destAccountRef, { balance: destAccountData.balance + finalTransaction.amount });
+            batch.update(destAccountRef, { balance: destAccountData.balance + transaction.amount });
         }
         
         // Update card used amount
-        if (finalTransaction.type === 'expense' && finalTransaction.cardId) {
-             const cardRef = doc(db, `users/${uid}/bankCards`, finalTransaction.cardId);
+        if (transaction.type === 'expense' && transaction.cardId) {
+             const cardRef = doc(db, `users/${uid}/bankCards`, transaction.cardId);
              const cardSnap = await getDoc(cardRef);
              if(cardSnap.exists() && cardSnap.data().cardType === 'credit') {
                  const cardData = cardSnap.data() as BankCard;
-                 batch.update(cardRef, { usedAmount: (cardData.usedAmount || 0) + finalTransaction.amount });
+                 batch.update(cardRef, { usedAmount: (cardData.usedAmount || 0) + transaction.amount });
              }
         }
         
@@ -584,30 +580,26 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         // Manually update local state to reflect balance changes
         setBankAccounts(prev => prev.map(acc => {
-            if (acc.id === finalTransaction.accountId) return { ...acc, balance: newSourceBalance };
-            if (finalTransaction.type === 'transfer' && acc.id === finalTransaction.destinationAccountId) {
-                return { ...acc, balance: acc.balance + finalTransaction.amount };
+            if (acc.id === transaction.accountId) return { ...acc, balance: newSourceBalance };
+            if (transaction.type === 'transfer' && acc.id === transaction.destinationAccountId) {
+                return { ...acc, balance: acc.balance + transaction.amount };
             }
             return acc;
         }));
         
-        if (finalTransaction.type === 'expense' && finalTransaction.cardId) {
+        if (transaction.type === 'expense' && transaction.cardId) {
             setBankCards(prev => prev.map(card => {
-                if (card.id === finalTransaction.cardId && card.cardType === 'credit') {
-                    return { ...card, usedAmount: (card.usedAmount || 0) + finalTransaction.amount };
+                if (card.id === transaction.cardId && card.cardType === 'credit') {
+                    return { ...card, usedAmount: (card.usedAmount || 0) + transaction.amount };
                 }
                 return card;
             }));
         }
     };
     
-    const updateTransaction = async (transaction: Omit<Transaction, 'date'> & { date: Date }) => {
-        const transactionToSave = {
-            ...transaction,
-            date: transaction.date.toISOString(),
-        };
-        await updateDocInCollection('transactions', transaction.id, transactionToSave);
-        setAllTransactions(prev => prev.map(t => t.id === transaction.id ? transactionToSave : t));
+    const updateTransaction = async (transaction: Transaction) => {
+        await updateDocInCollection('transactions', transaction.id, transaction);
+        setAllTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
     };
 
     const deleteTransaction = async (id: string) => {
@@ -670,13 +662,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('debts', setDebts).add(newDebt);
     };
 
-    const updateDebt = async (debt: Omit<Debt, 'dueDate'> & {dueDate: Date}) => {
+    const updateDebt = async (debt: Debt) => {
         const debtToSave = {
             ...debt,
-            dueDate: Timestamp.fromDate(debt.dueDate)
+            dueDate: Timestamp.fromDate(new Date(debt.dueDate))
         };
         await updateDocInCollection('debts', debt.id, debtToSave);
-        setDebts(prev => prev.map(d => d.id === debt.id ? { ...debtToSave, dueDate: debt.dueDate } as Debt : d));
+        setDebts(prev => prev.map(d => d.id === debt.id ? debt : d));
     };
     
     const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
@@ -891,7 +883,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`,
             category: 'Impuestos',
             profile: account.profile,
-            date: finalPayment.date.toDate().toISOString(),
+            date: payment.date.toISOString(),
             accountId: payment.sourceAccountId,
         });
 
@@ -912,13 +904,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('goals', setGoals).add(newGoal);
     };
 
-    const updateGoal = async (goal: Omit<SavingsGoal, 'estimatedDate'> & { estimatedDate: Date }) => {
+    const updateGoal = async (goal: SavingsGoal) => {
         const goalToSave = {
             ...goal,
-            estimatedDate: Timestamp.fromDate(goal.estimatedDate)
+            estimatedDate: Timestamp.fromDate(new Date(goal.estimatedDate))
         };
         await updateDocInCollection('goals', goal.id, goalToSave);
-        setGoals(prev => prev.map(g => g.id === goal.id ? { ...goalToSave, estimatedDate: goal.estimatedDate } as SavingsGoal : g));
+        setGoals(prev => prev.map(g => g.id === goal.id ? goal : g));
     };
 
 

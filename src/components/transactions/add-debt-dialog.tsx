@@ -88,7 +88,6 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                  const debtToUpdate = { 
                     ...debtToEdit, 
                     ...values,
-                    dueDate: values.dueDate,
                  };
                 await updateDebt(debtToUpdate);
                 toast({
