@@ -1,5 +1,3 @@
-
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -81,7 +79,7 @@ export function AddWithdrawalDialog({ children }: AddWithdrawalDialogProps) {
             
              await addTransaction({
                 ...values,
-                type: 'expense' as const,
+                type: 'expense',
                 profile: account.profile,
                 includesTax: false,
             });

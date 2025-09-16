@@ -1,4 +1,3 @@
-
 'use client'
 import {
     ColumnDef,
@@ -30,7 +29,7 @@ import { Badge } from "../ui/badge";
 export function FixedExpensesDataTable() {
     const { fixedExpenses, deleteFixedExpense, formatCurrency } = useData();
     const { toast } = useToast();
-    const [expenseToRegister, setExpenseToRegister] = useState<Partial<Transaction> | undefined>(undefined);
+    const [expenseToRegister, setExpenseToRegister] = useState<Partial<Omit<Transaction, 'date'>> & { date: string | Date } | undefined>(undefined);
     const [expenseToEdit, setExpenseToEdit] = useState<FixedExpense | undefined>(undefined);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);

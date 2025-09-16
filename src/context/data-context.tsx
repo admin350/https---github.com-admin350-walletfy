@@ -1,4 +1,3 @@
-
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -93,7 +92,7 @@ interface DataContextType {
     sendPasswordReset: (email: string) => Promise<void>;
 
     // CRUD Functions
-    addTransaction: (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date | string }) => Promise<void>;
+    addTransaction: (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => Promise<void>;
     updateTransaction: (transaction: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     
@@ -105,12 +104,12 @@ interface DataContextType {
     updateBankCard: (card: BankCard) => Promise<void>;
     deleteBankCard: (id: string) => Promise<void>;
     
-    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount'>) => Promise<void>;
+    addDebt: (debt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & {dueDate: Date}) => Promise<void>;
     updateDebt: (debt: Debt) => Promise<void>;
     deleteDebt: (id: string) => Promise<void>;
-    addDebtPayment: (payment: Omit<DebtPayment, 'id'>) => Promise<void>;
+    addDebtPayment: (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
-    addSubscription: (subscription: Omit<Subscription, 'id' | 'status'>) => Promise<void>;
+    addSubscription: (subscription: Omit<Subscription, 'id' | 'status' | 'dueDate'> & {dueDate: Date}) => Promise<void>;
     paySubscription: (subscription: Subscription) => Promise<void>;
     cancelSubscription: (id: string) => Promise<void>;
     deleteSubscription: (id: string) => Promise<void>;
@@ -120,15 +119,15 @@ interface DataContextType {
     updateFixedExpense: (expense: FixedExpense) => Promise<void>;
     deleteFixedExpense: (id: string) => Promise<void>;
 
-    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
+    addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date}) => Promise<void>;
     updateGoal: (goal: SavingsGoal) => Promise<void>;
     deleteGoal: (id: string) => Promise<void>;
-    addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => Promise<void>;
+    addGoalContribution: (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Investment) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'date'> & {date: Date}) => Promise<void>;
     
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Budget) => Promise<void>;
@@ -142,10 +141,10 @@ interface DataContextType {
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
     
-    addReport: (report: MonthlyReport) => Promise<void>;
+    addReport: (report: Omit<MonthlyReport, 'generatedAt'> & {generatedAt?: Date}) => Promise<void>;
     deleteReport: (id: string) => Promise<void>;
 
-    addTaxPayment: (payment: Omit<TaxPayment, 'id'>) => Promise<void>;
+    addTaxPayment: (payment: Omit<TaxPayment, 'id' | 'date'> & {date: Date}) => Promise<void>;
 
     addService: (service: Omit<Service, 'id'>) => Promise<void>;
     updateService: (service: Service) => Promise<void>;
@@ -464,7 +463,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 return getYear(tDate) === year && getMonth(tDate) === month;
             }),
             debts: debts.filter(filterByDate),
-            goals: goals.filter(g => g.estimatedDate >= monthStart && g.estimatedDate <= monthEnd),
+            goals: goals.filter(g => new Date(g.estimatedDate) >= monthStart && new Date(g.estimatedDate) <= monthEnd),
             investments, // Investments are not tied to a month
         };
     }, [allTransactions, debts, goals, investments]);
@@ -534,10 +533,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setSettings(prev => ({ ...prev, ...newSettings }));
     };
 
-    const addTransaction = async (transaction: Omit<Transaction, 'id'|'date'> & { date: Date | string }) => {
+    const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'> & { date: Date }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const date = typeof transaction.date === 'string' ? transaction.date : transaction.date.toISOString();
+        const date = transaction.date.toISOString();
 
         const finalTransaction = {
             ...transaction,
@@ -665,12 +664,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await crudOperations('bankCards', setBankCards).delete(id);
     }
     
-    const addDebt = async (debt: Omit<Debt, 'id'|'paidAmount'>) => {
+    const addDebt = async (debt: Omit<Debt, 'id'|'paidAmount' | 'dueDate'> & {dueDate: Date}) => {
         const newDebt = {...debt, paidAmount: 0};
-        await crudOperations('debts', setDebts).add(newDebt);
+        const docToAdd = { ...newDebt, dueDate: Timestamp.fromDate(newDebt.dueDate) };
+        await crudOperations('debts', setDebts).add(docToAdd);
     };
     
-    const addDebtPayment = async (payment: Omit<DebtPayment, 'id'>) => {
+    const addDebtPayment = async (payment: Omit<DebtPayment, 'id' | 'date'> & {date: Date}) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
@@ -701,7 +701,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const debtData = debtSnap.data() as Debt;
         const newPaidAmount = (debtData.paidAmount || 0) + payment.amount;
         const nextDueDate = addMonths(new Date(debtData.dueDate), 1);
-        batch.update(debtRef, { paidAmount: newPaidAmount, dueDate: nextDueDate });
+        batch.update(debtRef, { paidAmount: newPaidAmount, dueDate: Timestamp.fromDate(nextDueDate) });
         
         // 4. Update bank account balance
         const accountRef = doc(db, `users/${uid}/bankAccounts`, payment.accountId);
@@ -719,12 +719,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setBankAccounts(prev => prev.map(acc => acc.id === payment.accountId ? {...acc, balance: newBalance} : acc));
     };
     
-    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
+    const addGoalContribution = async (contribution: Omit<GoalContribution, 'id' | 'date'> & {date: Date}) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
         const contributionRef = doc(collection(db, `users/${uid}/goalContributions`));
-        batch.set(contributionRef, contribution);
+        batch.set(contributionRef, { ...contribution, date: Timestamp.fromDate(contribution.date) });
         
         const goalRef = doc(db, `users/${uid}/goals`, contribution.goalId);
         const goalSnap = await getDoc(goalRef);
@@ -739,12 +739,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.map(g => g.id === contribution.goalId ? {...g, currentAmount: newCurrentAmount} : g));
     };
     
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'| 'date'> & {date: Date}) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const batch = writeBatch(db);
         
         const contributionRef = doc(collection(db, `users/${uid}/investmentContributions`));
-        batch.set(contributionRef, contribution);
+        batch.set(contributionRef, { ...contribution, date: Timestamp.fromDate(contribution.date) });
         
         const investmentRef = doc(db, `users/${uid}/investments`, contribution.investmentId);
         const investmentSnap = await getDoc(investmentRef);
@@ -760,8 +760,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setInvestments(prev => prev.map(i => i.id === contribution.investmentId ? {...i, currentValue: newCurrentValue, initialAmount: newInitialAmount } : i));
     };
 
-    const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
-        const newSub = { ...subscription, status: 'active' as const };
+    const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status' | 'dueDate'> & {dueDate: Date}) => {
+        const newSub = { ...subscription, status: 'active' as const, dueDate: Timestamp.fromDate(subscription.dueDate) };
         await crudOperations('subscriptions', setSubscriptions).add(newSub);
     };
 
@@ -791,7 +791,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const subRef = doc(db, `users/${uid}/subscriptions`, subscription.id);
         const nextDueDate = addMonths(new Date(subscription.dueDate), 1);
         batch.update(subRef, { 
-            dueDate: nextDueDate,
+            dueDate: Timestamp.fromDate(nextDueDate),
             lastPaymentMonth: getMonth(new Date()),
             lastPaymentYear: getYear(new Date())
         });
@@ -849,11 +849,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
          setSubscriptions(prev => prev.map(s => s.id === id ? {...s, amount: newAmount} : s));
     };
     
-    const addReport = async (report: MonthlyReport) => {
+    const addReport = async (report: Omit<MonthlyReport, 'generatedAt'> & {generatedAt?: Date}) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        const reportRef = doc(db, `users/${uid}/reports`, report.id);
-        await setDoc(reportRef, report);
-        setReports(prev => [...prev.filter(r => r.id !== report.id), report]);
+        const finalReport = {...report, generatedAt: report.generatedAt || new Date()}
+        const reportRef = doc(db, `users/${uid}/reports`, finalReport.id);
+        await setDoc(reportRef, { ...finalReport, generatedAt: Timestamp.fromDate(finalReport.generatedAt) });
+        setReports(prev => [...prev.filter(r => r.id !== finalReport.id), finalReport]);
     };
     
     const deleteReport = async (id: string) => {
@@ -861,13 +862,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setReports(prev => prev.filter(r => r.id !== id));
     };
     
-    const addTaxPayment = async (payment: Omit<TaxPayment, 'id'>) => {
+    const addTaxPayment = async (payment: Omit<TaxPayment, 'id' | 'date'> & {date: Date}) => {
          if (!uid) throw new Error("No hay un usuario autenticado.");
          const batch = writeBatch(db);
+        const finalPayment = { ...payment, date: Timestamp.fromDate(payment.date) };
 
         // 1. Add tax payment record
         const paymentRef = doc(collection(db, `users/${uid}/taxPayments`));
-        batch.set(paymentRef, payment);
+        batch.set(paymentRef, finalPayment);
 
         // 2. Create expense transaction
         const transactionRef = doc(collection(db, `users/${uid}/transactions`));
@@ -880,7 +882,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`,
             category: 'Impuestos',
             profile: account.profile,
-            date: payment.date.toISOString(),
+            date: finalPayment.date.toDate().toISOString(),
             accountId: payment.sourceAccountId,
         });
 
@@ -894,6 +896,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setTaxPayments(prev => [...prev, {id: paymentRef.id, ...payment}]);
         setBankAccounts(prev => prev.map(acc => acc.id === payment.sourceAccountId ? { ...acc, balance: newBalance } : acc));
         setAllTransactions(prev => [...prev, {id: transactionRef.id, type: 'expense', amount: payment.amount, description: `Pago de Impuestos (F29) ${payment.month + 1}/${payment.year}`, category: 'Impuestos', profile: account.profile, date: payment.date.toISOString(), accountId: payment.sourceAccountId} as Transaction]);
+    };
+    
+    const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount' | 'estimatedDate'> & {estimatedDate: Date}) => {
+        const newGoal = { ...goal, currentAmount: 0, estimatedDate: Timestamp.fromDate(goal.estimatedDate) };
+        await crudOperations('goals', setGoals).add(newGoal);
     };
 
 
@@ -950,7 +957,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addFixedExpense: fixedExpensesCrud.add,
         updateFixedExpense: fixedExpensesCrud.update,
         deleteFixedExpense: fixedExpensesCrud.delete,
-        addGoal: goalsCrud.add,
+        addGoal,
         updateGoal: goalsCrud.update,
         deleteGoal: goalsCrud.delete,
         addGoalContribution,

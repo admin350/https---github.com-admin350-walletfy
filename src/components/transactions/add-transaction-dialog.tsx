@@ -86,7 +86,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
-    transactionToEdit?: Partial<Transaction>;
+    transactionToEdit?: Partial<Omit<Transaction, 'date'> & { date: string | Date }>;
     defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -194,7 +194,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 destinationAccountId: transactionToEdit?.destinationAccountId || undefined,
                 paymentMethod: transactionToEdit?.cardId || 'account-balance',
                 date: transactionToEdit?.date ? new Date(transactionToEdit.date) : new Date(),
-                isInstallment: false,
+                isInstallment: false, // Always start with false for installments
                 installments: undefined,
                 includesTax: hasTax,
                 taxRate: transactionToEdit?.taxDetails?.rate || 19,

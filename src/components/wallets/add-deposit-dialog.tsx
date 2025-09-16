@@ -92,7 +92,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
             
             await addTransaction({
                 ...values,
-                type: 'income' as const,
+                type: 'income',
                 profile: selectedAccount.profile,
                 includesTax: false,
             });

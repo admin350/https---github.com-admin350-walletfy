@@ -1,4 +1,3 @@
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -76,9 +75,8 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
             if (goalToEdit) {
                  const goalToUpdate = { 
                     ...goalToEdit, 
-                    ...values, 
-                    estimatedDate: values.estimatedDate 
-                };
+                    ...values,
+                 };
                 await updateGoal(goalToUpdate);
                 toast({
                     title: "Meta actualizada",

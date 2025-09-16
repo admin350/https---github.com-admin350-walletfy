@@ -1,4 +1,3 @@
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -83,7 +82,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         setIsLoading(true);
         try {
             if (debtToEdit) {
-                const debtToUpdate = { ...debtToEdit, ...values, dueDate: values.dueDate };
+                const debtToUpdate = { ...debtToEdit, ...values };
                 await updateDebt(debtToUpdate);
                 toast({
                     title: "Deuda actualizada",
