@@ -1,3 +1,5 @@
+!!! PRUEBA DE SINCRONIZACIÓN !!! SI VES ESTA LÍNEA EN GITHUB, LA CONEXIÓN FUNCIONA.
+
 # walletfy - Your Personal Power BI
 
 "walletfy" is a comprehensive financial management web application designed to function as a personal Power BI. It allows users to manage personal, family, and business finances in separate workspaces, with a core feature of a dynamic, real-time budgeting system.
