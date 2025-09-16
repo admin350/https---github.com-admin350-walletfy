@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { DataProvider } from '@/context/data-context';
-import { AppBody } from './app-body';
+import { AppBodyWrapper } from './app-body-wrapper';
 
 
 export const metadata: Metadata = {
@@ -28,11 +28,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <DataProvider>
-        <AppBody>
-            {children}
-            <Toaster />
-        </AppBody>
+        <AppBodyWrapper>
+          {children}
+          <Toaster />
+        </AppBodyWrapper>
       </DataProvider>
     </html>
   );
 }
+
