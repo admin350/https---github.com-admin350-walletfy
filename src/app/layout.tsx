@@ -30,11 +30,10 @@ export default function RootLayout({
       <DataProvider>
         <AppBody>
             {children}
-            <Toaster />
         </AppBody>
+        <Toaster />
       </DataProvider>
     </html>
   );
 }
 
-    

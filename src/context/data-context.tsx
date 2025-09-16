@@ -1062,5 +1062,3 @@ export function DataProvider({ children }: { children: ReactNode }) {
     );
 }
 
-    
-    
