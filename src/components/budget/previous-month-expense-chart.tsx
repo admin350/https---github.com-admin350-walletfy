@@ -39,7 +39,7 @@ export function PreviousMonthExpenseChart() {
 
     const totalIncome = prevMonthTransactions
         .filter((t: Transaction) => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
     const expenseCategories = categories.filter(c => c.type === 'Gasto');
 
