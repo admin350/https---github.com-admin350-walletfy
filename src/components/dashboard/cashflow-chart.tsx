@@ -20,13 +20,14 @@ import { useData } from "@/context/data-context"
 import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, getYear, getMonth } from "date-fns"
 import { es } from "date-fns/locale"
 import { Skeleton } from "../ui/skeleton"
+import type { Transaction, Profile } from "@/types"
 
 export function CashflowChart() {
   const { transactions, isLoading, profiles, formatCurrency, filters } = useData();
   
   const chartConfig = useMemo(() => {
     const config: any = {};
-    profiles.forEach(p => {
+    profiles.forEach((p: Profile) => {
         config[`income-${p.id}`] = { label: `Ingreso (${p.name})`, color: p.color };
         config[`expenses-${p.id}`] = { label: `Egreso (${p.name})`, color: p.color };
     });
@@ -43,17 +44,17 @@ export function CashflowChart() {
         month: format(new Date(filters.year, month), 'LLL', { locale: es }),
       };
 
-      profiles.forEach(profile => {
+      profiles.forEach((profile: Profile) => {
         const incomeKey = `income-${profile.id}`;
         const expenseKey = `expenses-${profile.id}`;
         
         dataPoint[incomeKey] = transactions
-          .filter(t => t.type === 'income' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
-          .reduce((sum, t) => sum + t.amount, 0);
+          .filter((t: Transaction) => t.type === 'income' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
         dataPoint[expenseKey] = transactions
-          .filter(t => t.type === 'expense' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
-          .reduce((sum, t) => sum + t.amount, 0);
+          .filter((t: Transaction) => t.type === 'expense' && getMonth(new Date(t.date)) === month && getYear(new Date(t.date)) === filters.year && t.profile === profile.name)
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
       });
       
       return dataPoint;
@@ -76,7 +77,7 @@ export function CashflowChart() {
         day: format(day, 'dd'),
       };
       
-      profiles.forEach(profile => {
+      profiles.forEach((profile: Profile) => {
           const incomeKey = `income-${profile.id}`;
           const expenseKey = `expenses-${profile.id}`;
 
@@ -84,12 +85,12 @@ export function CashflowChart() {
           if (!cumulativeTotals[expenseKey]) cumulativeTotals[expenseKey] = 0;
 
           const dailyIncome = transactions
-            .filter(t => t.type === 'income' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
-            .reduce((sum, t) => sum + t.amount, 0);
+            .filter((t: Transaction) => t.type === 'income' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
+            .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
         
           const dailyExpenses = transactions
-            .filter(t => t.type === 'expense' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
-            .reduce((sum, t) => sum + t.amount, 0);
+            .filter((t: Transaction) => t.type === 'expense' && format(new Date(t.date), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') && t.profile === profile.name)
+            .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
            cumulativeTotals[incomeKey] += dailyIncome;
            cumulativeTotals[expenseKey] += dailyExpenses;
@@ -106,8 +107,8 @@ export function CashflowChart() {
   const isYearlyView = filters.month === -1;
   const currentChartData = isYearlyView ? yearlyChartData : monthlyChartData;
 
-  const incomeKeys = profiles.map(p => `income-${p.id}`);
-  const expenseKeys = profiles.map(p => `expenses-${p.id}`);
+  const incomeKeys = profiles.map((p: Profile) => `income-${p.id}`);
+  const expenseKeys = profiles.map((p: Profile) => `expenses-${p.id}`);
 
   return (
     <Card className="bg-card/50 border-border/50">
@@ -148,7 +149,9 @@ export function CashflowChart() {
               />
               <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value, name, item) => {
                   const configKey = item.dataKey;
+                  if (!configKey) return null;
                   const itemConfig = chartConfig[configKey];
+                  if (!itemConfig) return null;
                   return (
                      <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: itemConfig.color }} />

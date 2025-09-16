@@ -10,15 +10,16 @@ import {
 import { useMemo } from "react"
 import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
+import type { Debt, Profile } from "@/types"
 
 export function DebtsOverviewChart() {
   const { debts, profiles, isLoading, formatCurrency } = useData();
   
   const chartData = useMemo(() => {
     return debts
-        .filter(d => d.paidAmount < d.totalAmount) // Only show active debts
+        .filter((d: Debt) => d.paidAmount < d.totalAmount) // Only show active debts
         .map(debt => {
-            const profile = profiles.find(p => p.name === debt.profile);
+            const profile = profiles.find((p: Profile) => p.name === debt.profile);
             return {
                 name: debt.name,
                 total: debt.totalAmount,
@@ -75,6 +76,7 @@ export function DebtsOverviewChart() {
                 content={<ChartTooltipContent 
                     formatter={(value, name, props) => {
                         const { payload } = props;
+                        if (!payload) return null;
                         return (
                             <div className="flex flex-col gap-1 text-sm">
                                 <span className="font-bold" style={{ color: payload.fill }}>{payload.name}</span>

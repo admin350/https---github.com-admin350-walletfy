@@ -10,6 +10,7 @@ import {
 import { useMemo } from "react"
 import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
+import type { SavingsGoal, Profile } from "@/types"
 
 // Recharts doesn't directly expose Cell for BarChart, but it works.
 // We'll declare it to satisfy TypeScript.
@@ -21,9 +22,9 @@ export function GoalsSummaryChart() {
   
   const chartData = useMemo(() => {
     return goals
-        .filter(g => g.currentAmount < g.targetAmount) // Only show active goals
+        .filter((g: SavingsGoal) => g.currentAmount < g.targetAmount) // Only show active goals
         .map(goal => {
-            const profile = profiles.find(p => p.name === goal.profile);
+            const profile = profiles.find((p: Profile) => p.name === goal.profile);
             return {
                 name: goal.name,
                 target: goal.targetAmount,
@@ -80,6 +81,7 @@ export function GoalsSummaryChart() {
                 content={<ChartTooltipContent 
                     formatter={(value, name, props) => {
                         const { payload } = props;
+                        if (!payload) return null;
                         return (
                             <div className="flex flex-col gap-1 text-sm">
                                 <span className="font-bold" style={{ color: payload.fill }}>{payload.name}</span>
