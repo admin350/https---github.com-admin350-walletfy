@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Transaction, SavingsGoal, Subscription, Profile, Category, FixedExpense, Debt, GoalContribution, DebtPayment, Investment, InvestmentContribution, Budget, BankAccount, BankCard, MonthlyReport, AppSettings, AppNotification, TaxPayment, Service } from "@/types";
@@ -108,7 +107,7 @@ export const useData = () => {
 
 
 // PROVIDER
-export const DataProvider = ({ children }: { children: ReactNode }) => {
+export function DataProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [uid, setUid] = useState<string | null>(null);
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -1061,4 +1060,4 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </DataContext.Provider>
     );
-};
+}
