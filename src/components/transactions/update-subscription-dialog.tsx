@@ -178,7 +178,7 @@ export function UpdateSubscriptionDialog({ subscription, open, onOpenChange }: U
                                                     const availableCredit = card.creditLimit ? card.creditLimit - (card.usedAmount || 0) : 0;
                                                     return (
                                                         <SelectItem key={card.id} value={card.id}>
-                                                        {card.name} (**** {card.last4Digits})
+                                                        {card.bank} - {card.brand} {card.cardType} (**** {card.last4Digits})
                                                         {card.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
                                                         </SelectItem>
                                                     )

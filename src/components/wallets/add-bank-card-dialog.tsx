@@ -309,7 +309,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                         </FormControl>
                                         <SelectContent>
                                             {filteredAccounts.map(acc => (
-                                                <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.bank})</SelectItem>
+                                                <SelectItem key={acc.id} value={acc.id}>{acc.bank} - {acc.accountType} ({acc.name})</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>

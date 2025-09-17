@@ -227,7 +227,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                         </FormControl>
                                         <SelectContent>
                                             {filteredAccounts.map(a => (
-                                                <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank})</SelectItem>
+                                                <SelectItem key={a.id} value={a.id}>{a.bank} - {a.accountType} ({a.name})</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>

@@ -68,14 +68,14 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
         // Add bank accounts (for debit payments)
         options.push(...accountsForProfile.map(acc => ({
             value: acc.id,
-            label: `Cuenta: ${acc.name} (${acc.bank}) - Saldo: ${formatCurrency(acc.balance)}`,
+            label: `${acc.bank} - ${acc.accountType} - Saldo: ${formatCurrency(acc.balance)}`,
             type: 'account'
         })));
         
         // Add credit cards
         options.push(...cardsForProfile.filter(c => c.cardType === 'credit').map(card => ({
              value: card.id,
-             label: `Tarjeta: ${card.name} (**** ${card.last4Digits}) - Disp: ${formatCurrency((card.creditLimit || 0) - (card.usedAmount || 0))}`,
+             label: `${card.bank} - ${card.brand} ${card.cardType} (**** ${card.last4Digits}) - Disp: ${formatCurrency((card.creditLimit || 0) - (card.usedAmount || 0))}`,
              type: 'card'
         })));
 

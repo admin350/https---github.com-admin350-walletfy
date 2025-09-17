@@ -355,7 +355,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                 </FormControl>
                                 <SelectContent>
                                 {availableAccounts.map(a => (
-                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
+                                    <SelectItem key={a.id} value={a.id}>{a.bank} - {a.accountType} ({a.name}) - {formatCurrency(a.balance)}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
@@ -378,7 +378,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                     </FormControl>
                                     <SelectContent>
                                     {availableDestinationAccounts.map(a => (
-                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
+                                        <SelectItem key={a.id} value={a.id}>{a.bank} - {a.accountType} ({a.name}) - {formatCurrency(a.balance)}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
@@ -411,7 +411,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                             const availableCredit = c.creditLimit ? c.creditLimit - (c.usedAmount || 0) : 0;
                                             return (
                                                 <SelectItem key={c.id} value={c.id}>
-                                                    {c.name} (**** {c.last4Digits})
+                                                    {c.bank} - {c.brand} {c.cardType} (**** {c.last4Digits})
                                                     {c.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
                                                 </SelectItem>
                                             )
@@ -582,6 +582,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 }
 
     
+
 
 
 
