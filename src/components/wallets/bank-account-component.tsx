@@ -97,7 +97,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[0_0_15px_var(--tw-shadow-color)] bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
+                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[0_0_25px_-5px_var(--tw-shadow-color)] bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
                 )}
             >
                  <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
