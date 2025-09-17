@@ -1,4 +1,3 @@
-
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -99,10 +98,12 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border"
+                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
                 )}
             >
                  <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
+                
+                {/* Header */}
                 <div className="relative z-10 flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-2">
@@ -160,41 +161,49 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                         </AlertDialog>
                     </div>
                 </div>
-                <div className="relative z-10 mt-auto">
-                    {hasLimit && (
-                        <div className="space-y-1 mb-3">
-                           <TooltipProvider>
-                               <Tooltip>
-                                   <TooltipTrigger className="w-full">
-                                        <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
-                                   </TooltipTrigger>
-                                   <TooltipContent>
-                                       <p>{`Utilizado: ${formatCurrency(monthlyIncome, true, true)} de ${formatCurrency(account.monthlyLimit!, true, true)} (${limitUsage.toFixed(1)}%)`}</p>
-                                   </TooltipContent>
-                               </Tooltip>
-                           </TooltipProvider>
-                           <div className="text-xs text-white/70">
-                             Cupo mensual: {formatCurrency(monthlyIncome)} / {formatCurrency(account.monthlyLimit!)}
-                           </div>
-                        </div>
-                    )}
-                    {account.hasCreditLine && account.creditLineLimit && (
-                         <div className="space-y-1 mb-3">
-                           <TooltipProvider>
-                               <Tooltip>
-                                   <TooltipTrigger className="w-full">
-                                        <Progress value={creditLineProgress} className="h-1.5 [&>div]:bg-red-400/80" />
-                                   </TooltipTrigger>
-                                   <TooltipContent>
-                                       <p>{`Utilizado: ${formatCurrency(account.creditLineUsed || 0)} de ${formatCurrency(account.creditLineLimit)} (${creditLineProgress.toFixed(1)}%)`}</p>
-                                   </TooltipContent>
-                               </Tooltip>
-                           </TooltipProvider>
-                           <div className="text-xs text-white/70">
-                             Línea de Crédito Disponible: {formatCurrency(creditLineAvailable)}
-                           </div>
-                        </div>
-                    )}
+
+                {/* Flexible Spacer */}
+                <div className="flex-grow"></div>
+                
+                {/* Footer Content */}
+                <div className="relative z-10">
+                    <div className="space-y-3 mb-3 h-14"> {/* Reserved space for progress bars */}
+                         {hasLimit && (
+                            <div className="space-y-1">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger className="w-full">
+                                            <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{`Utilizado: ${formatCurrency(monthlyIncome, true, true)} de ${formatCurrency(account.monthlyLimit!, true, true)} (${limitUsage.toFixed(1)}%)`}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <div className="text-xs text-white/70">
+                                Cupo mensual: {formatCurrency(monthlyIncome)} / {formatCurrency(account.monthlyLimit!)}
+                            </div>
+                            </div>
+                        )}
+                        {account.hasCreditLine && account.creditLineLimit && (
+                            <div className="space-y-1">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger className="w-full">
+                                            <Progress value={creditLineProgress} className="h-1.5 [&>div]:bg-red-400/80" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{`Utilizado: ${formatCurrency(account.creditLineUsed || 0)} de ${formatCurrency(account.creditLineLimit)} (${creditLineProgress.toFixed(1)}%)`}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <div className="text-xs text-white/70">
+                                Línea de Crédito Disponible: {formatCurrency(creditLineAvailable)}
+                            </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="space-y-2">
                         <div className="flex justify-between items-end">
                             <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
