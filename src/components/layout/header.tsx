@@ -19,6 +19,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const navSections = [
     {
+        title: "Obligaciones y Metas",
+        items: [
+            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
+            { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
+            { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
+            { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
+            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
+            { href: "/dashboard/services", icon: Globe, label: "Servicios", color: "text-cyan-400" },
+        ]
+    },
+    {
         title: "Análisis y Registros",
         items: [
             { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
@@ -37,17 +48,6 @@ const navSections = [
             { href: "/dashboard/savings-portfolio", icon: PiggyBank, label: "Ahorros", color: "text-emerald-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
             { href: "/dashboard/tax-portfolio", icon: Scale, label: "Cartera Tributaria", color: "text-teal-400" },
-        ]
-    },
-    {
-        title: "Obligaciones y Metas",
-        items: [
-            { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
-            { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
-            { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
-            { href: "/dashboard/goals", icon: Target, label: "Metas", color: "text-yellow-400" },
-            { href: "/dashboard/investments", icon: TrendingUp, label: "Inversiones", color: "text-green-400" },
-            { href: "/dashboard/services", icon: Globe, label: "Servicios", color: "text-cyan-400" },
         ]
     }
 ]
