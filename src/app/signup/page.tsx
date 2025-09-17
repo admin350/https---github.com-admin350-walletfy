@@ -67,7 +67,7 @@ function SignupPageContent() {
                     className="flex justify-center items-center gap-2 mb-2"
                 >
                    <Wallet className="h-8 w-8 text-primary" />
-                   <h1 className="text-3xl font-bold font-headline">FA WALLET</h1>
+                   <h1 className="text-3xl font-bold font-headline">WALLETFY</h1>
               </motion.div>
             <CardTitle>Crear una Cuenta</CardTitle>
             <CardDescription>Empieza a tomar el control de tus finanzas hoy mismo.</CardDescription>

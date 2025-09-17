@@ -145,7 +145,7 @@ function LoginPageContent() {
                     className="flex justify-center items-center gap-2 mb-2"
                 >
                     <Wallet className="h-8 w-8 text-primary" />
-                    <h1 className="text-3xl font-bold font-headline">FA WALLET</h1>
+                    <h1 className="text-3xl font-bold font-headline">WALLETFY</h1>
                 </motion.div>
                 <CardTitle>Iniciar Sesión</CardTitle>
                 <CardDescription>Bienvenido de vuelta. Accede a tu panel financiero.</CardDescription>

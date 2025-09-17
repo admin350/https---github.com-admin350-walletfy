@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'FA WALLET',
+  title: 'WALLETFY',
   description:
     'Gestión financiera integral para necesidades personales, familiares y de negocios.',
   icons: {
