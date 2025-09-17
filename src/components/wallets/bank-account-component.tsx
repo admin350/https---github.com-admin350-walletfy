@@ -27,7 +27,6 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
     const [manageCreditLineAccount, setManageCreditLineAccount] = useState<BankAccount | null>(null);
     const [isCopied, setIsCopied] = useState(false);
-    const profile = profiles.find(p => p.name === account.profile);
 
     const monthlyIncome = useMemo(() => {
         if (account.accountType !== 'Cuenta Vista' || !account.monthlyLimit) return 0;
@@ -82,7 +81,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const accountStyle = {
       '--tw-gradient-from': account.color || '#374151',
       '--tw-gradient-to': 'rgb(0 0 0 / 1)',
-      '--tw-shadow-color': profile ? profile.color : '#ffffff',
+      '--tw-shadow-color': account.color || '#ffffff',
     } as React.CSSProperties;
 
     const hasLimit = account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0;
@@ -98,7 +97,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             <div 
                  style={accountStyle}
                  className={cn(
-                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
+                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[0_0_15px_var(--tw-shadow-color)] bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
                 )}
             >
                  <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>

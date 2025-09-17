@@ -1,4 +1,3 @@
-
 'use client'
 
 import { BankCard, BankAccount, Transaction } from "@/types";
@@ -106,7 +105,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
              <div 
                  style={cardStyle}
                  className={cn(
-                    "relative rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg shadow-[var(--tw-shadow-color)]/20 hover:shadow-[var(--tw-shadow-color)]/30 bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] aspect-[1.586]"
+                    "relative rounded-xl text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[0_0_15px_var(--tw-shadow-color)] bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] aspect-[1.586]"
                 )}
             >
                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
