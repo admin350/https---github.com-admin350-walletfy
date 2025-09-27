@@ -1,7 +1,7 @@
 
 import { genkit, type GenkitOptions } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { firebase } from 'genkit/plugins/firebase';
+import { firebase } from '@genkit-ai/firebase';
 import { dotprompt } from 'genkit/plugins/dotprompt';
 import { devLogger, prodLogger } from 'genkit/plugins/logging';
 
