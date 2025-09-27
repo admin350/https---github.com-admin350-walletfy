@@ -10,11 +10,11 @@ const options: GenkitOptions = {
     }),
     firebase(),
   ],
-  flowStateStore: firebase().flowStateStore(),
-  traceStore: firebase().traceStore(),
+  flowStateStore: "firebase",
+  traceStore: "firebase",
   telemetry: {
-    instrumentation: firebase().instrumentation(),
-    sampler: firebase().sampler()
+    instrumentation: "firebase",
+    sampler: "firebase"
   }
 };
 
