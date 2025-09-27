@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { Debt, Transaction } from '@/types';
 import { Checkbox } from '../ui/checkbox';
+import { useSubmitAction } from '@/hooks/use-submit-action';
 
 
 const formSchema = z.object({
@@ -85,10 +86,12 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type FormDebt = Omit<Debt, 'id' | 'paidAmount'>;
+
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
-    transactionToEdit?: Partial<Omit<Transaction, 'date'> & { date: string | Date }>;
+    transactionToEdit?: Partial<Omit<Transaction, 'id'> & { date: string | Date }>;
     defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -99,7 +102,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     const [internalOpen, setInternalOpen] = useState(false);
     const { toast } = useToast();
     const { addTransaction, updateTransaction, categories, profiles, bankAccounts, bankCards, formatCurrency, addDebt } = useData();
-    const [isLoading, setIsLoading] = useState(false);
     
     const isControlled = open !== undefined && onOpenChange !== undefined;
     const dialogOpen = isControlled ? open : internalOpen;
@@ -124,14 +126,13 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         },
     });
 
-     const onSubmit = async (values: FormValues) => {
-        setIsLoading(true);
-        try {
+    const { performAction, isLoading, isSuccess } = useSubmitAction<FormValues>({
+        action: async (values: FormValues) => {
             if (values.isInstallment) {
                 const card = bankCards.find(c => c.id === values.paymentMethod);
                 if (!card) throw new Error("Tarjeta de crédito no encontrada para la compra en cuotas.");
 
-                const newDebt: Omit<Debt, 'id' | 'paidAmount' | 'dueDate'> & { dueDate: Date } = {
+                const newDebt: Omit<Debt, 'id' | 'paidAmount'> = {
                     name: `Compra en cuotas: ${values.description}`,
                     totalAmount: values.amount,
                     monthlyPayment: values.amount / (values.installments || 1),
@@ -144,47 +145,47 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 };
 
                 await addDebt(newDebt);
-
+                
                 toast({
                     title: "Deuda por Cuotas Creada",
                     description: `Se ha creado una nueva deuda para tu compra en ${values.installments} cuotas.`,
                 });
 
-            } else if (transactionToEdit?.id) {
-                const transactionToUpdate: Transaction = {
-                    ...(transactionToEdit as Transaction),
-                    ...values,
-                };
-                await updateTransaction(transactionToUpdate);
-                toast({
-                    title: "Transacción actualizada",
-                    description: `La transacción ha sido actualizada exitosamente.`,
-                });
             } else {
-                await addTransaction({
-                    ...values,
-                    date: values.date,
-                });
+                 const transactionData = { ...values };
+
+                if (transactionToEdit && transactionToEdit.id) {
+                    await updateTransaction({ ...transactionToEdit, ...transactionData, id: transactionToEdit.id });
+                } else {
+                    await addTransaction(transactionData);
+                }
+            }
+        },
+        onSuccess: () => {
+            if (!form.getValues('isInstallment')) {
                 toast({
-                    title: "Transacción añadida",
-                    description: `La transacción ha sido registrada exitosamente.`,
+                    title: transactionToEdit?.id ? "Transacción actualizada" : "Transacción añadida",
+                    description: `La transacción ha sido ${transactionToEdit?.id ? 'actualizada' : 'registrada'} exitosamente.`,
                 });
             }
             if (onFinish) onFinish();
-            setDialogOpen(false);
-        } catch (error) {
-             const err = error instanceof Error ? error : new Error('An unknown error occurred');
+        },
+        onError: (error) => {
             toast({
                 title: "Error",
-                description: err.message || `No se pudo procesar la operación.`,
+                description: error.message || `No se pudo procesar la operación.`,
                 variant: 'destructive'
             });
-        } finally {
-            setIsLoading(false);
         }
-    };
+    });
 
     useEffect(() => {
+        if (isSuccess) {
+            setDialogOpen(false);
+        }
+    }, [isSuccess, setDialogOpen]);
+
+     useEffect(() => {
         if(dialogOpen) {
             const hasTax = !!transactionToEdit?.taxDetails;
             const initialValues: Partial<FormValues> = {
@@ -270,7 +271,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         </DialogHeader>
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(performAction)} className="space-y-4">
                     <FormField
                         control={form.control}
                         name="type"
@@ -355,7 +356,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                 </FormControl>
                                 <SelectContent>
                                 {availableAccounts.map(a => (
-                                    <SelectItem key={a.id} value={a.id}>{a.bank} - {a.accountType} ({a.name}) - {formatCurrency(a.balance)}</SelectItem>
+                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
@@ -378,7 +379,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                     </FormControl>
                                     <SelectContent>
                                     {availableDestinationAccounts.map(a => (
-                                        <SelectItem key={a.id} value={a.id}>{a.bank} - {a.accountType} ({a.name}) - {formatCurrency(a.balance)}</SelectItem>
+                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
@@ -411,7 +412,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                             const availableCredit = c.creditLimit ? c.creditLimit - (c.usedAmount || 0) : 0;
                                             return (
                                                 <SelectItem key={c.id} value={c.id}>
-                                                    {c.bank} - {c.brand} {c.cardType} (**** {c.last4Digits})
+                                                    {c.name} (**** {c.last4Digits})
                                                     {c.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
                                                 </SelectItem>
                                             )
@@ -580,9 +581,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
-
-    
-
-
-
-
