@@ -5,7 +5,7 @@ exports.ai = void 0;
 const genkit_1 = require("genkit");
 const googleai_1 = require("@genkit-ai/googleai");
 const firebase_1 = require("@genkit-ai/firebase");
-const options = {
+exports.ai = (0, genkit_1.genkit)({
     plugins: [
         (0, googleai_1.googleAI)({
             apiVersion: ['v1', 'v1beta'],
@@ -18,6 +18,5 @@ const options = {
         instrumentation: "firebase",
         sampler: "firebase"
     }
-};
-exports.ai = (0, genkit_1.genkit)(options);
+});
 //# sourceMappingURL=genkit-client.js.map
