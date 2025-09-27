@@ -3,7 +3,7 @@
  * @fileOverview Un agente de IA para procesar transacciones a granel desde texto o imágenes.
  */
 import { z } from 'zod';
-import { ai } from '@/lib/genkit-client';
+import { ai } from '../genkit-client';
 
 const TransactionSchema = z.object({
     amount: z.number().describe("El monto numérico de la transacción. Positivo para ingresos, negativo para gastos."),
