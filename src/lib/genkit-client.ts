@@ -3,7 +3,7 @@ import { genkit, type GenkitOptions } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
 import { dotprompt } from '@genkit-ai/dotprompt';
-import { devLogger, prodLogger } from '@genkit-ai/dev-local-logger';
+
 
 const options: GenkitOptions = {
   plugins: [
@@ -17,7 +17,7 @@ const options: GenkitOptions = {
       // the @genkit-ai/firebase plugin.
       // client: firebase().promptClient(),
     }),
-    process.env.NODE_ENV === 'production' ? prodLogger() : devLogger(),
+    
   ],
   // Where to store flow state. Defaults to in-memory.
   // flowStateStore: firebase().flowStateStore(),
