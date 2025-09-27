@@ -1,9 +1,9 @@
-
+'use client';
 import { genkit, type GenkitOptions } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
-import { dotprompt } from 'genkit/plugins/dotprompt';
-import { devLogger, prodLogger } from 'genkit/plugins/logging';
+import { dotprompt } from '@genkit-ai/dotprompt';
+import { devLogger, prodLogger } from '@genkit-ai/dev-local-logger';
 
 const options: GenkitOptions = {
   plugins: [

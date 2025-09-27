@@ -21,7 +21,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
 import type { Transaction } from "@/types";
-import { SmartTransactionImporter } from "@/components/dashboard/smart-transaction-importer";
 
 
 export default function DashboardPage() {
@@ -114,8 +113,6 @@ export default function DashboardPage() {
 
             <CashflowChart />
             
-             <SmartTransactionImporter />
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                   <CardHeader>
