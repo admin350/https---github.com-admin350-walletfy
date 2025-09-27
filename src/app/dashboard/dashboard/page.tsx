@@ -11,7 +11,6 @@ import { useState, useEffect, useMemo } from "react";
 import { AddFixedExpenseDialog } from "@/components/transactions/add-fixed-expense-dialog";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FinancialAnalysisIA } from "@/components/dashboard/financial-analysis-ia";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { FinancialSummary } from "@/components/dashboard/financial-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +21,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
 import type { Transaction } from "@/types";
+import { SmartTransactionImporter } from "@/components/dashboard/smart-transaction-importer";
 
 
 export default function DashboardPage() {
@@ -113,6 +113,8 @@ export default function DashboardPage() {
               </Card>
 
             <CashflowChart />
+            
+             <SmartTransactionImporter />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
@@ -138,7 +140,6 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
             </div>
-              <FinancialAnalysisIA />
 
           </div>
 
