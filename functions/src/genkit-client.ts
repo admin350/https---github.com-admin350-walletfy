@@ -1,9 +1,9 @@
 'use server';
-import { genkit, type GenkitOptions } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
 
-const options: GenkitOptions = {
+export const ai = genkit({
   plugins: [
     googleAI({
       apiVersion: ['v1', 'v1beta'],
@@ -16,6 +16,4 @@ const options: GenkitOptions = {
     instrumentation: "firebase",
     sampler: "firebase"
   }
-};
-
-export const ai = genkit(options);
+});

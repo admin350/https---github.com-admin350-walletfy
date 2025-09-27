@@ -12,11 +12,11 @@ const options = {
         }),
         (0, firebase_1.firebase)(),
     ],
-    flowStateStore: (0, firebase_1.firebase)().flowStateStore(),
-    traceStore: (0, firebase_1.firebase)().traceStore(),
+    flowStateStore: "firebase",
+    traceStore: "firebase",
     telemetry: {
-        instrumentation: (0, firebase_1.firebase)().instrumentation(),
-        sampler: (0, firebase_1.firebase)().sampler()
+        instrumentation: "firebase",
+        sampler: "firebase"
     }
 };
 exports.ai = (0, genkit_1.genkit)(options);
