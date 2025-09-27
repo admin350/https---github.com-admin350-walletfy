@@ -2,10 +2,7 @@
 /**
  * @fileOverview Un agente de IA para procesar transacciones a granel desde texto o imágenes.
  */
-import { generate } from 'genkit/ai';
-import { geminiPro } from '@genkit-ai/googleai';
 import { z } from 'zod';
-import { defineFlow } from 'genkit/flow';
 import { ai } from '@/lib/genkit-client';
 
 const TransactionSchema = z.object({
@@ -33,44 +30,43 @@ export async function processTransactions(input: z.infer<typeof ProcessTransacti
 }
 
 
-const processTransactionsFlow = defineFlow(
+const prompt = ai.definePrompt({
+    name: 'processTransactionsPrompt',
+    input: { schema: ProcessTransactionsInputSchema },
+    output: { schema: ProcessTransactionsOutputSchema },
+    prompt: `Eres un asistente experto en finanzas para la app WALLETFY. Tu tarea es analizar un texto o una imagen y extraer todas las transacciones que encuentres.
+
+Para cada transacción, debes identificar: el monto, una descripción, la categoría, el perfil y la cuenta/tarjeta utilizada.
+
+Usa las siguientes listas para hacer coincidir la información:
+Perfiles Disponibles: {{{profiles}}}
+Categorías Disponibles: {{{categories}}}
+Cuentas/Tarjetas Disponibles (debes devolver el ID asociado al nombre): {{{accounts}}}
+
+El monto debe ser un número. Si es un gasto, hazlo negativo. Si es un ingreso, mantenlo positivo.
+Si no puedes determinar un campo, déjalo como un string vacío.
+
+Analiza la siguiente entrada y devuelve un objeto JSON con una lista de transacciones.
+{{#if text}}
+Aquí está el texto a analizar:
+{{{text}}}
+{{/if}}
+{{#if photoDataUri}}
+Analiza el texto en la siguiente imagen:
+{{media url=photoDataUri}}
+{{/if}}
+`
+});
+
+
+const processTransactionsFlow = ai.defineFlow(
   {
     name: 'processTransactionsFlow',
     inputSchema: ProcessTransactionsInputSchema,
     outputSchema: ProcessTransactionsOutputSchema,
   },
   async (input) => {
-    const promptParts = [
-        `Eres un asistente experto en finanzas para la app WALLETFY. Tu tarea es analizar un texto o una imagen y extraer todas las transacciones que encuentres.`,
-        `Para cada transacción, debes identificar: el monto, una descripción, la categoría, el perfil y la cuenta/tarjeta utilizada.`,
-        `Usa las siguientes listas para hacer coincidir la información:`,
-        `Perfiles Disponibles: ${input.profiles.join(', ')}.`,
-        `Categorías Disponibles: ${input.categories.join(', ')}.`,
-        `Cuentas/Tarjetas Disponibles (debes devolver el ID asociado al nombre): ${input.accounts.map(a => `${a.name} (ID: ${a.id})`).join(', ')}.`,
-        `El monto debe ser un número. Si es un gasto, hazlo negativo. Si es un ingreso, mantenlo positivo.`,
-        `Si no puedes determinar un campo, déjalo como un string vacío.`,
-        `Analiza la siguiente entrada y devuelve un objeto JSON con una lista de transacciones.`
-    ];
-
-    if (input.text) {
-        promptParts.push(`Aquí está el texto a analizar:\n\n${input.text}`);
-    } else if (input.photoDataUri) {
-        promptParts.push('Analiza el texto en la siguiente imagen:');
-        promptParts.push({ media: { url: input.photoDataUri } });
-    }
-
-    const llmResponse = await generate({
-        model: geminiPro,
-        prompt: promptParts,
-        output: {
-            format: 'json',
-            schema: ProcessTransactionsOutputSchema,
-        },
-        config: {
-            temperature: 0.1,
-        }
-    });
-
-    return llmResponse.output() || { transactions: [] };
+    const llmResponse = await prompt(input);
+    return llmResponse.output || { transactions: [] };
   }
 );
