@@ -4,14 +4,14 @@ import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
 
 export const ai = genkit({
-  plugins: [
-    googleAI(),
-    firebase(),
-  ],
-  flowStateStore: "firebase",
-  traceStore: "firebase",
-  telemetry: {
-    instrumentation: "firebase",
-    sampler: "firebase"
-  }
+    plugins: [
+        googleAI(),
+        firebase(),
+    ],
+    flowStateStore: "firebase",
+    traceStore: "firebase",
+    telemetry: {
+        instrumentation: "firebase",
+        sampler: "firebase"
+    }
 });
