@@ -89,7 +89,13 @@ export function AssetsDataTable({ assets, isLoading }: AssetsDataTableProps) {
         {
             accessorKey: "purchaseDate",
             header: "Fecha de Compra",
-            cell: ({ row }) => format(new Date(row.getValue("purchaseDate")), "dd/MM/yyyy")
+            cell: ({ row }) => {
+                const dateValue = row.getValue("purchaseDate");
+                if (!dateValue || isNaN(new Date(dateValue as string).getTime())) {
+                    return "Fecha inválida";
+                }
+                return format(new Date(dateValue as string), "dd/MM/yyyy");
+            }
         },
         {
             id: "actions",
