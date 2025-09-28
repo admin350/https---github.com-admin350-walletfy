@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,21 +36,21 @@ export default function AssetsPage() {
                     <>
                         <KpiCard 
                             title="Valor Total de Activos" 
-                            value={<span className="text-primary">{formatCurrency(totalAssetValue)}</span>}
+                            value={formatCurrency(totalAssetValue)}
                             icon={Car} 
-                            iconClassName="text-primary"
+                            iconClassName="text-fuchsia-400"
                             description="Valor estimado de todos tus bienes tangibles."
                         />
                         <KpiCard 
                             title="Activos Personales" 
-                            value={<span className="text-blue-400">{formatCurrency(personalAssetsValue)}</span>} 
+                            value={formatCurrency(personalAssetsValue)} 
                             icon={Laptop}
                             iconClassName="text-blue-400"
                             description="Valor de tus bienes 'Personal'."
                         />
                         <KpiCard
                             title="Activos de Negocio"
-                            value={<span className="text-teal-400">{formatCurrency(businessAssetsValue)}</span>}
+                            value={formatCurrency(businessAssetsValue)}
                             icon={Building}
                             iconClassName="text-teal-400"
                             description="Valor de tus bienes 'Negocio'."

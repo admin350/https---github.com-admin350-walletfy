@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank, Globe } from "lucide-react";
+import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Banknote, Building, FileText, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank, Globe, Eye, EyeOff } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { HoverMenu } from './hover-menu';
 import { useData } from "@/context/data-context";
@@ -48,6 +48,7 @@ const navSections = [
             { href: "/dashboard/savings-portfolio", icon: PiggyBank, label: "Ahorros", color: "text-emerald-400" },
             { href: "/dashboard/investments-portfolio", icon: Wallet, label: "Portafolio Inversión", color: "text-blue-400" },
             { href: "/dashboard/tax-portfolio", icon: Scale, label: "Cartera Tributaria", color: "text-teal-400" },
+            { href: "/dashboard/assets", icon: Building, label: "Activos Tangibles", color: "text-fuchsia-400" },
         ]
     }
 ]
@@ -139,9 +140,15 @@ export function Header() {
     filters,
     setFilters,
     availableYears,
-    logout
+    logout,
+    settings,
+    updateSettings
   } = useData();
   
+  const toggleSensitiveData = () => {
+      updateSettings({ showSensitiveData: !settings.showSensitiveData });
+  }
+
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
     label: format(new Date(2000, i), 'LLLL', { locale: es }),
@@ -220,6 +227,9 @@ export function Header() {
                     <LayoutDashboard className="h-5 w-5" />
                 </Button>
             </Link>
+             <Button variant="ghost" size="icon" onClick={toggleSensitiveData}>
+                {settings.showSensitiveData ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            </Button>
            <Link href="/dashboard/calendar">
                 <Button variant="ghost" size="icon">
                     <Calendar className="h-5 w-5" />
