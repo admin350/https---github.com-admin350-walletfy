@@ -222,3 +222,13 @@ export type Service = {
   profile: string;
   paymentUrl: string;
 };
+
+export type TangibleAsset = {
+    id: string;
+    name: string;
+    category: string;
+    estimatedValue: number;
+    purchaseDate: Date;
+    profile: string;
+    description?: string;
+}
