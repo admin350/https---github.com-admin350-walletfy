@@ -44,7 +44,8 @@ import type {
     TaxPayment,
     AppSettings,
     AppNotification,
-    Service
+    Service,
+    TangibleAsset
 } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getMonth, getYear, startOfMonth, endOfMonth, addMonths, isPast, subDays } from 'date-fns';
@@ -94,6 +95,7 @@ interface DataContextType {
     reports: MonthlyReport[];
     taxPayments: TaxPayment[];
     services: Service[];
+    tangibleAssets: TangibleAsset[];
     settings: AppSettings;
     notifications: AppNotification[];
     
@@ -145,6 +147,10 @@ interface DataContextType {
     updateInvestment: (investment: Partial<Investment> & {id: string}) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
     addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
+
+    addTangibleAsset: (asset: Omit<TangibleAsset, 'id'>) => Promise<void>;
+    updateTangibleAsset: (asset: Partial<TangibleAsset> & {id: string}) => Promise<void>;
+    deleteTangibleAsset: (id: string) => Promise<void>;
     
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Partial<Budget> & {id: string}) => Promise<void>;
@@ -182,7 +188,8 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const defaultSettings: AppSettings = {
     currency: 'CLP',
     largeTransactionThreshold: 500000,
-    background: 'theme-gradient'
+    background: 'theme-gradient',
+    showSensitiveData: true,
 };
 
 const defaultProfiles: Profile[] = [
@@ -223,6 +230,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const [reports, setReports] = useState<MonthlyReport[]>([]);
     const [taxPayments, setTaxPayments] = useState<TaxPayment[]>([]);
     const [services, setServices] = useState<Service[]>([]);
+    const [tangibleAssets, setTangibleAssets] = useState<TangibleAsset[]>([]);
     const [settings, setSettings] = useState<AppSettings>(defaultSettings);
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [previewBackground, setPreviewBackground] = useState<string | null>(null);
@@ -246,7 +254,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return querySnapshot.docs.map(doc => {
             const data = doc.data();
             // Convert Firestore Timestamps to JS Dates for specific fields
-            const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate'];
+            const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate', 'purchaseDate'];
             for (const field of dateFields) {
                 if (data[field] && data[field] instanceof Timestamp) {
                     data[field] = data[field].toDate();
@@ -316,6 +324,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         fetchData('reports', currentUser.uid),           // 14
                         fetchData('taxPayments', currentUser.uid),       // 15
                         fetchData('services', currentUser.uid),          // 16
+                        fetchData('tangibleAssets', currentUser.uid),    // 17
                     ];
                     
                     const settingsDoc = await getDoc(doc(db, `users/${currentUser.uid}/app/settings`));
@@ -339,9 +348,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     setReports(results[14] as MonthlyReport[]);
                     setTaxPayments(results[15] as TaxPayment[]);
                     setServices(results[16] as Service[]);
+                    setTangibleAssets(results[17] as TangibleAsset[]);
                     
                     if (settingsDoc.exists()) {
-                        setSettings(settingsDoc.data() as AppSettings);
+                        setSettings({ ...defaultSettings, ...settingsDoc.data() } as AppSettings);
                     } else {
                         setSettings(defaultSettings);
                     }
@@ -370,6 +380,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 setReports([]);
                 setTaxPayments([]);
                 setServices([]);
+                setTangibleAssets([]);
                 setSettings(defaultSettings);
             }
             setIsLoading(false);
@@ -516,6 +527,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [allTransactions, debts, goals, investments]);
     
     const formatCurrency = useCallback((amount: number, withDecimals = false, compact = false) => {
+        if (!settings.showSensitiveData) {
+            return '$ •••••'
+        }
         const options: Intl.NumberFormatOptions = {
             style: 'currency',
             currency: settings.currency || 'CLP',
@@ -527,7 +541,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             options.compactDisplay = "short";
         }
         return new Intl.NumberFormat('es-CL', options).format(amount);
-    }, [settings.currency]);
+    }, [settings.currency, settings.showSensitiveData]);
     
 
     // #region Generic CRUD Functions
@@ -558,6 +572,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(data.estimatedDate) dataToSave.estimatedDate = Timestamp.fromDate(data.estimatedDate);
             if(data.cancellationDate) dataToSave.cancellationDate = Timestamp.fromDate(data.cancellationDate);
             if(data.generatedAt) dataToSave.generatedAt = Timestamp.fromDate(data.generatedAt);
+            if(data.purchaseDate) dataToSave.purchaseDate = Timestamp.fromDate(data.purchaseDate);
             
             const newDoc = await addDocToCollection(collectionName, dataToSave);
             setData((prev: any[]) => [...prev, newDoc]);
@@ -569,7 +584,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(data.estimatedDate) dataToSave.estimatedDate = Timestamp.fromDate(data.estimatedDate);
             if(data.cancellationDate) dataToSave.cancellationDate = Timestamp.fromDate(data.cancellationDate);
             if(data.generatedAt) dataToSave.generatedAt = Timestamp.fromDate(data.generatedAt);
-            
+            if(data.purchaseDate) dataToSave.purchaseDate = Timestamp.fromDate(data.purchaseDate);
+
             await updateDocInCollection(collectionName, data.id, dataToSave);
             setData((prev: any[]) => prev.map(item => item.id === data.id ? data : item));
         },
@@ -586,6 +602,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const budgetsCrud = crudOperations('budgets', setBudgets);
     const goalsCrud = crudOperations('goals', setGoals);
     const servicesCrud = crudOperations('services', setServices);
+    const tangibleAssetsCrud = crudOperations('tangibleAssets', setTangibleAssets);
     
     // #region Specific CRUD implementations
     
@@ -934,6 +951,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         reports,
         taxPayments,
         services,
+        tangibleAssets,
         settings,
         notifications,
         filters,
@@ -972,6 +990,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateInvestment: investmentsCrud.update,
         deleteInvestment: investmentsCrud.delete,
         addInvestmentContribution,
+        addTangibleAsset: tangibleAssetsCrud.add,
+        updateTangibleAsset: tangibleAssetsCrud.update,
+        deleteTangibleAsset: tangibleAssetsCrud.delete,
         addBudget: budgetsCrud.add,
         updateBudget: budgetsCrud.update,
         deleteBudget: budgetsCrud.delete,

@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,9 @@ import { AssetsDataTable } from "@/components/assets/assets-data-table";
 export default function AssetsPage() {
     const { tangibleAssets, isLoading, formatCurrency } = useData();
     
-    const totalAssetValue = tangibleAssets.reduce((acc: number, asset: TangibleAsset) => acc + asset.estimatedValue, 0);
-    const personalAssetsValue = tangibleAssets.filter((a: TangibleAsset) => a.profile === 'Personal').reduce((acc: number, a: TangibleAsset) => acc + a.estimatedValue, 0);
-    const businessAssetsValue = tangibleAssets.filter((a: TangibleAsset) => a.profile === 'Negocio').reduce((acc: number, a: TangibleAsset) => acc + a.estimatedValue, 0);
+    const totalAssetValue = (tangibleAssets || []).reduce((acc: number, asset: TangibleAsset) => acc + asset.estimatedValue, 0);
+    const personalAssetsValue = (tangibleAssets || []).filter((a: TangibleAsset) => a.profile === 'Personal').reduce((acc: number, a: TangibleAsset) => acc + a.estimatedValue, 0);
+    const businessAssetsValue = (tangibleAssets || []).filter((a: TangibleAsset) => a.profile === 'Negocio').reduce((acc: number, a: TangibleAsset) => acc + a.estimatedValue, 0);
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -74,7 +75,7 @@ export default function AssetsPage() {
                     </AddAssetDialog>
                 </CardHeader>
                 <CardContent>
-                   <AssetsDataTable assets={tangibleAssets} isLoading={isLoading} />
+                   <AssetsDataTable assets={tangibleAssets || []} isLoading={isLoading} />
                 </CardContent>
             </Card>
         </div>
