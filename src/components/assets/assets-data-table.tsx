@@ -20,12 +20,13 @@ import { useState } from "react";
 import type { TangibleAsset } from "@/types";
 import { useData } from "@/context/data-context";
 import { format } from "date-fns";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash2, DollarSign } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Skeleton } from "../ui/skeleton";
 import { AddAssetDialog } from "./add-asset-dialog";
+import { SellAssetDialog } from "./sell-asset-dialog";
 
 interface AssetsDataTableProps {
     assets: TangibleAsset[];
@@ -36,11 +37,18 @@ export function AssetsDataTable({ assets, isLoading }: AssetsDataTableProps) {
     const { deleteTangibleAsset, profiles, formatCurrency } = useData();
     const { toast } = useToast();
     const [assetToEdit, setAssetToEdit] = useState<TangibleAsset | undefined>(undefined);
+    const [assetToSell, setAssetToSell] = useState<TangibleAsset | undefined>(undefined);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false);
 
     const handleEdit = (item: TangibleAsset) => {
         setAssetToEdit(item);
         setIsEditModalOpen(true);
+    };
+
+     const handleSell = (item: TangibleAsset) => {
+        setAssetToSell(item);
+        setIsSellModalOpen(true);
     };
 
     const handleDelete = async (id: string) => {
@@ -112,6 +120,11 @@ export function AssetsDataTable({ assets, isLoading }: AssetsDataTableProps) {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleSell(item)}>
+                                        <DollarSign className="mr-2 h-4 w-4" />
+                                        Vender Activo
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => handleEdit(item)}>
                                         <Pencil className="mr-2 h-4 w-4" />
                                         Editar
@@ -170,6 +183,14 @@ export function AssetsDataTable({ assets, isLoading }: AssetsDataTableProps) {
             >
                 <></>
             </AddAssetDialog>
+
+            {assetToSell && (
+                <SellAssetDialog
+                    open={isSellModalOpen}
+                    onOpenChange={setIsSellModalOpen}
+                    asset={assetToSell}
+                />
+            )}
 
             <div className="rounded-md border">
                 <Table>

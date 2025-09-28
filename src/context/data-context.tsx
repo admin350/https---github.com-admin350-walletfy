@@ -151,6 +151,7 @@ interface DataContextType {
     addTangibleAsset: (asset: Omit<TangibleAsset, 'id'>) => Promise<void>;
     updateTangibleAsset: (asset: Partial<TangibleAsset> & {id: string}) => Promise<void>;
     deleteTangibleAsset: (id: string) => Promise<void>;
+    sellTangibleAsset: (assetId: string, salePrice: number, destinationAccountId: string) => Promise<void>;
     
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Partial<Budget> & {id: string}) => Promise<void>;
@@ -204,7 +205,8 @@ const defaultCategories: Category[] = [
     { id: '4', name: 'Transporte', type: 'Gasto', color: '#f97316' },
     { id: '5', name: 'Cuentas', type: 'Gasto', color: '#d946ef' },
     { id: '6', name: 'Restaurantes', type: 'Gasto', color: '#eab308' },
-    { id: '7', name: 'Transferencia', type: 'Transferencia', color: '#6366f1' }
+    { id: '7', name: 'Transferencia', type: 'Transferencia', color: '#6366f1' },
+    { id: '8', name: 'Venta de Activos', type: 'Ingreso', color: '#10b981' },
 ];
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -927,6 +929,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         setTaxPayments(prev => [...prev, {id: paymentRef.id, ...payment}]);
     };
+
+    const sellTangibleAsset = async (assetId: string, salePrice: number, destinationAccountId: string) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const asset = tangibleAssets.find(a => a.id === assetId);
+        if (!asset) throw new Error("Activo no encontrado.");
+
+        await addTransaction({
+            type: 'income',
+            amount: salePrice,
+            description: `Venta de activo: ${asset.name}`,
+            category: 'Venta de Activos',
+            profile: asset.profile,
+            date: new Date(),
+            accountId: destinationAccountId,
+        });
+
+        await deleteDocFromCollection('tangibleAssets', assetId);
+        setTangibleAssets(prev => prev.filter(a => a.id !== assetId));
+    };
     
     // #endregion
 
@@ -993,6 +1014,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addTangibleAsset: tangibleAssetsCrud.add,
         updateTangibleAsset: tangibleAssetsCrud.update,
         deleteTangibleAsset: tangibleAssetsCrud.delete,
+        sellTangibleAsset,
         addBudget: budgetsCrud.add,
         updateBudget: budgetsCrud.update,
         deleteBudget: budgetsCrud.delete,
