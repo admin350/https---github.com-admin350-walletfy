@@ -5,13 +5,14 @@ import { firebase } from '@genkit-ai/firebase';
 export const ai = genkit({
     plugins: [
         googleAI(),
-        firebase(),
+        firebase({
+            flowStateStore: {
+                collection: 'flow-states',
+            },
+            traceStore: {
+                collection: 'traces',
+            },
+        }),
     ],
-    flowStateStore: {
-        collection: 'flow-states',
-    },
-    traceStore: {
-        collection: 'traces',
-    },
 });
 //# sourceMappingURL=genkit-client.js.map
