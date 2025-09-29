@@ -423,7 +423,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                             const availableCredit = c.creditLimit ? c.creditLimit - (c.usedAmount || 0) : 0;
                                             return (
                                                 <SelectItem key={c.id} value={c.id}>
-                                                    {c.name} (**** {c.last4Digits})
+                                                    {c.bank} - {c.name} (**** {c.last4Digits})
                                                     {c.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
                                                 </SelectItem>
                                             )
