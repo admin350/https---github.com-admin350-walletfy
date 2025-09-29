@@ -6,7 +6,7 @@
 
 import * as functions from "firebase-functions";
 import * as logger from "firebase-functions/logger";
-import { initializeApp, applicationDefault } from "firebase-admin/app";
+import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 // Inicializar Firebase para que las funciones tengan acceso a otros servicios.
