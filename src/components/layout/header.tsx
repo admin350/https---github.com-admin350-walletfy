@@ -21,6 +21,8 @@ const navSections = [
     {
         title: "Obligaciones y Metas",
         items: [
+            { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
+            { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
             { href: "/dashboard/fixed-expenses", icon: Repeat, label: "Gastos Fijos", color: "text-indigo-400" },
             { href: "/dashboard/debts", icon: CreditCard, label: "Deudas", color: "text-red-400" },
             { href: "/dashboard/subscriptions", icon: Repeat, label: "Suscripciones", color: "text-purple-400" },
@@ -32,8 +34,6 @@ const navSections = [
     {
         title: "Análisis y Registros",
         items: [
-            { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
-            { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
             { href: "/dashboard/budget", icon: ClipboardPen, label: "Presupuesto", color: "text-rose-400" },
             { href: "/dashboard/calendar", icon: Calendar, label: "Calendario", color: "text-amber-400" },
             { href: "/dashboard/reports", icon: FileText, label: "Informes", color: "text-gray-400" },
