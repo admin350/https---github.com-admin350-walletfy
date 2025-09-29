@@ -147,6 +147,7 @@ interface DataContextType {
     updateInvestment: (investment: Partial<Investment> & {id: string}) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
     addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
+    closeInvestment: (investmentId: string, finalValue: number) => Promise<void>;
 
     addTangibleAsset: (asset: Omit<TangibleAsset, 'id'>) => Promise<void>;
     updateTangibleAsset: (asset: Partial<TangibleAsset> & {id: string}) => Promise<void>;
@@ -675,7 +676,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
-        const dataToSave: any = { ...transaction, date: (transaction.date as Date).toISOString() };
+        const dataToSave: any = { ...transaction };
+        if (transaction.date) {
+            dataToSave.date = (transaction.date as Date).toISOString();
+        }
         await updateDocInCollection('transactions', transaction.id, dataToSave);
         setAllTransactions(prev => prev.map(t => t.id === transaction.id ? { ...t, ...transaction } as Transaction : t));
     };
@@ -824,6 +828,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
         setInvestments(prev => prev.map(i => i.id === contribution.investmentId ? {...i, currentValue: newCurrentValue, initialAmount: newInitialAmount } : i));
+    };
+
+     const closeInvestment = async (investmentId: string, finalValue: number) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const investment = investments.find(inv => inv.id === investmentId);
+        if (!investment) throw new Error("Inversión no encontrada.");
+
+        const portfolioAccount = bankAccounts.find(acc => acc.profile === investment.profile && acc.purpose === investment.purpose);
+        if (!portfolioAccount) throw new Error(`Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
+
+        const profitOrLoss = finalValue - investment.initialAmount;
+
+        await addTransaction({
+            type: 'income',
+            amount: finalValue,
+            description: `Liquidación de ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investment.name}. ${profitOrLoss >= 0 ? 'Ganancia' : 'Pérdida'}: ${formatCurrency(profitOrLoss)}`,
+            category: 'Ingresos por Inversión',
+            profile: investment.profile,
+            date: new Date(),
+            accountId: portfolioAccount.id,
+        });
+
+        await deleteDocFromCollection('investments', investmentId);
+        setInvestments(prev => prev.filter(inv => inv.id !== investmentId));
     };
 
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
@@ -1011,6 +1039,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateInvestment: investmentsCrud.update,
         deleteInvestment: investmentsCrud.delete,
         addInvestmentContribution,
+        closeInvestment,
         addTangibleAsset: tangibleAssetsCrud.add,
         updateTangibleAsset: tangibleAssetsCrud.update,
         deleteTangibleAsset: tangibleAssetsCrud.delete,

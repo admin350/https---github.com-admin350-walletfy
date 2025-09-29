@@ -7,14 +7,16 @@ import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { MoreVertical, Pencil, Trash2, TrendingUp } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, TrendingUp, HandCoins } from "lucide-react";
 import { ContributeToInvestmentDialog } from "./contribute-to-investment-dialog";
 import type { Investment } from "@/types";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { AddInvestmentDialog } from "./add-investment-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+import { CloseInvestmentDialog } from "./close-investment-dialog";
+
 
 interface InvestmentsWidgetProps {
   investments?: Investment[];
@@ -31,6 +33,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
   const [isClient, setIsClient] = useState(false);
   const [selectedForContribution, setSelectedForContribution] = useState<Investment | null>(null);
   const [selectedForEdit, setSelectedForEdit] = useState<Investment | null>(null);
+  const [selectedToClose, setSelectedToClose] = useState<Investment | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,6 +46,10 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
 
   const handleEditClick = (investment: Investment) => {
     setSelectedForEdit(investment);
+  };
+
+  const handleCloseClick = (investment: Investment) => {
+      setSelectedToClose(investment);
   };
   
   const handleDelete = async (id: string) => {
@@ -98,6 +105,11 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => handleCloseClick(investment)}>
+                                <HandCoins className="mr-2 h-4 w-4" />
+                                Liquidar {purpose === 'investment' ? 'Inversión' : 'Ahorro'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleEditClick(investment)}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Editar
@@ -155,17 +167,17 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
         })
       )}
       {selectedForContribution && (
-      <ContributeToInvestmentDialog
-        investment={selectedForContribution}
-        open={!!selectedForContribution}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setSelectedForContribution(null);
-          }
-        }}
-        purpose={purpose}
-      />
-    )}
+          <ContributeToInvestmentDialog
+            investment={selectedForContribution}
+            open={!!selectedForContribution}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setSelectedForContribution(null);
+              }
+            }}
+            purpose={purpose}
+          />
+        )}
       {selectedForEdit && (
         <AddInvestmentDialog 
             open={!!selectedForEdit}
@@ -178,6 +190,17 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
             purpose={purpose}
         />
       )}
+      {selectedToClose && (
+            <CloseInvestmentDialog
+                investment={selectedToClose}
+                open={!!selectedToClose}
+                onOpenChange={(isOpen) => {
+                    if(!isOpen) {
+                        setSelectedToClose(null);
+                    }
+                }}
+            />
+        )}
     </div>
   );
 }
