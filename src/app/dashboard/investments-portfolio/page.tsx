@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 import { InvestmentsPortfolioDataTable } from "@/components/transactions/investments-portfolio-data-table";
 import type { InvestmentContribution } from "@/types";
+import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 
 
 export default function InvestmentsPortfolioPage() {
@@ -17,7 +18,7 @@ export default function InvestmentsPortfolioPage() {
     
     const totalTransferredToInvestment = investmentAccount?.balance ?? 0;
 
-    const totalContributedToAssets = investmentContributions.reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
+    const totalContributedToAssets = investmentContributions.filter(c => c.purpose === 'investment').reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
 
     const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
 
@@ -62,7 +63,7 @@ export default function InvestmentsPortfolioPage() {
                         value={<span className="text-blue-400">{formatCurrency(totalTransferredToInvestment)}</span>} 
                         icon={Landmark}
                         iconClassName="text-blue-400" 
-                        description={`En tu cuenta: ${investmentAccount?.name}`}
+                        description={`Balance total de tu cartera de inversión.`}
                     />
                      <KpiCard 
                         title="Total Aportado a Activos" 
@@ -81,6 +82,23 @@ export default function InvestmentsPortfolioPage() {
                     </>
                 )}
              </div>
+            
+            {investmentAccount && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Cuenta Designada para Inversión</CardTitle>
+                        <CardDescription>
+                            Esta es la cuenta que has asignado como tu cartera de inversión principal.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-w-sm mx-auto">
+                            <BankAccountComponent account={investmentAccount} />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <Card>
                 <CardHeader>
                     <CardTitle>Historial de Transferencias a Inversión</CardTitle>
@@ -94,13 +112,13 @@ export default function InvestmentsPortfolioPage() {
             </Card>
             <Card>
                  <CardHeader>
-                    <CardTitle>Registro de Aportes a Activos</CardTitle>
+                    <CardTitle>Registro de Aportes a Activos de Inversión</CardTitle>
                     <CardDescription>
                         Historial de todas las transferencias desde tu cartera de inversión hacia tus activos.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <InvestmentContributionsTable />
+                    <InvestmentContributionsTable purpose="investment" />
                 </CardContent>
             </Card>
         </div>

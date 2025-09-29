@@ -27,6 +27,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
 import type { BankAccount } from '@/types';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre es muy corto." }),
@@ -149,6 +151,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
     }, [accountToEdit, form, dialogOpen]);
     
     const accountType = form.watch("accountType");
+    const hasCreditLine = form.watch("hasCreditLine");
 
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -251,6 +254,42 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         </FormItem>
                                     )}
                                 />
+                            )}
+                             {accountType === "Cuenta Corriente" && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="hasCreditLine"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel>¿Tiene Línea de Crédito?</FormLabel>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {hasCreditLine && (
+                                        <FormField
+                                            control={form.control}
+                                            name="creditLineLimit"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Cupo de la Línea de Crédito</FormLabel>
+                                                    <FormControl>
+                                                        <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
+                                </>
                             )}
                             <FormField
                                 control={form.control}

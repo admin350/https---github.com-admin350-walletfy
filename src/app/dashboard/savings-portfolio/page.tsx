@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { GoalContributionsTable } from "@/components/goals/goal-contributions-table";
 import type { GoalContribution, InvestmentContribution } from "@/types";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
+import { BankAccountComponent } from "@/components/wallets/bank-account-component";
 
 
 export default function SavingsPortfolioPage() {
@@ -64,7 +65,7 @@ export default function SavingsPortfolioPage() {
                         value={<span className="text-green-500">{formatCurrency(availableSavings)}</span>} 
                         icon={Landmark} 
                         iconClassName="text-green-400"
-                        description={`En tu cuenta: ${savingsAccount?.name}`}
+                        description={`Balance total de tu cartera de ahorros.`}
                     />
                      <KpiCard 
                         title="Total Aportado a Metas" 
@@ -83,6 +84,23 @@ export default function SavingsPortfolioPage() {
                     </>
                 )}
              </div>
+
+            {savingsAccount && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Cuenta Designada para Ahorros</CardTitle>
+                        <CardDescription>
+                            Esta es la cuenta que has asignado como tu cartera de ahorros principal.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-w-sm mx-auto">
+                             <BankAccountComponent account={savingsAccount} />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <Card>
                 <CardHeader>
                     <CardTitle>Historial de Entradas a Cartera de Ahorros</CardTitle>
