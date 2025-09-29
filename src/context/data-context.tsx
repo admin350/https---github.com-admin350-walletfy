@@ -764,7 +764,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const accountProfile = bankAccounts.find(acc => acc.id === payment.accountId)?.profile;
         if (!accountProfile) throw new Error("Perfil de cuenta no encontrado.");
 
-        const transactionToSave = {
+        const transactionData = {
             type: 'expense' as const,
             amount: payment.amount,
             description: `Abono a ${payment.debtName}`,
@@ -774,7 +774,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             accountId: payment.accountId,
             taxDetails: payment.taxDetails
         };
-        await addTransaction(transactionToSave);
+        await addTransaction(transactionData);
         
         const debtRef = doc(db, `users/${uid}/debts`, payment.debtId);
         const debtSnap = await getDoc(debtRef);
@@ -840,7 +840,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
         const savedDoc = await addDocToCollection('investments', dataToSave);
         
-        setInvestments(prev => [...prev, { ...savedDoc, startDate: newInvestment.startDate }]);
+        setInvestments(prev => [...prev, { ...savedDoc, startDate: new Date(savedDoc.startDate) }]);
 
         // Automatically add the initial amount as the first contribution
         await addInvestmentContribution({
