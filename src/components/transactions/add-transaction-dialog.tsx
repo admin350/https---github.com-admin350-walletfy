@@ -152,7 +152,18 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 });
 
             } else {
-                 const transactionData = { ...values };
+                 const transactionData: Omit<Transaction, 'id'> = {
+                    ...values,
+                    taxDetails: values.includesTax ? {
+                        rate: values.taxRate || 19,
+                        amount: values.amount - (values.amount / (1 + ((values.taxRate || 19) / 100)))
+                    } : undefined,
+                };
+                
+                // We don't want to save these form-specific fields to the DB
+                delete (transactionData as any).includesTax;
+                delete (transactionData as any).taxRate;
+
 
                 if (transactionToEdit && transactionToEdit.id) {
                     await updateTransaction({ ...transactionToEdit, ...transactionData, id: transactionToEdit.id });
