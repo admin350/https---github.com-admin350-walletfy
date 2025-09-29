@@ -5,7 +5,6 @@ import type { Budget, Transaction } from "@/types";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, Cell, Layer } from "recharts";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -13,7 +12,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AddBudgetDialog } from "./add-budget-dialog";
-import { ChartContainer, ChartTooltipContent } from "../ui/chart";
+import { Progress } from "../ui/progress";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
+
 
 interface BudgetWidgetProps {
     budgets: Budget[];
@@ -86,27 +87,24 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {budgets.map(budget => {
-                const chartData = budget.items.map(item => {
+                const categoryData = budget.items.map(item => {
                     const budgetedAmount = totalIncome * (item.percentage / 100);
                     const spentAmount = actualExpenses[item.category] || 0;
+                    const progress = budgetedAmount > 0 ? (spentAmount / budgetedAmount) * 100 : 0;
                     return {
                         category: item.category,
                         budgeted: budgetedAmount,
                         spent: spentAmount,
-                        remaining: Math.max(0, budgetedAmount - spentAmount),
+                        progress: progress > 100 ? 100 : progress,
+                        isOverBudget: spentAmount > budgetedAmount,
                         fill: getCategoryColor(item.category)
                     };
                 });
                 
-                const chartConfig = {
-                    budgeted: { label: "Presupuestado" },
-                    spent: { label: "Gastado" },
-                };
-
                 return (
-                <Card key={budget.id} className="flex flex-col border-t-4 shadow-none border" style={{ borderTopColor: getProfileColor(budget.profile) }}>
+                <Card key={budget.id} className="flex flex-col border-t-4 shadow-none" style={{ borderTopColor: getProfileColor(budget.profile) }}>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start">
                             <div>
@@ -149,51 +147,33 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                             </AlertDialog>
                         </div>
                     </CardHeader>
-                    <CardContent className="flex-1 p-4">
-                       <div className="h-[250px] w-full">
-                           <ChartContainer config={chartConfig} className="w-full h-full">
-                                <BarChart
-                                    data={chartData}
-                                    layout="vertical"
-                                    margin={{ left: 10, right: 20, top: 10, bottom: 10 }}
-                                    barSize={20}
-                                >
-                                    <XAxis type="number" hide />
-                                    <YAxis
-                                        dataKey="category"
-                                        type="category"
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                                        width={120}
-                                        className="truncate"
-                                    />
-                                    <Tooltip
-                                        cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
-                                        content={<ChartTooltipContent 
-                                            formatter={(value, name, props) => {
-                                                const { payload } = props;
-                                                const percentage = payload.budgeted > 0 ? (payload.spent / payload.budgeted) * 100 : 0;
-                                                return (
-                                                    <div className="flex flex-col gap-1 text-sm">
-                                                        <span className="font-bold" style={{ color: payload.fill }}>{payload.category}</span>
-                                                        <span>Gastado: {formatCurrency(payload.spent)}</span>
-                                                        <span>Presupuesto: {formatCurrency(payload.budgeted)}</span>
-                                                        <span className="font-semibold">{percentage.toFixed(1)}% consumido</span>
-                                                    </div>
-                                                )
-                                            }}
-                                        />}
-                                    />
-                                    <Bar dataKey="budgeted" stackId="a" fill="hsl(var(--muted) / 0.5)" radius={[5, 5, 5, 5]} />
-                                    <Bar dataKey="spent" stackId="a" radius={[5, 5, 5, 5]}>
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.spent > entry.budgeted ? 'hsl(var(--destructive))' : entry.fill} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ChartContainer>
-                       </div>
+                    <CardContent className="flex-1 p-4 space-y-4">
+                       {categoryData.map(item => (
+                            <div key={item.category}>
+                                <div className="flex justify-between items-center mb-1 text-sm">
+                                    <div className="flex items-center gap-2 font-medium">
+                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.fill }}/>
+                                        <span>{item.category}</span>
+                                    </div>
+                                    <div className={`font-mono text-xs ${item.isOverBudget ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
+                                        {formatCurrency(item.spent, false, true)} / {formatCurrency(item.budgeted, false, true)}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger className="w-full">
+                                                <Progress value={item.progress} className={`h-2 ${item.isOverBudget ? '[&>div]:bg-red-500' : ''}`} style={!item.isOverBudget ? { '--progress-color': item.fill } as React.CSSProperties : {}} />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{item.progress.toFixed(1)}% consumido</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <span className="text-xs font-semibold w-12 text-right">{item.progress.toFixed(0)}%</span>
+                                </div>
+                            </div>
+                       ))}
                     </CardContent>
                 </Card>
             )})}
