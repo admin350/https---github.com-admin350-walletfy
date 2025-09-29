@@ -103,7 +103,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
             {budgets.map(budget => {
                 const categoryData = budget.items.map(item => {
                     const budgetedAmount = totalIncome * (item.percentage / 100);
@@ -120,7 +120,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                 });
                 
                 return (
-                <Card key={budget.id} className="flex flex-col border-t-4 shadow-none" style={{ borderTopColor: getProfileColor(budget.profile) }}>
+                <Card key={budget.id} className="flex flex-col border-t-4 shadow-none bg-transparent" style={{ borderTopColor: getProfileColor(budget.profile) }}>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start">
                             <div>
