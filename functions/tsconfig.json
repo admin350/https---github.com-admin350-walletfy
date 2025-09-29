@@ -9,7 +9,7 @@
     "target": "es2021",
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "node"
   },
   "compileOnSave": true,
   "include": [
