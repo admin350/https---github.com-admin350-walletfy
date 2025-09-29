@@ -23,6 +23,7 @@ import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
 import type { Transaction } from "@/types";
 import { BudgetWidget } from "@/components/budget/budget-widget";
+import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 
 export default function DashboardPage() {
@@ -71,7 +72,12 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold">{pageTitle}</h1>
           </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          <div className="lg:col-span-1 space-y-6">
+            <FinancialSummary />
+          </div>
+
           <div className="lg:col-span-2 space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
                 {isLoading || !isClient ? (
@@ -106,22 +112,23 @@ export default function DashboardPage() {
                 </>
                 )}
             </div>
-            
-              <Card className="bg-card/80 border-border/80">
-                  <CardHeader>
-                      <CardTitle>Destino Real de tus Ingresos</CardTitle>
-                      <CardDescription>
-                          Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <ExpenseChart />
-                  </CardContent>
-              </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <PreviousMonthExpenseChart />
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Destino Real de tus Ingresos (Período Actual)</CardTitle>
+                        <CardDescription>
+                            Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ExpenseChart />
+                    </CardContent>
+                </Card>
+            </div>
 
               <QuickAccess />
-
-              <FinancialSummary />
 
               <CashflowChart />
 
