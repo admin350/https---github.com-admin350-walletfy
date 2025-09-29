@@ -5,7 +5,7 @@ import type { Budget } from "@/types";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
-import { Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -83,6 +83,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                     fill: getCategoryColor(item.category)
                 }));
                 const chartConfig = {
+                    percentage: { label: "Porcentaje (%)" },
                     ...chartData.reduce((acc, item) => {
                         acc[item.category] = { label: item.category, color: item.fill };
                         return acc;
@@ -133,29 +134,36 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-1 p-4">
-                       <div className="grid grid-cols-2 gap-4">
-                           <div className="h-[150px]">
-                             <ChartContainer
-                                config={chartConfig}
-                                className="h-full w-full"
-                            >
-                                <PieChart>
-                                    <Tooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent 
-                                            hideLabel
-                                            formatter={(value, name) => `${name}: ${value}%`}
-                                        />}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="h-[200px]">
+                              <ChartContainer config={chartConfig} className="w-full h-full">
+                                <BarChart
+                                    accessibilityLayer
+                                    data={chartData}
+                                    layout="vertical"
+                                    margin={{ left: 0, right: 20 }}
+                                >
+                                    <XAxis type="number" dataKey="percentage" hide />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="category"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={false}
                                     />
-                                    <Pie data={chartData} dataKey="percentage" nameKey="category" cx="50%" cy="50%" outerRadius={60} labelLine={false}>
-                                        {chartData.map((entry) => (
-                                            <Cell key={`cell-${entry.category}`} fill={entry.fill} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
+                                    <Tooltip
+                                        cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
+                                        content={
+                                            <ChartTooltipContent
+                                                formatter={(value, name) => `${value}%`}
+                                            />
+                                        }
+                                    />
+                                    <Bar dataKey="percentage" layout="vertical" radius={5} />
+                                </BarChart>
                             </ChartContainer>
                            </div>
-                            <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[150px] pr-2">
+                            <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[200px] pr-2">
                                 {chartData.map((item) => {
                                     const estimatedAmount = (totalIncome * item.percentage) / 100;
                                     return (
