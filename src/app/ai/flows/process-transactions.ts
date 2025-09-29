@@ -3,7 +3,7 @@
  * @fileOverview Un agente de IA para procesar transacciones a granel desde texto o imágenes.
  */
 import { z } from 'zod';
-import { ai } from '../genkit-client.js';
+import { ai } from '@/lib/genkit-client';
 
 const TransactionSchema = z.object({
     amount: z.number().describe("El monto numérico de la transacción. Positivo para ingresos, negativo para gastos."),
@@ -13,24 +13,23 @@ const TransactionSchema = z.object({
     accountId: z.string().describe("El ID de la cuenta o tarjeta utilizada."),
 });
 
-const ProcessTransactionsInputSchema = z.object({
+export const ProcessTransactionsInputSchema = z.object({
   text: z.string().optional().describe("El texto en bruto que contiene las transacciones."),
   photoDataUri: z.string().optional().describe("Una foto de las transacciones como data URI."),
   categories: z.array(z.string()).describe("Lista de categorías de gastos e ingresos disponibles."),
   profiles: z.array(z.string()).describe("Lista de perfiles financieros disponibles."),
   accounts: z.array(z.object({ id: z.string(), name: z.string() })).describe("Lista de cuentas y tarjetas disponibles con sus IDs y nombres."),
 });
+export type ProcessTransactionsInput = z.infer<typeof ProcessTransactionsInputSchema>;
 
-const ProcessTransactionsOutputSchema = z.object({
+
+export const ProcessTransactionsOutputSchema = z.object({
   transactions: z.array(TransactionSchema),
 });
-
-export async function processTransactions(input: z.infer<typeof ProcessTransactionsInputSchema>): Promise<z.infer<typeof ProcessTransactionsOutputSchema>> {
-    return processTransactionsFlow(input);
-}
+export type ProcessTransactionsOutput = z.infer<typeof ProcessTransactionsOutputSchema>;
 
 
-const prompt = ai.definePrompt({
+const processTransactionsPrompt = ai.definePrompt({
     name: 'processTransactionsPrompt',
     input: { schema: ProcessTransactionsInputSchema },
     output: { schema: ProcessTransactionsOutputSchema },
@@ -66,7 +65,11 @@ const processTransactionsFlow = ai.defineFlow(
     outputSchema: ProcessTransactionsOutputSchema,
   },
   async (input) => {
-    const llmResponse = await prompt(input);
+    const llmResponse = await processTransactionsPrompt(input);
     return llmResponse.output || { transactions: [] };
   }
 );
+
+export async function processTransactions(input: ProcessTransactionsInput): Promise<ProcessTransactionsOutput> {
+    return await processTransactionsFlow(input);
+}
