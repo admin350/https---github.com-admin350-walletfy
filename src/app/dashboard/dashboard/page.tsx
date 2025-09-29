@@ -115,20 +115,17 @@ export default function DashboardPage() {
 
             <QuickAccess />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <PreviousMonthExpenseChart />
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Destino Real de tus Ingresos (Período Actual)</CardTitle>
-                        <CardDescription>
-                            Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ExpenseChart />
-                    </CardContent>
-                </Card>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Destino Real de tus Ingresos (Período Actual)</CardTitle>
+                    <CardDescription>
+                        Ingresos del período: <span className="font-bold text-primary">{formatCurrency(totalIncome)}</span>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ExpenseChart />
+                </CardContent>
+            </Card>
 
               <CashflowChart />
 
