@@ -17,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -70,9 +70,9 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            totalAmount: '' as any,
-            monthlyPayment: '' as any,
-            installments: '' as any,
+            totalAmount: 0,
+            monthlyPayment: 0,
+            installments: 0,
             dueDate: new Date(),
             debtType: 'consumo',
             profile: "",
@@ -118,14 +118,15 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
             if (debtToEdit) {
                 form.reset({
                     ...debtToEdit,
+                    dueDate: new Date(debtToEdit.dueDate),
                     dueNotificationDays: debtToEdit.dueNotificationDays ?? 3,
                 });
             } else {
                 form.reset({
                     name: "",
-                    totalAmount: '' as any,
-                    monthlyPayment: '' as any,
-                    installments: '' as any,
+                    totalAmount: 0,
+                    monthlyPayment: 0,
+                    installments: 0,
                     dueDate: new Date(),
                     debtType: 'consumo',
                     profile: "",
@@ -243,7 +244,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                         <FormItem>
                                             <FormLabel>Monto Total</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="$10M" {...field} value={field.value ?? ''} />
+                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -256,7 +257,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                         <FormItem>
                                             <FormLabel>Pago Mensual</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="$350k" {...field} value={field.value ?? ''} />
+                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -270,7 +271,7 @@ export function AddDebtDialog({ children, debtToEdit, open, onOpenChange }: AddD
                                     <FormItem>
                                         <FormLabel>Número de Cuotas</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="48" {...field} value={field.value ?? ''} />
+                                            <Input type="number" placeholder="48" {...field} value={field.value || ''} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

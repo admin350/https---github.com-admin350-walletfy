@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -58,7 +59,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            initialAmount: '' as any,
+            initialAmount: 0,
             investmentType: "",
             platform: "",
             profile: "",
@@ -108,7 +109,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
             } else {
                 form.reset({
                     name: "",
-                    initialAmount: '' as any,
+                    initialAmount: 0,
                     investmentType: "",
                     platform: "",
                     profile: "",
@@ -150,7 +151,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                                     <FormItem>
                                         <FormLabel>Monto Invertido Inicialmente</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$1.000.000" {...field} value={field.value ?? ''} />
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

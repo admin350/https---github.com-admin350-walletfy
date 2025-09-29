@@ -17,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -61,7 +61,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: '' as any,
+            amount: 0,
             type: "expense",
             category: "",
             profile: "",
@@ -101,13 +101,13 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
             if (expenseToEdit) {
                 form.reset({
                     ...expenseToEdit,
-                    amount: expenseToEdit.amount || ('' as any),
+                    amount: expenseToEdit.amount || 0,
                     paymentDay: expenseToEdit.paymentDay || undefined,
                 });
             } else {
                 form.reset({
                     name: "",
-                    amount: '' as any,
+                    amount: 0,
                     type: "expense",
                     category: "",
                     profile: "",
@@ -179,7 +179,7 @@ export function AddFixedExpenseDialog({ children, expenseToEdit, open, onOpenCha
                                     <FormItem>
                                         <FormLabel>Monto Mensual</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$50.000" {...field} value={field.value ?? ''} />
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

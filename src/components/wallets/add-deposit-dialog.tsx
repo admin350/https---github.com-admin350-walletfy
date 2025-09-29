@@ -17,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -55,7 +55,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            amount: '' as any,
+            amount: 0,
             description: "",
             category: "",
             accountId: "",
@@ -166,7 +166,7 @@ export function AddDepositDialog({ children }: AddDepositDialogProps) {
                                     <FormItem>
                                         <FormLabel>Monto</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder={formatCurrency(0)} {...field} value={field.value ?? ''}/>
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

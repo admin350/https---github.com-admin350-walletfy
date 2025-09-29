@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -244,7 +245,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         <FormItem>
                                             <FormLabel>Límite de Ingresos Mensuales</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="5000000" {...field} value={field.value ?? ''} />
+                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -310,7 +311,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                     <FormItem>
                                         <FormLabel>Saldo Inicial</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="1000000" {...field} value={field.value ?? ''} disabled={!!accountToEdit} />
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} disabled={!!accountToEdit}/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

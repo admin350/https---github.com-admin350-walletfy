@@ -19,7 +19,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -111,7 +111,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: defaultType,
-            amount: '' as any,
+            amount: 0,
             description: "",
             category: "",
             profile: "",
@@ -190,7 +190,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
             const hasTax = !!transactionToEdit?.taxDetails;
             const initialValues: Partial<FormValues> = {
                 type: transactionToEdit?.type || defaultType,
-                amount: transactionToEdit?.amount || ('' as any),
+                amount: transactionToEdit?.amount || 0,
                 description: transactionToEdit?.description || "",
                 category: transactionToEdit?.category || "",
                 profile: transactionToEdit?.profile || "",
@@ -208,7 +208,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         } else {
             form.reset({
                 type: defaultType,
-                amount: '' as any,
+                amount: 0,
                 description: "",
                 category: "",
                 profile: "",
@@ -301,7 +301,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                             <FormItem>
                             <FormLabel>Monto</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder={formatCurrency(0)} {...field} value={field.value ?? ''}/>
+                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>

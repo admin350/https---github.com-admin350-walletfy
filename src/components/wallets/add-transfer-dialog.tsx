@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -59,7 +60,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            amount: '' as any,
+            amount: 0,
             description: "",
             sourceAccountId: "",
             destinationAccountId: "",
@@ -137,7 +138,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
     useEffect(() => {
         if(!open) {
             form.reset({
-                amount: '' as any,
+                amount: 0,
                 description: "",
                 sourceAccountId: "",
                 destinationAccountId: "",
@@ -212,7 +213,7 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
                             <FormItem>
                                 <FormLabel>Monto a Transferir</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder={formatCurrency(0)} {...field} value={field.value ?? ''}/>
+                                    <CurrencyInput value={field.value} onValueChange={field.onChange}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

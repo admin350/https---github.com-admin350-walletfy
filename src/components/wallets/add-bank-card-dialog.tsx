@@ -17,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -266,7 +266,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                         <FormItem>
                                             <FormLabel>Límite de Crédito</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder={formatCurrency(2000000)} {...field} value={field.value ?? ''} />
+                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

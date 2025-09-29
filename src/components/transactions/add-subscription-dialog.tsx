@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -52,7 +53,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            amount: '' as any,
+            amount: 0,
             dueDate: new Date(),
             cardId: "",
             profile: "",
@@ -84,7 +85,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
         if (!open) {
             form.reset({
                 name: "",
-                amount: '' as any,
+                amount: 0,
                 dueDate: new Date(),
                 cardId: "",
                 profile: "",
@@ -150,7 +151,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                     <FormItem>
                                         <FormLabel>Monto Mensual</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$15.990" {...field} value={field.value ?? ''} />
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

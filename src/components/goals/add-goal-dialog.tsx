@@ -1,3 +1,4 @@
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -63,7 +64,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            targetAmount: '' as any,
+            targetAmount: 0,
             profile: "",
             category: "",
         },
@@ -104,14 +105,14 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
                 form.reset({
                     name: goalToEdit.name,
                     targetAmount: goalToEdit.targetAmount,
-                    estimatedDate: goalToEdit.estimatedDate,
+                    estimatedDate: new Date(goalToEdit.estimatedDate),
                     profile: goalToEdit.profile,
                     category: goalToEdit.category,
                 });
             } else {
                 form.reset({
                     name: "",
-                    targetAmount: '' as any,
+                    targetAmount: 0,
                     estimatedDate: new Date(),
                     profile: "",
                     category: "",
@@ -153,7 +154,7 @@ export function AddGoalDialog({ children, goalToEdit, open, onOpenChange }: AddG
                                     <FormItem>
                                         <FormLabel>Presupuesto Requerido</FormLabel>
                                         <FormControl>
-                                            <Input type="number" placeholder="$5.000.000" {...field} value={field.value ?? ''} />
+                                            <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

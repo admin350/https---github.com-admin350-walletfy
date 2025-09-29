@@ -16,7 +16,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -49,7 +49,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            amount: '' as any,
+            amount: 0,
         },
     });
 
@@ -86,7 +86,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
     
     useEffect(() => {
         if(open){
-            form.reset({ amount: '' as any });
+            form.reset({ amount: 0 });
         }
     }, [open, form]);
 
@@ -109,7 +109,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                                 <FormItem>
                                     <FormLabel>Monto a Aportar</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder={formatCurrency(50000)} {...field} value={field.value ?? ''} />
+                                        <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
