@@ -179,6 +179,7 @@ export type Budget = {
   name: string;
   profile: string;
   items: BudgetItem[];
+  isFavorite?: boolean;
 };
 
 export type Profile = {

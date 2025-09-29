@@ -1,3 +1,4 @@
+
 'use client';
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -21,11 +22,12 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
 import type { Transaction } from "@/types";
+import { BudgetWidget } from "@/components/budget/budget-widget";
 
 
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
-  const { transactions, isLoading, formatCurrency, filters } = useData();
+  const { transactions, isLoading, formatCurrency, filters, budgets } = useData();
 
   useEffect(() => {
     setIsClient(true);
@@ -48,6 +50,12 @@ export default function DashboardPage() {
     const monthName = format(new Date(filters.year, filters.month), 'MMMM', { locale: es });
     return `Resumen de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}, ${filters.year}`;
   }, [filters]);
+
+  const favoriteBudget = useMemo(() => {
+    if (!budgets || budgets.length === 0) return null;
+    const fav = budgets.find(b => b.isFavorite);
+    return fav ? [fav] : [budgets[0]]; // Show first if no favorite is set
+  }, [budgets]);
 
   const KpiSkeleton = () => (
     <div className="space-y-2">
@@ -110,6 +118,20 @@ export default function DashboardPage() {
                       <ExpenseChart />
                   </CardContent>
               </Card>
+
+              {favoriteBudget && (
+                 <Card className="bg-card/80 border-border/80">
+                   <CardHeader>
+                      <CardTitle>Seguimiento de Presupuesto Favorito</CardTitle>
+                      <CardDescription>
+                          Un vistazo rápido a tu plan presupuestario principal para el período actual.
+                      </CardDescription>
+                  </CardHeader>
+                   <CardContent>
+                      <BudgetWidget budgets={favoriteBudget} isLoading={isLoading} />
+                  </CardContent>
+                 </Card>
+              )}
 
             <CashflowChart />
             
@@ -187,3 +209,4 @@ export default function DashboardPage() {
     </>
   );
 }
+

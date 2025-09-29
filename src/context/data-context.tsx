@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -158,6 +157,7 @@ interface DataContextType {
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Partial<Budget> & {id: string}) => Promise<void>;
     deleteBudget: (id: string) => Promise<void>;
+    setFavoriteBudget: (budgetId: string) => Promise<void>;
 
     addProfile: (profile: Omit<Profile, 'id'>) => Promise<void>;
     updateProfile: (profile: Partial<Profile> & {id: string}) => Promise<void>;
@@ -1039,6 +1039,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setTangibleAssets(prev => prev.filter(a => a.id !== assetId));
     };
     
+    const setFavoriteBudget = async (budgetId: string) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const batch = writeBatch(db);
+        
+        const updatedBudgets = budgets.map(b => {
+            const isFavorite = b.id === budgetId;
+            if (b.isFavorite !== isFavorite) {
+                const budgetRef = doc(db, `users/${uid}/budgets`, b.id);
+                batch.update(budgetRef, { isFavorite });
+            }
+            return { ...b, isFavorite };
+        });
+
+        await batch.commit();
+        setBudgets(updatedBudgets);
+    };
+
     // #endregion
 
     const value: DataContextType = {
@@ -1109,6 +1126,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addBudget: budgetsCrud.add,
         updateBudget: budgetsCrud.update,
         deleteBudget: budgetsCrud.delete,
+        setFavoriteBudget,
         addProfile: profilesCrud.add,
         updateProfile: profilesCrud.update,
         deleteProfile: profilesCrud.delete,
