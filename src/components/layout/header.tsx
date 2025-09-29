@@ -19,7 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 const navSections = [
     {
-        title: "Obligaciones y Metas",
+        title: "Planificación y Seguimiento",
         items: [
             { href: "/dashboard/dashboard", icon: LayoutDashboard, label: "Panel", color: "text-sky-400" },
             { href: "/dashboard/transactions", icon: List, label: "Transacciones", color: "text-orange-400" },
