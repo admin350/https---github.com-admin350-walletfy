@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import {
@@ -30,20 +31,24 @@ interface ContributeToInvestmentDialogProps {
     investment: Investment;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    purpose: 'investment' | 'saving';
 }
 
-export function ContributeToInvestmentDialog({ investment, open, onOpenChange }: ContributeToInvestmentDialogProps) {
+export function ContributeToInvestmentDialog({ investment, open, onOpenChange, purpose }: ContributeToInvestmentDialogProps) {
     const { toast } = useToast();
     const { addInvestmentContribution, bankAccounts, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
     
-    const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment' && acc.profile === investment.profile), [bankAccounts, investment.profile]);
-    const availableToInvest = investmentAccount?.balance ?? 0;
+    const relevantPortfolioAccount = useMemo(() => 
+        bankAccounts.find(acc => acc.purpose === purpose && acc.profile === investment.profile), 
+    [bankAccounts, investment.profile, purpose]);
+    
+    const availableToContribute = relevantPortfolioAccount?.balance ?? 0;
 
     const formSchema = z.object({
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableToInvest, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de inversión (${formatCurrency(availableToInvest)}).` }),
+        .max(availableToContribute, { message: `No puedes aportar más de lo que tienes disponible en tu cartera (${formatCurrency(availableToContribute)}).` }),
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
@@ -54,8 +59,8 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
     });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        if (!investmentAccount) {
-            toast({ title: "Error", description: `No se ha configurado una cuenta de 'Cartera de Inversión' para el perfil '${investment.profile}'.`, variant: "destructive" });
+        if (!relevantPortfolioAccount) {
+            toast({ title: "Error", description: `No se ha configurado una cuenta de 'Cartera de ${purpose === 'investment' ? 'Inversión' : 'Ahorro'}' para el perfil '${investment.profile}'.`, variant: "destructive" });
             return;
         }
         setIsLoading(true);
@@ -68,7 +73,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
             });
             toast({
                 title: "¡Aporte Exitoso!",
-                description: `Has aportado ${formatCurrency(values.amount)} a tu inversión "${investment.name}".`,
+                description: `Has aportado ${formatCurrency(values.amount)} a tu activo "${investment.name}".`,
             });
             onOpenChange(false);
             form.reset();
@@ -76,7 +81,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
              const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: err.message || "No se pudo registrar el aporte a la inversión.",
+                description: err.message || "No se pudo registrar el aporte al activo.",
                 variant: "destructive"
             })
         } finally {
@@ -97,7 +102,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                 <DialogHeader>
                     <DialogTitle>Aportar a: {investment.name}</DialogTitle>
                     <DialogDescription>
-                       Saldo disponible para invertir ({investmentAccount?.name}): <span className="font-bold text-primary">{formatCurrency(availableToInvest)}</span>
+                       Saldo disponible para aportar ({relevantPortfolioAccount?.name}): <span className="font-bold text-primary">{formatCurrency(availableToContribute)}</span>
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -115,9 +120,9 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange }:
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isLoading || !investmentAccount}>
+                        <Button type="submit" className="w-full" disabled={isLoading || !relevantPortfolioAccount}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {!investmentAccount ? "Cartera de Inversión no encontrada" : "Confirmar Aporte"}
+                            {!relevantPortfolioAccount ? `Cartera no encontrada` : "Confirmar Aporte"}
                         </Button>
                     </form>
                 </Form>

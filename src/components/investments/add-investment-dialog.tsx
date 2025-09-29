@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -29,11 +30,12 @@ import { useData } from '@/context/data-context';
 import type { Investment } from '@/types';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Nombre de la inversión es muy corto." }),
+  name: z.string().min(2, { message: "Nombre del activo es muy corto." }),
   initialAmount: z.coerce.number().positive({ message: "Monto inicial debe ser positivo." }),
-  investmentType: z.string().min(2, { message: "Tipo de inversión es requerido." }),
+  investmentType: z.string().min(2, { message: "Tipo de activo es requerido." }),
   platform: z.string().min(2, { message: "La plataforma es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
+  purpose: z.enum(['investment', 'saving']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,9 +45,10 @@ interface AddInvestmentDialogProps {
     investmentToEdit?: Investment;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    purpose: 'investment' | 'saving';
 }
 
-export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenChange }: AddInvestmentDialogProps) {
+export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenChange, purpose }: AddInvestmentDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -63,6 +66,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
             investmentType: "",
             platform: "",
             profile: "",
+            purpose: purpose,
         },
     });
 
@@ -72,14 +76,14 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
             if (investmentToEdit) {
                 await updateInvestment({ ...values, id: investmentToEdit.id, currentValue: investmentToEdit.currentValue });
                 toast({
-                    title: "Inversión actualizada",
-                    description: `La inversión ha sido actualizada exitosamente.`,
+                    title: "Activo actualizado",
+                    description: `El activo ha sido actualizado exitosamente.`,
                 });
             } else {
                 await addInvestment(values);
                  toast({
-                    title: "Inversión añadida",
-                    description: `La inversión ha sido registrada exitosamente.`,
+                    title: "Activo añadido",
+                    description: `El activo ha sido registrado exitosamente.`,
                 });
             }
             setDialogOpen(false);
@@ -87,7 +91,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
              const err = error instanceof Error ? error : new Error('An unknown error occurred');
             toast({
                 title: "Error",
-                description: err.message || `No se pudo ${investmentToEdit ? 'actualizar' : 'añadir'} la inversión.`,
+                description: err.message || `No se pudo ${investmentToEdit ? 'actualizar' : 'añadir'} el activo.`,
                 variant: "destructive"
             });
         } finally {
@@ -105,6 +109,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                     investmentType: investmentToEdit.investmentType,
                     platform: investmentToEdit.platform,
                     profile: investmentToEdit.profile,
+                    purpose: investmentToEdit.purpose,
                 });
             } else {
                 form.reset({
@@ -113,19 +118,26 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                     investmentType: "",
                     platform: "",
                     profile: "",
+                    purpose: purpose,
                 });
             }
         }
-    }, [investmentToEdit, form, dialogOpen]);
+    }, [investmentToEdit, form, dialogOpen, purpose]);
+    
+    const titleText = purpose === 'investment' ? 'Inversión' : 'Instrumento de Ahorro';
+    const descriptionText = purpose === 'investment' 
+        ? 'Registra un nuevo activo en tu portafolio de inversión.'
+        : 'Registra un nuevo instrumento en tu portafolio de ahorro.';
+
 
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             {!isControlled && <DialogTrigger asChild>{children}</DialogTrigger>}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{investmentToEdit ? 'Editar' : 'Añadir Nueva'} Inversión</DialogTitle>
+                    <DialogTitle>{investmentToEdit ? 'Editar' : 'Añadir Nuevo'} {titleText}</DialogTitle>
                     <DialogDescription>
-                        {investmentToEdit ? 'Actualiza los detalles de tu activo.' : 'Registra un nuevo activo en tu portafolio.'}
+                        {investmentToEdit ? 'Actualiza los detalles de tu activo.' : descriptionText}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-4">
@@ -138,7 +150,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                                     <FormItem>
                                         <FormLabel>Nombre del Activo</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: Acciones Apple" {...field} />
+                                            <Input placeholder={purpose === 'investment' ? "Ej: Acciones Apple" : "Ej: Depósito a Plazo"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -162,9 +174,9 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                                 name="investmentType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipo de Inversión</FormLabel>
+                                        <FormLabel>Tipo de Activo</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: Acciones, Cripto, Forex" {...field} />
+                                            <Input placeholder={purpose === 'investment' ? "Ej: Acciones, Cripto" : "Ej: Renta Fija, Fondo Mutuo"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -175,9 +187,9 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                                 name="platform"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Plataforma / Broker</FormLabel>
+                                        <FormLabel>Plataforma / Institución</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ej: Interactive Brokers, Binance" {...field} />
+                                            <Input placeholder={purpose === 'investment' ? "Ej: Interactive Brokers" : "Ej: Banco Estado"} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -207,7 +219,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                             />
                             <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {investmentToEdit ? 'Guardar Cambios' : 'Guardar Inversión'}
+                                {investmentToEdit ? 'Guardar Cambios' : `Guardar ${titleText}`}
                             </Button>
                         </form>
                     </Form>

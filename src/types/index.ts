@@ -145,6 +145,7 @@ export type Investment = {
   investmentType: string; // e.g., 'Acciones', 'Criptomonedas', 'Forex', 'Índices'
   platform: string; // e.g., 'Interactive Brokers', 'Binance'
   profile: string;
+  purpose: 'investment' | 'saving'; // Differentiates between growth investment and savings instrument
 };
 
 export type InvestmentContribution = {

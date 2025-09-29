@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";
@@ -18,12 +19,13 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/
 interface InvestmentsWidgetProps {
   investments?: Investment[];
   isLoading?: boolean;
+  purpose: 'investment' | 'saving';
 }
 
-export function InvestmentsWidget({ investments: investmentsFromProps, isLoading: isLoadingFromProps }: InvestmentsWidgetProps) {
+export function InvestmentsWidget({ investments: investmentsFromProps, isLoading: isLoadingFromProps, purpose }: InvestmentsWidgetProps) {
   const { deleteInvestment, formatCurrency, investments: contextInvestments, isLoading: contextIsLoading } = useData();
 
-  const investments = investmentsFromProps !== undefined ? investmentsFromProps : contextInvestments;
+  const investments = (investmentsFromProps !== undefined ? investmentsFromProps : contextInvestments).filter(inv => inv.purpose === purpose);
   const isLoading = isLoadingFromProps !== undefined ? isLoadingFromProps : contextIsLoading;
 
   const [isClient, setIsClient] = useState(false);
@@ -47,13 +49,13 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
     try {
       await deleteInvestment(id);
       toast({
-        title: "Inversión eliminada",
-        description: "Tu inversión ha sido eliminada exitosamente."
+        title: "Activo eliminado",
+        description: "Tu activo ha sido eliminado exitosamente."
       });
     } catch (error) {
        toast({
         title: "Error",
-        description: "No se pudo eliminar la inversión.",
+        description: "No se pudo eliminar el activo.",
         variant: "destructive"
       });
     }
@@ -73,7 +75,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
           </div>
         ))
       ) : !investments || investments.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-4">No hay inversiones registradas.</p>
+          <p className="text-muted-foreground text-sm text-center py-4">No hay {purpose === 'investment' ? 'inversiones' : 'instrumentos de ahorro'} registrados.</p>
       ) : (
         investments.map((investment) => {
           const profit = investment.currentValue - investment.initialAmount;
@@ -112,7 +114,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                         <AlertDialogHeader>
                             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la inversión y sus contribuciones asociadas.
+                                Esta acción no se puede deshacer. Esto eliminará permanentemente el activo y sus contribuciones asociadas.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -134,7 +136,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Inversión Inicial: {formatCurrency(investment.initialAmount)}</p>
+                        <p>Aporte Inicial: {formatCurrency(investment.initialAmount)}</p>
                     </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -161,6 +163,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
             setSelectedForContribution(null);
           }
         }}
+        purpose={purpose}
       />
     )}
       {selectedForEdit && (
@@ -172,6 +175,7 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                 }
             }}
             investmentToEdit={selectedForEdit}
+            purpose={purpose}
         />
       )}
     </div>

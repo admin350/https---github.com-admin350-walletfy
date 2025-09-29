@@ -11,15 +11,15 @@ import { InvestmentsWidget } from "@/components/investments/investments-widget";
 import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 import type { Investment } from "@/types";
 
-export default function InvestmentsPage() {
+export default function SavingsPage() {
     const { investments, isLoading, formatCurrency } = useData();
     
-    const investmentAssets = investments.filter(inv => inv.purpose === 'investment');
+    const savingsInstruments = investments.filter(inv => inv.purpose === 'saving');
 
-    const totalInvested = investmentAssets.reduce((acc: number, investment: Investment) => acc + investment.initialAmount, 0);
-    const totalCurrentValue = investmentAssets.reduce((acc: number, investment: Investment) => acc + investment.currentValue, 0);
-    const totalProfit = totalCurrentValue - totalInvested;
-    const profitPercentage = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
+    const totalSaved = savingsInstruments.reduce((acc: number, investment: Investment) => acc + investment.initialAmount, 0);
+    const totalCurrentValue = savingsInstruments.reduce((acc: number, investment: Investment) => acc + investment.currentValue, 0);
+    const totalProfit = totalCurrentValue - totalSaved;
+    const profitPercentage = totalSaved > 0 ? (totalProfit / totalSaved) * 100 : 0;
     
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -33,32 +33,32 @@ export default function InvestmentsPage() {
             <div className="grid gap-4 md:grid-cols-3">
                 {isLoading ? (
                     <>
-                        <KpiCard title="Total Invertido" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
-                        <KpiCard title="Valor Actual" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
-                        <KpiCard title="Ganancia/Pérdida" value={<KpiSkeleton />} icon={BarChart} description="Cargando..." />
+                        <KpiCard title="Total Ahorrado en Instrumentos" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
+                        <KpiCard title="Valor Actual de Ahorros" value={<KpiSkeleton />} icon={TrendingUp} description="Cargando..." />
+                        <KpiCard title="Ganancia Total de Ahorros" value={<KpiSkeleton />} icon={BarChart} description="Cargando..." />
                     </>
                 ) : (
                     <>
                         <KpiCard 
-                            title="Total Invertido" 
-                            value={<span className="text-blue-400">{formatCurrency(totalInvested)}</span>}
+                            title="Total Ahorrado en Instrumentos" 
+                            value={<span className="text-emerald-400">{formatCurrency(totalSaved)}</span>}
                             icon={Wallet} 
-                            iconClassName="text-blue-400"
-                            description="Suma de todo el capital inicial invertido."
+                            iconClassName="text-emerald-400"
+                            description="Suma de todo el capital inicial en instrumentos de ahorro."
                         />
                         <KpiCard 
-                            title="Valor Actual del Portafolio" 
+                            title="Valor Actual de Ahorros" 
                             value={<span className="text-green-400">{formatCurrency(totalCurrentValue)}</span>} 
                             icon={TrendingUp}
                             iconClassName="text-green-400"
-                            description="Valor de mercado actual de tus inversiones."
+                            description="Valor de mercado actual de tus ahorros."
                         />
                         <KpiCard
-                            title="Ganancia / Pérdida"
+                            title="Ganancia / Pérdida de Ahorros"
                              value={<span className={totalProfit >= 0 ? "text-green-400" : "text-red-400"}>{formatCurrency(totalProfit)} ({profitPercentage.toFixed(2)}%)</span>}
                             icon={BarChart}
                             iconClassName={totalProfit >= 0 ? "text-green-400" : "text-red-400"}
-                            description="Rendimiento total de tu portafolio."
+                            description="Rendimiento total de tus ahorros."
                         />
                     </>
                 )}
@@ -67,27 +67,27 @@ export default function InvestmentsPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Mis Activos de Inversión</CardTitle>
+                        <CardTitle>Mis Instrumentos de Ahorro</CardTitle>
                         <CardDescription>
-                            Define, sigue y gestiona tus activos de inversión para el crecimiento de tu capital.
+                            Define, sigue y gestiona tus instrumentos de ahorro como depósitos a plazo o fondos mutuos.
                         </CardDescription>
                     </div>
-                     <AddInvestmentDialog purpose="investment">
+                     <AddInvestmentDialog purpose="saving">
                         <Button size="icon" variant="outline">
                            <PlusCircle className="h-6 w-6" />
                         </Button>
                     </AddInvestmentDialog>
                 </CardHeader>
                 <CardContent>
-                    <InvestmentsWidget purpose="investment" />
+                    <InvestmentsWidget purpose="saving" />
                 </CardContent>
             </Card>
 
              <Card>
                  <CardHeader>
-                    <CardTitle>Registro de Aportes a Inversiones</CardTitle>
+                    <CardTitle>Registro de Aportes a Instrumentos de Ahorro</CardTitle>
                     <CardDescription>
-                        Historial de todos los aportes desde tu cartera de inversión hacia tus activos.
+                        Historial de todos los aportes desde tu cartera de ahorros hacia tus instrumentos.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
