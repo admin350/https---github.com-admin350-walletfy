@@ -6,7 +6,7 @@
 
 import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import { processTransactions } from "./flows/process-transactions";
+import { processTransactions } from "./flows/process-transactions.js";
 import { initializeApp } from "firebase-admin/app";
 
 // Inicializar Firebase para que las funciones tengan acceso a otros servicios.
