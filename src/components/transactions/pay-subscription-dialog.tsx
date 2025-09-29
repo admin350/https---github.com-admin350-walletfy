@@ -75,7 +75,7 @@ export function PaySubscriptionDialog({ subscription, open, onOpenChange }: PayS
         // Add credit cards
         options.push(...cardsForProfile.filter(c => c.cardType === 'credit').map(card => ({
              value: card.id,
-             label: `${card.bank} - ${card.brand} ${card.cardType} (**** ${card.last4Digits}) - Disp: ${formatCurrency((card.creditLimit || 0) - (card.usedAmount || 0))}`,
+             label: `${card.bank} - ${card.name} (**** ${card.last4Digits}) - Disp: ${formatCurrency((card.creditLimit || 0) - (card.usedAmount || 0))}`,
              type: 'card'
         })));
 

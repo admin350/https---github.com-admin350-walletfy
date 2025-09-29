@@ -174,7 +174,7 @@ export function AddSubscriptionDialog({ children }: { children: ReactNode }) {
                                                     const availableCredit = card.creditLimit ? card.creditLimit - (card.usedAmount || 0) : 0;
                                                     return (
                                                         <SelectItem key={card.id} value={card.id}>
-                                                        {card.name} (**** {card.last4Digits})
+                                                        {card.bank} - {card.name} (**** {card.last4Digits})
                                                         {card.cardType === 'credit' && ` - Disp: ${formatCurrency(availableCredit)}`}
                                                         </SelectItem>
                                                     )

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -367,7 +366,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                 </FormControl>
                                 <SelectContent>
                                 {availableAccounts.map(a => (
-                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
+                                    <SelectItem key={a.id} value={a.id}>{a.bank} - {a.name} ({formatCurrency(a.balance)})</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
@@ -390,7 +389,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                     </FormControl>
                                     <SelectContent>
                                     {availableDestinationAccounts.map(a => (
-                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
+                                        <SelectItem key={a.id} value={a.id}>{a.bank} - {a.name} ({formatCurrency(a.balance)})</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
