@@ -1,11 +1,11 @@
 
 'use client';
 import { useState } from "react";
-import type { Budget } from "@/types";
+import type { Budget, Transaction } from "@/types";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../ui/card";
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend, Cell, Layer } from "recharts";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -30,6 +30,16 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
 
+    const actualExpenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((acc, t) => {
+            if (!acc[t.category]) {
+                acc[t.category] = 0;
+            }
+            acc[t.category] += t.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
     const handleEdit = (budget: Budget) => {
         setBudgetToEdit(budget);
     };
@@ -52,7 +62,7 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     
     const getCategoryColor = (categoryName: string) => {
         const category = categories.find(c => c.name === categoryName);
-        return category ? category.color : "#8884d8"; // fallback color
+        return category ? category.color : "#8884d8";
     };
 
     const getProfileColor = (profileName: string) => {
@@ -78,27 +88,33 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
     return (
         <div className="space-y-6">
             {budgets.map(budget => {
-                 const chartData = budget.items.map(item => ({
-                    ...item,
-                    fill: getCategoryColor(item.category)
-                }));
+                const chartData = budget.items.map(item => {
+                    const budgetedAmount = totalIncome * (item.percentage / 100);
+                    const spentAmount = actualExpenses[item.category] || 0;
+                    return {
+                        category: item.category,
+                        budgeted: budgetedAmount,
+                        spent: spentAmount,
+                        remaining: Math.max(0, budgetedAmount - spentAmount),
+                        fill: getCategoryColor(item.category)
+                    };
+                });
+                
                 const chartConfig = {
-                    percentage: { label: "Porcentaje (%)" },
-                    ...chartData.reduce((acc, item) => {
-                        acc[item.category] = { label: item.category, color: item.fill };
-                        return acc;
-                    }, {} as any)
+                    budgeted: { label: "Presupuestado" },
+                    spent: { label: "Gastado" },
                 };
 
                 return (
                 <Card key={budget.id} className="flex flex-col border-t-4 shadow-none border" style={{ borderTopColor: getProfileColor(budget.profile) }}>
-                    <CardHeader className="p-4 pb-0">
+                    <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start">
                             <div>
                                 <CardTitle className="text-lg">{budget.name}</CardTitle>
-                                 <div className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                                    <span>Perfil:</span> <Badge variant="outline">{budget.profile}</Badge>
-                                </div>
+                                 <CardDescription className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                                    <span>Basado en Ingresos de: {formatCurrency(totalIncome)}</span>
+                                     <Badge variant="outline">Perfil: {budget.profile}</Badge>
+                                </CardDescription>
                             </div>
                              <AlertDialog>
                                 <DropdownMenu>
@@ -134,52 +150,49 @@ export function BudgetWidget({ budgets, isLoading }: BudgetWidgetProps) {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-1 p-4">
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div className="h-[200px]">
-                              <ChartContainer config={chartConfig} className="w-full h-full">
+                       <div className="h-[250px] w-full">
+                           <ChartContainer config={chartConfig} className="w-full h-full">
                                 <BarChart
-                                    accessibilityLayer
                                     data={chartData}
                                     layout="vertical"
-                                    margin={{ left: 0, right: 20 }}
+                                    margin={{ left: 10, right: 20, top: 10, bottom: 10 }}
+                                    barSize={20}
                                 >
-                                    <XAxis type="number" dataKey="percentage" hide />
+                                    <XAxis type="number" hide />
                                     <YAxis
-                                        type="category"
                                         dataKey="category"
+                                        type="category"
                                         tickLine={false}
                                         axisLine={false}
-                                        tick={false}
+                                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                                        width={120}
+                                        className="truncate"
                                     />
                                     <Tooltip
                                         cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
-                                        content={
-                                            <ChartTooltipContent
-                                                formatter={(value, name) => `${value}%`}
-                                            />
-                                        }
+                                        content={<ChartTooltipContent 
+                                            formatter={(value, name, props) => {
+                                                const { payload } = props;
+                                                const percentage = payload.budgeted > 0 ? (payload.spent / payload.budgeted) * 100 : 0;
+                                                return (
+                                                    <div className="flex flex-col gap-1 text-sm">
+                                                        <span className="font-bold" style={{ color: payload.fill }}>{payload.category}</span>
+                                                        <span>Gastado: {formatCurrency(payload.spent)}</span>
+                                                        <span>Presupuesto: {formatCurrency(payload.budgeted)}</span>
+                                                        <span className="font-semibold">{percentage.toFixed(1)}% consumido</span>
+                                                    </div>
+                                                )
+                                            }}
+                                        />}
                                     />
-                                    <Bar dataKey="percentage" layout="vertical" radius={5} />
+                                    <Bar dataKey="budgeted" stackId="a" fill="hsl(var(--muted) / 0.5)" radius={[5, 5, 5, 5]} />
+                                    <Bar dataKey="spent" stackId="a" radius={[5, 5, 5, 5]}>
+                                        {chartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.spent > entry.budgeted ? 'hsl(var(--destructive))' : entry.fill} />
+                                        ))}
+                                    </Bar>
                                 </BarChart>
                             </ChartContainer>
-                           </div>
-                            <div className="flex flex-col justify-center space-y-1 text-xs overflow-y-auto max-h-[200px] pr-2">
-                                {chartData.map((item) => {
-                                    const estimatedAmount = (totalIncome * item.percentage) / 100;
-                                    return (
-                                        <div key={item.category} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2 truncate">
-                                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.fill }} />
-                                                <span className="truncate" title={item.category}>{item.category}</span>
-                                            </div>
-                                            <div className="text-right flex-shrink-0">
-                                                <span className="font-medium">{formatCurrency(estimatedAmount)}</span>
-                                                <span className="ml-2 text-muted-foreground">({item.percentage}%)</span>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
                        </div>
                     </CardContent>
                 </Card>
