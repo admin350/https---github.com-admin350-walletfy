@@ -11,11 +11,6 @@ import { useMemo } from "react"
 import { useData } from "@/context/data-context"
 import { Skeleton } from "../ui/skeleton"
 
-const COLORS = {
-  transfer: "hsl(var(--chart-5))",
-};
-
-
 export function ExpenseChart() {
   const { transactions, categories, isLoading, formatCurrency } = useData();
   
@@ -37,14 +32,7 @@ export function ExpenseChart() {
         return null;
     }).filter(d => d !== null) as { name: string; value: number; fill: string }[];
 
-    const transferTotal = transactions
-        .filter(t => t.type === 'transfer')
-        .reduce((sum, t) => sum + t.amount, 0);
-        
     const data = [...expenseData];
-    if (transferTotal > 0) {
-        data.push({ name: "Transferencias", value: transferTotal, fill: COLORS.transfer });
-    }
     
     return { chartData: data, totalIncome };
   }, [transactions, categories]);

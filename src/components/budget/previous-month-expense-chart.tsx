@@ -18,9 +18,6 @@ import { Skeleton } from "../ui/skeleton"
 import { subMonths, getMonth, getYear } from "date-fns"
 import type { Transaction } from "@/types";
 
-const COLORS = {
-  transfer: "hsl(var(--chart-5))",
-};
 
 export function PreviousMonthExpenseChart() {
   const { categories, isLoading, getAllDataForMonth, formatCurrency } = useData();
@@ -52,15 +49,8 @@ export function PreviousMonthExpenseChart() {
         }
         return null;
     }).filter(d => d !== null) as { name: string; value: number; fill: string }[];
-
-    const transferTotal = prevMonthTransactions
-        .filter((t: Transaction) => t.type === 'transfer')
-        .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
         
     const data = [...expenseData];
-    if (transferTotal > 0) {
-        data.push({ name: "Transferencias", value: transferTotal, fill: COLORS.transfer });
-    }
     
     return { chartData: data, totalIncome, previousMonthLabel };
   }, [categories, getAllDataForMonth]);
