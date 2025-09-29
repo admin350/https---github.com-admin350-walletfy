@@ -75,6 +75,28 @@ export default function DashboardPage() {
           
           <div className="lg:col-span-1 space-y-6">
             <FinancialSummary />
+            <Card>
+                <CardHeader>
+                  <CardTitle>Resumen de Deudas</CardTitle>
+                  <CardDescription>
+                    Visualización del monto total de tus deudas activas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DebtsOverviewChart />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumen de Metas</CardTitle>
+                  <CardDescription>
+                    Visualización del progreso de tus metas de ahorro activas.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GoalsSummaryChart />
+                </CardContent>
+              </Card>
           </div>
 
           <div className="lg:col-span-2 space-y-6">
@@ -145,28 +167,6 @@ export default function DashboardPage() {
                  </Card>
               )}
               <RecentTransactions />
-              <Card>
-                  <CardHeader>
-                    <CardTitle>Resumen de Deudas</CardTitle>
-                    <CardDescription>
-                      Visualización del monto total de tus deudas activas.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <DebtsOverviewChart />
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Resumen de Metas</CardTitle>
-                    <CardDescription>
-                      Visualización del progreso de tus metas de ahorro activas.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <GoalsSummaryChart />
-                  </CardContent>
-                </Card>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                   </AddDebtDialog>
                   <AddSubscriptionDialog>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <PiggyBank className="mr-2 h-4 w-4" />
+                          <PiggyBank className="mr-2 h-4w-4" />
                           Añadir Suscripción
                       </DropdownMenuItem>
                   </AddSubscriptionDialog>
