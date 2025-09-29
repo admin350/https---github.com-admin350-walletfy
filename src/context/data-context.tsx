@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -830,6 +831,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         
         setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
         setInvestments(prev => prev.map(i => i.id === contribution.investmentId ? {...i, currentValue: newCurrentValue, initialAmount: newInitialAmount } : i));
+    };
+
+    const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const newInvestment = { ...investment, currentValue: investment.initialAmount, startDate: investment.startDate || new Date() };
+        
+        const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
+        const savedDoc = await addDocToCollection('investments', dataToSave);
+        
+        setInvestments(prev => [...prev, { ...savedDoc, startDate: newInvestment.startDate }]);
+
+        // Automatically add the initial amount as the first contribution
+        await addInvestmentContribution({
+            investmentId: savedDoc.id,
+            investmentName: newInvestment.name,
+            amount: newInvestment.initialAmount,
+            date: newInvestment.startDate,
+        });
     };
 
      const closeInvestment = async (investmentId: string, finalValue: number) => {
