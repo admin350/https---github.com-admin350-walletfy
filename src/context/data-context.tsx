@@ -553,7 +553,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const cleanedData = cleanupUndefineds(data);
         const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), cleanedData);
-        return { id: docRef.id, ...data };
+        
+        // Fetch the doc to get Firestore-generated fields and convert timestamps
+        const newDocSnap = await getDoc(docRef);
+        const newDocData = newDocSnap.data();
+        if (!newDocData) throw new Error("Failed to fetch newly created document.");
+
+        const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate', 'purchaseDate', 'startDate'];
+        for (const field of dateFields) {
+            if (newDocData[field] && newDocData[field] instanceof Timestamp) {
+                newDocData[field] = newDocData[field].toDate();
+            }
+        }
+        
+        return { id: docRef.id, ...newDocData };
     };
 
     const updateDocInCollection = async (collectionName: string, id: string, data: any) => {
@@ -834,13 +847,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
         const newInvestment = { ...investment, currentValue: investment.initialAmount, startDate: investment.startDate || new Date() };
         
         const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
         const savedDoc = await addDocToCollection('investments', dataToSave);
         
-        setInvestments(prev => [...prev, { ...savedDoc, startDate: new Date(savedDoc.startDate) }]);
+        setInvestments(prev => [...prev, savedDoc as Investment]);
 
         // Automatically add the initial amount as the first contribution
         await addInvestmentContribution({
@@ -874,7 +886,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await deleteDocFromCollection('investments', investmentId);
         setInvestments(prev => prev.filter(inv => inv.id !== investmentId));
     };
-
+    
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
         const newSub = { ...subscription, status: 'active' as const, dueDate: subscription.dueDate };
         const savedDoc = await addDocToCollection('subscriptions', { ...newSub, dueDate: Timestamp.fromDate(newSub.dueDate) });
@@ -1101,3 +1113,5 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
+    
