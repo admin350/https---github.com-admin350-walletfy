@@ -121,9 +121,26 @@ export default function DashboardPage() {
 
               <QuickAccess />
 
-            <CashflowChart />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FinancialSummary />
+
+              <CashflowChart />
+
+          </div>
+
+          <div className="lg:col-span-1 space-y-6">
+              {favoriteBudget && (
+                 <Card className="bg-card/80 border-border/80">
+                   <CardHeader>
+                      <CardTitle>Seguimiento de Presupuesto Favorito</CardTitle>
+                      <CardDescription>
+                          Un vistazo rápido a tu plan presupuestario principal para el período actual.
+                      </CardDescription>
+                  </CardHeader>
+                   <CardContent>
+                      <BudgetWidget budgets={favoriteBudget} isLoading={isLoading} />
+                   </CardContent>
+                 </Card>
+              )}
               <Card>
                   <CardHeader>
                     <CardTitle>Resumen de Deudas</CardTitle>
@@ -146,25 +163,6 @@ export default function DashboardPage() {
                     <GoalsSummaryChart />
                   </CardContent>
                 </Card>
-            </div>
-
-          </div>
-
-          <div className="lg:col-span-1 space-y-6">
-              {favoriteBudget && (
-                 <Card className="bg-card/80 border-border/80">
-                   <CardHeader>
-                      <CardTitle>Seguimiento de Presupuesto Favorito</CardTitle>
-                      <CardDescription>
-                          Un vistazo rápido a tu plan presupuestario principal para el período actual.
-                      </CardDescription>
-                  </CardHeader>
-                   <CardContent>
-                      <BudgetWidget budgets={favoriteBudget} isLoading={isLoading} />
-                  </CardContent>
-                 </Card>
-              )}
-              <FinancialSummary />
               <RecentTransactions />
           </div>
         </div>
