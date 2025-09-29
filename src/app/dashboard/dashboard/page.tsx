@@ -79,6 +79,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
+             <QuickAccess />
+
             <div className="grid gap-4 md:grid-cols-3">
                 {isLoading || !isClient ? (
                 <>
@@ -127,8 +129,6 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-
-              <QuickAccess />
 
               <CashflowChart />
 
