@@ -3,9 +3,9 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
-import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale, Library } from 'lucide-react';
+import { Landmark, Wallet, ArrowRightLeft, CreditCard, Repeat, Banknote, TrendingUp, Scale, Library, Building } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution, BankAccount, BankCard } from '@/types';
+import type { Transaction, Debt, Subscription, GoalContribution, InvestmentContribution, BankAccount, BankCard, TangibleAsset } from '@/types';
 
 export function FinancialSummary() {
     const { 
@@ -16,6 +16,7 @@ export function FinancialSummary() {
         debts,
         subscriptions,
         transactions,
+        tangibleAssets,
         isLoading,
         formatCurrency
     } = useData();
@@ -53,6 +54,9 @@ export function FinancialSummary() {
         .filter((s: Subscription) => s.status === 'active')
         .reduce((acc: number, sub: Subscription) => acc + sub.amount, 0);
         
+    // Tangible Assets
+    const totalAssetValue = tangibleAssets.reduce((acc: number, asset: TangibleAsset) => acc + asset.estimatedValue, 0);
+
     // Tax Calculation
     const taxData = useMemo(() => {
         const incomeWithTax = transactions.filter((t: Transaction) => t.type === 'income' && t.taxDetails);
@@ -117,6 +121,19 @@ export function FinancialSummary() {
                         <span className="font-medium text-foreground">{formatCurrency(totalBalance)}</span>
                     </div>
                 </div>
+
+                {/* Tangible Assets */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 font-semibold text-fuchsia-400">
+                        <Building className="h-5 w-5" />
+                        <span>Activos Tangibles</span>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Valor Total de Activos:</span>
+                        <span className="font-medium text-foreground">{formatCurrency(totalAssetValue)}</span>
+                    </div>
+                </div>
+
 
                 {/* Bank Cards */}
                  <div className="space-y-2">
