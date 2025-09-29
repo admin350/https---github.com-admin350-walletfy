@@ -1,11 +1,14 @@
+"use strict";
 'use server';
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
-import { firebase } from '@genkit-ai/firebase/plugin';
-export const ai = genkit({
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ai = void 0;
+const genkit_1 = require("genkit");
+const googleai_1 = require("@genkit-ai/googleai");
+const firebase_1 = require("@genkit-ai/firebase");
+exports.ai = (0, genkit_1.genkit)({
     plugins: [
-        googleAI(),
-        firebase({
+        (0, googleai_1.googleAI)(),
+        (0, firebase_1.firebase)({
             flowStateStore: {
                 collection: 'flow-states',
             },

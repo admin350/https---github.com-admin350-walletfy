@@ -1,30 +1,33 @@
+"use strict";
 'use server';
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processTransactions = processTransactions;
 /**
  * @fileOverview Un agente de IA para procesar transacciones a granel desde texto o imágenes.
  */
-import { z } from 'zod';
-import { ai } from '../genkit-client';
-const TransactionSchema = z.object({
-    amount: z.number().describe("El monto numérico de la transacción. Positivo para ingresos, negativo para gastos."),
-    description: z.string().describe("Una breve descripción de la transacción."),
-    category: z.string().describe("La categoría que mejor se ajusta a la transacción."),
-    profile: z.string().describe("El perfil financiero al que pertenece (ej. Personal, Negocio)."),
-    accountId: z.string().describe("El ID de la cuenta o tarjeta utilizada."),
+const zod_1 = require("zod");
+const genkit_client_1 = require("../genkit-client");
+const TransactionSchema = zod_1.z.object({
+    amount: zod_1.z.number().describe("El monto numérico de la transacción. Positivo para ingresos, negativo para gastos."),
+    description: zod_1.z.string().describe("Una breve descripción de la transacción."),
+    category: zod_1.z.string().describe("La categoría que mejor se ajusta a la transacción."),
+    profile: zod_1.z.string().describe("El perfil financiero al que pertenece (ej. Personal, Negocio)."),
+    accountId: zod_1.z.string().describe("El ID de la cuenta o tarjeta utilizada."),
 });
-const ProcessTransactionsInputSchema = z.object({
-    text: z.string().optional().describe("El texto en bruto que contiene las transacciones."),
-    photoDataUri: z.string().optional().describe("Una foto de las transacciones como data URI."),
-    categories: z.array(z.string()).describe("Lista de categorías de gastos e ingresos disponibles."),
-    profiles: z.array(z.string()).describe("Lista de perfiles financieros disponibles."),
-    accounts: z.array(z.object({ id: z.string(), name: z.string() })).describe("Lista de cuentas y tarjetas disponibles con sus IDs y nombres."),
+const ProcessTransactionsInputSchema = zod_1.z.object({
+    text: zod_1.z.string().optional().describe("El texto en bruto que contiene las transacciones."),
+    photoDataUri: zod_1.z.string().optional().describe("Una foto de las transacciones como data URI."),
+    categories: zod_1.z.array(zod_1.z.string()).describe("Lista de categorías de gastos e ingresos disponibles."),
+    profiles: zod_1.z.array(zod_1.z.string()).describe("Lista de perfiles financieros disponibles."),
+    accounts: zod_1.z.array(zod_1.z.object({ id: zod_1.z.string(), name: zod_1.z.string() })).describe("Lista de cuentas y tarjetas disponibles con sus IDs y nombres."),
 });
-const ProcessTransactionsOutputSchema = z.object({
-    transactions: z.array(TransactionSchema),
+const ProcessTransactionsOutputSchema = zod_1.z.object({
+    transactions: zod_1.z.array(TransactionSchema),
 });
-export async function processTransactions(input) {
+async function processTransactions(input) {
     return processTransactionsFlow(input);
 }
-const prompt = ai.definePrompt({
+const prompt = genkit_client_1.ai.definePrompt({
     name: 'processTransactionsPrompt',
     input: { schema: ProcessTransactionsInputSchema },
     output: { schema: ProcessTransactionsOutputSchema },
@@ -51,7 +54,7 @@ Analiza el texto en la siguiente imagen:
 {{/if}}
 `
 });
-const processTransactionsFlow = ai.defineFlow({
+const processTransactionsFlow = genkit_client_1.ai.defineFlow({
     name: 'processTransactionsFlow',
     inputSchema: ProcessTransactionsInputSchema,
     outputSchema: ProcessTransactionsOutputSchema,
