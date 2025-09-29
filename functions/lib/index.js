@@ -1,21 +1,18 @@
-"use strict";
 /**
  * @fileOverview Funciones Cloud para la aplicación Walletfy.
  *
  * - whatsappWebhook: Un endpoint HTTP para recibir mensajes de WhatsApp.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.whatsappWebhook = void 0;
-const https_1 = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
-const process_transactions_1 = require("./flows/process-transactions");
-const app_1 = require("firebase-admin/app");
+import { onRequest } from "firebase-functions/v2/https";
+import * as logger from "firebase-functions/logger";
+import { processTransactions } from "./flows/process-transactions";
+import { initializeApp } from "firebase-admin/app";
 // Inicializar Firebase para que las funciones tengan acceso a otros servicios.
-(0, app_1.initializeApp)();
+initializeApp();
 /**
  * Webhook para recibir y procesar mensajes de WhatsApp.
  */
-exports.whatsappWebhook = (0, https_1.onRequest)({ cors: true }, // Permitir CORS para pruebas iniciales
+export const whatsappWebhook = onRequest({ cors: true }, // Permitir CORS para pruebas iniciales
 async (request, response) => {
     logger.info("Webhook de WhatsApp recibido", { body: request.body });
     // En una implementación real, aquí se validaría la firma de Twilio/proveedor.
@@ -38,7 +35,7 @@ async (request, response) => {
             ],
         };
         logger.info(`Analizando el texto: "${messageText}" con Genkit...`);
-        const result = await (0, process_transactions_1.processTransactions)({
+        const result = await processTransactions({
             text: messageText,
             ...simulatedContext
         });
