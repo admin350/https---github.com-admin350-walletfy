@@ -257,7 +257,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return querySnapshot.docs.map(doc => {
             const data = doc.data();
             // Convert Firestore Timestamps to JS Dates for specific fields
-            const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate', 'purchaseDate'];
+            const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate', 'purchaseDate', 'startDate'];
             for (const field of dateFields) {
                 if (data[field] && data[field] instanceof Timestamp) {
                     data[field] = data[field].toDate();
@@ -576,6 +576,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(data.cancellationDate) dataToSave.cancellationDate = Timestamp.fromDate(data.cancellationDate);
             if(data.generatedAt) dataToSave.generatedAt = Timestamp.fromDate(data.generatedAt);
             if(data.purchaseDate) dataToSave.purchaseDate = Timestamp.fromDate(data.purchaseDate);
+            if(data.startDate) dataToSave.startDate = Timestamp.fromDate(data.startDate);
             
             const newDoc = await addDocToCollection(collectionName, dataToSave);
             setData((prev: any[]) => [...prev, newDoc]);
@@ -588,6 +589,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(data.cancellationDate) dataToSave.cancellationDate = Timestamp.fromDate(data.cancellationDate);
             if(data.generatedAt) dataToSave.generatedAt = Timestamp.fromDate(data.generatedAt);
             if(data.purchaseDate) dataToSave.purchaseDate = Timestamp.fromDate(data.purchaseDate);
+            if(data.startDate) dataToSave.startDate = Timestamp.fromDate(data.startDate);
 
             await updateDocInCollection(collectionName, data.id, dataToSave);
             setData((prev: any[]) => prev.map(item => item.id === data.id ? data : item));
@@ -1035,7 +1037,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateGoal: goalsCrud.update,
         deleteGoal: goalsCrud.delete,
         addGoalContribution,
-        addInvestment: investmentsCrud.add,
+        addInvestment,
         updateInvestment: investmentsCrud.update,
         deleteInvestment: investmentsCrud.delete,
         addInvestmentContribution,
