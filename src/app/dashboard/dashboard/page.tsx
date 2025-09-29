@@ -23,7 +23,6 @@ import { es } from "date-fns/locale";
 import { QuickAccess } from "@/components/dashboard/quick-access";
 import type { Transaction } from "@/types";
 import { BudgetWidget } from "@/components/budget/budget-widget";
-import { PreviousMonthExpenseChart } from "@/components/budget/previous-month-expense-chart";
 
 
 export default function DashboardPage() {
@@ -112,7 +111,7 @@ export default function DashboardPage() {
                 </>
                 )}
             </div>
-
+            
             <QuickAccess />
 
             <Card>
@@ -145,6 +144,7 @@ export default function DashboardPage() {
                    </CardContent>
                  </Card>
               )}
+              <RecentTransactions />
               <Card>
                   <CardHeader>
                     <CardTitle>Resumen de Deudas</CardTitle>
@@ -167,7 +167,6 @@ export default function DashboardPage() {
                     <GoalsSummaryChart />
                   </CardContent>
                 </Card>
-              <RecentTransactions />
           </div>
         </div>
 
