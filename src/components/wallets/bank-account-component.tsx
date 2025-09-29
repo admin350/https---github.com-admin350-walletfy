@@ -1,3 +1,4 @@
+
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -15,13 +16,15 @@ import { Progress } from "../ui/progress";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { ManageCreditLineDialog } from "./manage-credit-line-dialog";
 import { getMonth, getYear } from 'date-fns';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 
 
 interface BankAccountComponentProps {
     account: BankAccount;
+    asCard?: boolean;
 }
 
-export function BankAccountComponent({ account }: BankAccountComponentProps) {
+export function BankAccountComponent({ account, asCard = true }: BankAccountComponentProps) {
     const { deleteBankAccount, profiles, formatCurrency, transactions } = useData();
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
@@ -44,15 +47,21 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
             .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
     }, [transactions, account]);
 
-    const handleEdit = () => {
+    const handleEdit = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         setAccountToEdit(account);
     };
     
-    const handleManageCreditLine = () => {
+    const handleManageCreditLine = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         setManageCreditLineAccount(account);
     }
 
-    const handleDelete = async () => {
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         try {
             await deleteBankAccount(account.id);
             toast({
@@ -89,7 +98,81 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     
     const creditLineAvailable = (account.creditLineLimit || 0) - (account.creditLineUsed || 0);
     const creditLineProgress = account.creditLineLimit ? ((account.creditLineUsed || 0) / account.creditLineLimit) * 100 : 0;
-
+    
+    if (!asCard) {
+        return (
+            <Card>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div>
+                        <CardTitle className="text-lg">{account.name}</CardTitle>
+                        <CardDescription>{account.bank} - {account.accountType}</CardDescription>
+                    </div>
+                     <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <DropdownMenuItem onClick={handleEdit}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
+                                    </DropdownMenuItem>
+                                     {account.accountType === "Cuenta Corriente" && (
+                                        <DropdownMenuItem onClick={handleManageCreditLine}>
+                                            <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleCopy}>
+                                        <Copy className="mr-2 h-4 w-4" /> Copiar Datos
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription asChild>
+                                        <div>
+                                            <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
+                                            <ul className="list-disc list-inside mt-2 text-yellow-400/80">
+                                                <li>Tarjetas de crédito y débito vinculadas</li>
+                                                <li>Deudas y préstamos asociados</li>
+                                            </ul>
+                                             <p className="mt-2">¿Deseas continuar?</p>
+                                        </div>
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold mb-2">{formatCurrency(account.balance)}</div>
+                    <div className="text-xs text-muted-foreground">
+                        Nº: {account.accountNumber}
+                    </div>
+                </CardContent>
+                 {accountToEdit && (
+                    <AddBankAccountDialog 
+                        open={!!accountToEdit}
+                        onOpenChange={(isOpen) => !isOpen && setAccountToEdit(null)}
+                        accountToEdit={accountToEdit}
+                    />
+                )}
+                {manageCreditLineAccount && (
+                    <ManageCreditLineDialog
+                        open={!!manageCreditLineAccount}
+                        onOpenChange={(isOpen) => !isOpen && setManageCreditLineAccount(null)}
+                        account={manageCreditLineAccount}
+                    />
+                )}
+            </Card>
+        )
+    }
 
     return (
         <>

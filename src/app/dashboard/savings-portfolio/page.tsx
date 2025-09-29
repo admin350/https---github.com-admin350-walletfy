@@ -1,3 +1,4 @@
+
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsPortfolioDataTable } from "@/components/transactions/savings-portfolio-data-table";
@@ -94,8 +95,8 @@ export default function SavingsPortfolioPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="max-w-sm mx-auto">
-                             <BankAccountComponent account={savingsAccount} />
+                        <div className="max-w-md mx-auto">
+                             <BankAccountComponent account={savingsAccount} asCard={false}/>
                         </div>
                     </CardContent>
                 </Card>

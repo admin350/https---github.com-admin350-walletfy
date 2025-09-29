@@ -1,3 +1,4 @@
+
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -92,8 +93,8 @@ export default function InvestmentPortfolioPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="max-w-sm mx-auto">
-                            <BankAccountComponent account={investmentAccount} />
+                        <div className="max-w-md mx-auto">
+                            <BankAccountComponent account={investmentAccount} asCard={false} />
                         </div>
                     </CardContent>
                 </Card>
