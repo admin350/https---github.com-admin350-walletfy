@@ -119,19 +119,7 @@ export default function DashboardPage() {
                   </CardContent>
               </Card>
 
-              {favoriteBudget && (
-                 <Card className="bg-card/80 border-border/80">
-                   <CardHeader>
-                      <CardTitle>Seguimiento de Presupuesto Favorito</CardTitle>
-                      <CardDescription>
-                          Un vistazo rápido a tu plan presupuestario principal para el período actual.
-                      </CardDescription>
-                  </CardHeader>
-                   <CardContent>
-                      <BudgetWidget budgets={favoriteBudget} isLoading={isLoading} />
-                  </CardContent>
-                 </Card>
-              )}
+              <QuickAccess />
 
             <CashflowChart />
             
@@ -163,7 +151,19 @@ export default function DashboardPage() {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
-              <QuickAccess />
+              {favoriteBudget && (
+                 <Card className="bg-card/80 border-border/80">
+                   <CardHeader>
+                      <CardTitle>Seguimiento de Presupuesto Favorito</CardTitle>
+                      <CardDescription>
+                          Un vistazo rápido a tu plan presupuestario principal para el período actual.
+                      </CardDescription>
+                  </CardHeader>
+                   <CardContent>
+                      <BudgetWidget budgets={favoriteBudget} isLoading={isLoading} />
+                  </CardContent>
+                 </Card>
+              )}
               <FinancialSummary />
               <RecentTransactions />
           </div>
@@ -209,4 +209,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
