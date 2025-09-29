@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "esnext",
+    "module": "commonjs",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
@@ -8,8 +8,7 @@
     "strict": true,
     "target": "es2021",
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "bundler"
+    "resolveJsonModule": true
   },
   "compileOnSave": true,
   "include": [
