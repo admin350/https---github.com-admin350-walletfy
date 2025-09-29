@@ -16,7 +16,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "../ui/tooltip";
 import { CloseInvestmentDialog } from "./close-investment-dialog";
-
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface InvestmentsWidgetProps {
   investments?: Investment[];
@@ -89,11 +90,11 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
           const profitPercentage = investment.initialAmount > 0 ? (profit / investment.initialAmount) * 100 : 0;
           return (
             <div key={investment.id}>
-              <div className="flex justify-between mb-1 items-start">
+              <div className="flex justify-between mb-2 items-start">
                 <div>
                     <p className="text-base font-medium">{investment.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {`Valor Actual: ${formatCurrency(investment.currentValue)}`}
+                    <p className="text-xs text-muted-foreground">
+                        Iniciado el: {format(new Date(investment.startDate), "dd 'de' MMMM, yyyy", { locale: es })}
                     </p>
                 </div>
                  <AlertDialog>
@@ -136,23 +137,23 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
                     </AlertDialogContent>
                 </AlertDialog>
               </div>
-              <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="w-full">
-                             <div className={`flex justify-between text-sm ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                <span className="font-medium">Ganancia / Pérdida</span>
-                                <span>{formatCurrency(profit)} ({profitPercentage.toFixed(2)}%)</span>
-                             </div>
-                             <Progress value={profitPercentage > 0 ? (profitPercentage > 100 ? 100 : profitPercentage) : 0} className={`h-2 [&>div]:${profit >= 0 ? 'bg-green-400' : 'bg-red-400'}`} />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Aporte Inicial: {formatCurrency(investment.initialAmount)}</p>
-                    </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex justify-between items-center mt-2">
+
+               <div className="space-y-1 text-sm">
+                   <div className="flex justify-between">
+                       <span className="text-muted-foreground">Invertido</span>
+                       <span>{formatCurrency(investment.initialAmount)}</span>
+                   </div>
+                    <div className="flex justify-between">
+                       <span className="text-muted-foreground">Valor Actual</span>
+                       <span className="font-semibold">{formatCurrency(investment.currentValue)}</span>
+                   </div>
+                   <div className={`flex justify-between font-medium ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                       <span>Ganancia / Pérdida</span>
+                       <span>{formatCurrency(profit)} ({profitPercentage.toFixed(2)}%)</span>
+                   </div>
+               </div>
+
+              <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant='secondary'>{investment.investmentType}</Badge>
                     <Badge variant='outline'>{investment.platform}</Badge>

@@ -142,6 +142,7 @@ export type Investment = {
   name: string; // e.g., 'Portafolio Acciones US'
   initialAmount: number;
   currentValue: number;
+  startDate: Date;
   investmentType: string; // e.g., 'Acciones', 'Criptomonedas', 'Forex', 'Índices'
   platform: string; // e.g., 'Interactive Brokers', 'Binance'
   profile: string;

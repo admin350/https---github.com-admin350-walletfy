@@ -23,7 +23,12 @@ import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useData } from '@/context/data-context';
@@ -32,6 +37,7 @@ import type { Investment } from '@/types';
 const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre del activo es muy corto." }),
   initialAmount: z.coerce.number().positive({ message: "Monto inicial debe ser positivo." }),
+  startDate: z.date({ required_error: "La fecha de inicio es requerida." }),
   investmentType: z.string().min(2, { message: "Tipo de activo es requerido." }),
   platform: z.string().min(2, { message: "La plataforma es requerida." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
@@ -63,6 +69,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
         defaultValues: {
             name: "",
             initialAmount: 0,
+            startDate: new Date(),
             investmentType: "",
             platform: "",
             profile: "",
@@ -106,6 +113,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                 form.reset({
                     name: investmentToEdit.name,
                     initialAmount: investmentToEdit.initialAmount,
+                    startDate: new Date(investmentToEdit.startDate),
                     investmentType: investmentToEdit.investmentType,
                     platform: investmentToEdit.platform,
                     profile: investmentToEdit.profile,
@@ -115,6 +123,7 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                 form.reset({
                     name: "",
                     initialAmount: 0,
+                    startDate: new Date(),
                     investmentType: "",
                     platform: "",
                     profile: "",
@@ -165,6 +174,45 @@ export function AddInvestmentDialog({ children, investmentToEdit, open, onOpenCh
                                         <FormControl>
                                             <CurrencyInput value={field.value} onValueChange={field.onChange} />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="startDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Fecha de Inicio</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? (
+                                                            format(field.value, "PPP", { locale: es })
+                                                        ) : (
+                                                            <span>Selecciona una fecha</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                    locale={es}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
                                         <FormMessage />
                                     </FormItem>
                                 )}
