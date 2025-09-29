@@ -1,4 +1,3 @@
-
 'use client'
 import {
     ColumnDef,
@@ -19,9 +18,19 @@ import { Button } from "@/components/ui/button";
 import type { InvestmentContribution } from "@/types";
 import { useData } from "@/context/data-context";
 import { format } from "date-fns";
+import { useMemo } from "react";
 
-export function InvestmentContributionsTable() {
+interface InvestmentContributionsTableProps {
+    purpose?: 'investment' | 'saving';
+}
+
+export function InvestmentContributionsTable({ purpose }: InvestmentContributionsTableProps) {
     const { investmentContributions, formatCurrency } = useData();
+
+    const filteredContributions = useMemo(() => {
+        if (!purpose) return investmentContributions;
+        return investmentContributions.filter(c => c.purpose === purpose);
+    }, [investmentContributions, purpose]);
     
     const columns: ColumnDef<InvestmentContribution>[] = [
         {
@@ -31,7 +40,7 @@ export function InvestmentContributionsTable() {
         },
         {
             accessorKey: "investmentName",
-            header: "Inversión Destino",
+            header: "Activo Destino",
         },
         {
             accessorKey: "amount",
@@ -45,7 +54,7 @@ export function InvestmentContributionsTable() {
 
 
     const table = useReactTable({
-        data: investmentContributions,
+        data: filteredContributions,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -90,7 +99,7 @@ export function InvestmentContributionsTable() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    Aún no has realizado aportes a tus inversiones.
+                                    Aún no has realizado aportes.
                                 </TableCell>
                             </TableRow>
                         )}

@@ -155,6 +155,7 @@ export type InvestmentContribution = {
   investmentName: string;
   amount: number;
   date: Date;
+  purpose: 'investment' | 'saving';
 }
 
 export type TaxPayment = {

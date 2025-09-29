@@ -7,19 +7,21 @@ import { useMemo } from "react";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoalContributionsTable } from "@/components/goals/goal-contributions-table";
-import type { GoalContribution } from "@/types";
+import type { GoalContribution, InvestmentContribution } from "@/types";
+import { InvestmentContributionsTable } from "@/components/investments/investment-contributions-table";
 
 
 export default function SavingsPortfolioPage() {
-    const { bankAccounts, goalContributions, isLoading, formatCurrency } = useData();
+    const { bankAccounts, goalContributions, investmentContributions, isLoading, formatCurrency } = useData();
     
     const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings'), [bankAccounts]);
     
     const totalSavings = savingsAccount?.balance ?? 0;
 
     const totalContributedToGoals = goalContributions.reduce((acc: number, c: GoalContribution) => acc + c.amount, 0);
+    const totalContributedToInstruments = investmentContributions.filter(c => c.purpose === 'saving').reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
 
-    const availableSavings = totalSavings - totalContributedToGoals;
+    const availableSavings = totalSavings;
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -51,36 +53,39 @@ export default function SavingsPortfolioPage() {
              <div className="grid gap-4 md:grid-cols-3">
                 {isLoading ? (
                     <>
-                    <KpiCard title="Saldo Total de Ahorro" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
+                    <KpiCard title="Saldo Total en Cartera" value={<KpiSkeleton />} icon={Landmark} description="Cargando..." />
                     <KpiCard title="Total Aportado a Metas" value={<KpiSkeleton />} icon={ArrowRightLeft} description="Cargando..." />
-                    <KpiCard title="Saldo Disponible para Aportar" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
+                    <KpiCard title="Total Aportado a Instrumentos" value={<KpiSkeleton />} icon={Wallet} description="Cargando..." />
                     </>
                 ) : (
                     <>
                     <KpiCard 
-                        title="Saldo Total de Ahorro" 
-                        value={<span className="text-green-500">{formatCurrency(totalSavings)}</span>} 
+                        title="Saldo Total en Cartera" 
+                        value={<span className="text-green-500">{formatCurrency(availableSavings)}</span>} 
                         icon={Landmark} 
+                        iconClassName="text-green-400"
                         description={`En tu cuenta: ${savingsAccount?.name}`}
                     />
                      <KpiCard 
                         title="Total Aportado a Metas" 
                         value={<span className="text-red-500">{formatCurrency(totalContributedToGoals)}</span>} 
-                        icon={ArrowRightLeft} 
+                        icon={ArrowRightLeft}
+                        iconClassName="text-yellow-400" 
                         description="Dinero de tu cartera de ahorros asignado a metas." 
                     />
                     <KpiCard
-                        title="Saldo Disponible para Aportar"
-                        value={<span className="text-green-500">{formatCurrency(availableSavings)}</span>}
+                        title="Total Aportado a Instrumentos"
+                        value={<span className="text-red-500">{formatCurrency(totalContributedToInstruments)}</span>}
                         icon={Wallet}
-                        description="Ahorro total - Aportes a metas"
+                        iconClassName="text-blue-400"
+                        description="Dinero de tu cartera asignado a instrumentos de ahorro."
                     />
                     </>
                 )}
              </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Historial de Transferencias a Ahorros</CardTitle>
+                    <CardTitle>Historial de Entradas a Cartera de Ahorros</CardTitle>
                     <CardDescription>
                         Aquí puedes ver el historial de todas tus transferencias hacia tu cuenta de ahorros.
                     </CardDescription>
@@ -91,13 +96,24 @@ export default function SavingsPortfolioPage() {
             </Card>
             <Card>
                  <CardHeader>
-                    <CardTitle>Registro de Aportes a Metas</CardTitle>
+                    <CardTitle>Registro de Salidas: Aportes a Metas</CardTitle>
                     <CardDescription>
                         Historial de todas las transferencias desde tu cartera de ahorros hacia tus metas.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <GoalContributionsTable />
+                </CardContent>
+            </Card>
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Registro de Salidas: Aportes a Instrumentos de Ahorro</CardTitle>
+                    <CardDescription>
+                        Historial de todas las transferencias desde tu cartera de ahorros hacia tus instrumentos.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <InvestmentContributionsTable purpose="saving" />
                 </CardContent>
             </Card>
         </div>

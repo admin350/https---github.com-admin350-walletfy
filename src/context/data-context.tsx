@@ -147,7 +147,7 @@ interface DataContextType {
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Partial<Investment> & {id: string}) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'purpose'>) => Promise<void>;
     closeInvestment: (investmentId: string, finalValue: number) => Promise<void>;
 
     addTangibleAsset: (asset: Omit<TangibleAsset, 'id'>) => Promise<void>;
@@ -805,44 +805,73 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const addGoalContribution = async (contribution: Omit<GoalContribution, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
+        
+        const goal = goals.find(g => g.id === contribution.goalId);
+        if (!goal) throw new Error("Meta no encontrada.");
+        
+        const savingsAccount = bankAccounts.find(acc => acc.profile === goal.profile && acc.purpose === 'savings');
+        if (!savingsAccount) throw new Error(`No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
+
         const batch = writeBatch(db);
         
+        // 1. Add contribution record
         const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date) };
         const contributionRef = doc(collection(db, `users/${uid}/goalContributions`));
         batch.set(contributionRef, dataToSave);
         
+        // 2. Update goal's current amount
         const goalRef = doc(db, `users/${uid}/goals`, contribution.goalId);
-        const goalSnap = await getDoc(goalRef);
-        if (!goalSnap.exists()) throw new Error("La meta no existe.");
-        const goalData = goalSnap.data() as SavingsGoal;
-        const newCurrentAmount = (goalData.currentAmount || 0) + contribution.amount;
+        const newCurrentAmount = (goal.currentAmount || 0) + contribution.amount;
         batch.update(goalRef, { currentAmount: newCurrentAmount });
 
-        await batch.commit();
-        
+        // 3. Create expense transaction from savings account
+        const expenseCategory = categories.find(c => c.name === 'Ahorro para Metas' || c.type === 'Transferencia')?.name || 'Ahorro para Metas';
+        await addTransaction({
+            type: 'expense' as const,
+            amount: contribution.amount,
+            description: `Aporte a meta: ${contribution.goalName}`,
+            category: expenseCategory,
+            profile: savingsAccount.profile,
+            date: contribution.date,
+            accountId: savingsAccount.id,
+        });
+
+        // 4. Update local state
         setGoalContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
         setGoals(prev => prev.map(g => g.id === contribution.goalId ? {...g, currentAmount: newCurrentAmount} : g));
     };
     
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'purpose'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
+        
+        const investment = investments.find(inv => inv.id === contribution.investmentId);
+        if (!investment) throw new Error("Activo de inversión/ahorro no encontrado.");
+
+        const portfolioAccount = bankAccounts.find(acc => acc.profile === investment.profile && acc.purpose === investment.purpose);
+        if (!portfolioAccount) throw new Error(`Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
+        
         const batch = writeBatch(db);
         
-        const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date) };
+        const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date), purpose: investment.purpose };
         const contributionRef = doc(collection(db, `users/${uid}/investmentContributions`));
         batch.set(contributionRef, dataToSave);
         
         const investmentRef = doc(db, `users/${uid}/investments`, contribution.investmentId);
-        const investmentSnap = await getDoc(investmentRef);
-        if (!investmentSnap.exists()) throw new Error("La inversión no existe.");
-        const investmentData = investmentSnap.data() as Investment;
-        const newCurrentValue = (investmentData.currentValue || investmentData.initialAmount) + contribution.amount;
-        const newInitialAmount = investmentData.initialAmount + contribution.amount;
+        const newCurrentValue = (investment.currentValue || investment.initialAmount) + contribution.amount;
+        const newInitialAmount = investment.initialAmount + contribution.amount;
         batch.update(investmentRef, { currentValue: newCurrentValue, initialAmount: newInitialAmount });
-
-        await batch.commit();
         
-        setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
+        await addTransaction({
+            type: 'expense',
+            amount: contribution.amount,
+            description: `Aporte a ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investment.name}`,
+            category: 'Inversiones y Ahorros',
+            profile: investment.profile,
+            date: contribution.date,
+            accountId: portfolioAccount.id,
+        });
+        
+        setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution, purpose: investment.purpose}]);
         setInvestments(prev => prev.map(i => i.id === contribution.investmentId ? {...i, currentValue: newCurrentValue, initialAmount: newInitialAmount } : i));
     };
 
@@ -1113,5 +1142,3 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
-
-    
