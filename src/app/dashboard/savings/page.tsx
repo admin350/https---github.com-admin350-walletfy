@@ -40,23 +40,20 @@ export default function SavingsPage() {
                     <>
                         <KpiCard 
                             title="Total Ahorrado en Instrumentos" 
-                            value={<span className="text-emerald-400">{formatCurrency(totalSaved)}</span>}
+                            value={formatCurrency(totalSaved)}
                             icon={Wallet} 
-                            iconClassName="text-emerald-400"
                             description="Suma de todo el capital inicial en instrumentos de ahorro."
                         />
                         <KpiCard 
                             title="Valor Actual de Ahorros" 
-                            value={<span className="text-green-400">{formatCurrency(totalCurrentValue)}</span>} 
+                            value={formatCurrency(totalCurrentValue)} 
                             icon={TrendingUp}
-                            iconClassName="text-green-400"
                             description="Valor de mercado actual de tus ahorros."
                         />
                         <KpiCard
                             title="Ganancia / Pérdida de Ahorros"
                              value={<span className={totalProfit >= 0 ? "text-green-400" : "text-red-400"}>{formatCurrency(totalProfit)} ({profitPercentage.toFixed(2)}%)</span>}
                             icon={BarChart}
-                            iconClassName={totalProfit >= 0 ? "text-green-400" : "text-red-400"}
                             description="Rendimiento total de tus ahorros."
                         />
                     </>

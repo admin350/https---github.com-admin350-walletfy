@@ -39,21 +39,18 @@ export default function AssetsPage() {
                             title="Valor Total de Activos" 
                             value={formatCurrency(totalAssetValue)}
                             icon={Car} 
-                            iconClassName="text-fuchsia-400"
                             description="Valor estimado de todos tus bienes tangibles."
                         />
                         <KpiCard 
                             title="Activos Personales" 
                             value={formatCurrency(personalAssetsValue)} 
                             icon={Laptop}
-                            iconClassName="text-blue-400"
                             description="Valor de tus bienes 'Personal'."
                         />
                         <KpiCard
                             title="Activos de Negocio"
                             value={formatCurrency(businessAssetsValue)}
                             icon={Building}
-                            iconClassName="text-teal-400"
                             description="Valor de tus bienes 'Negocio'."
                         />
                     </>

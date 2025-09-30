@@ -12,7 +12,7 @@ interface KpiCardProps {
 
 export function KpiCard({ title, value, icon: Icon, description }: KpiCardProps) {
   return (
-    <Card className="bg-card/50">
+    <Card className="bg-card/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle as="h3" className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />

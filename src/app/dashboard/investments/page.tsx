@@ -40,23 +40,20 @@ export default function InvestmentsPage() {
                     <>
                         <KpiCard 
                             title="Total Invertido" 
-                            value={<span className="text-blue-400">{formatCurrency(totalInvested)}</span>}
+                            value={formatCurrency(totalInvested)}
                             icon={Wallet} 
-                            iconClassName="text-blue-400"
                             description="Suma de todo el capital inicial invertido."
                         />
                         <KpiCard 
                             title="Valor Actual del Portafolio" 
-                            value={<span className="text-green-400">{formatCurrency(totalCurrentValue)}</span>} 
+                            value={formatCurrency(totalCurrentValue)}
                             icon={TrendingUp}
-                            iconClassName="text-green-400"
                             description="Valor de mercado actual de tus inversiones."
                         />
                         <KpiCard
                             title="Ganancia / Pérdida"
                              value={<span className={totalProfit >= 0 ? "text-green-400" : "text-red-400"}>{formatCurrency(totalProfit)} ({profitPercentage.toFixed(2)}%)</span>}
                             icon={BarChart}
-                            iconClassName={totalProfit >= 0 ? "text-green-400" : "text-red-400"}
                             description="Rendimiento total de tu portafolio."
                         />
                     </>

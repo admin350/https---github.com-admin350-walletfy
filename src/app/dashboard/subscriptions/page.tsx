@@ -87,21 +87,18 @@ export default function SubscriptionsPage() {
                             title="Suscripciones Activas"
                             value={totalActiveSubscriptions}
                             icon={ListChecks}
-                            iconClassName="text-purple-400"
                             description="Total de servicios recurrentes activos."
                         />
                         <KpiCard
                             title="Gasto Mensual Total"
                             value={formatCurrency(totalMonthlyCost)}
                             icon={CircleDollarSign}
-                            iconClassName="text-purple-400"
                             description="Suma de todos tus gastos recurrentes."
                         />
                          <KpiCard
                             title="Participación en Egresos"
                             value={`${expenseParticipation.toFixed(1)}%`}
                             icon={Percent}
-                            iconClassName="text-purple-400"
                             description="Porcentaje del total de egresos del período."
                         />
                     </>

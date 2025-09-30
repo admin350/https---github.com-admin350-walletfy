@@ -41,21 +41,18 @@ export default function BankAccountsPage() {
                             title="Balance Total" 
                             value={<span className="text-primary">{formatCurrency(totalBalance)}</span>}
                             icon={Wallet} 
-                            iconClassName="text-primary"
                             description="Balance consolidado actual de tus cuentas."
                         />
                         <KpiCard 
                             title="Balance Personal" 
-                            value={<span className="text-blue-400">{formatCurrency(personalBalance)}</span>} 
+                            value={formatCurrency(personalBalance)} 
                             icon={Banknote}
-                            iconClassName="text-blue-400"
                             description="Balance actual de tus cuentas 'Personal'."
                         />
                         <KpiCard
                             title="Balance Negocio"
-                            value={<span className="text-teal-400">{formatCurrency(businessBalance)}</span>}
+                            value={formatCurrency(businessBalance)}
                             icon={Landmark}
-                            iconClassName="text-teal-400"
                             description="Balance actual de tus cuentas 'Negocio'."
                         />
                     </>

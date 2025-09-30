@@ -37,23 +37,20 @@ export default function BankCardsPage() {
                     <>
                         <KpiCard 
                             title="Cupo Total en Tarjetas" 
-                            value={<span className="text-blue-400">{formatCurrency(totalCreditLimit)}</span>}
+                            value={formatCurrency(totalCreditLimit)}
                             icon={Landmark} 
-                            iconClassName="text-blue-400"
                             description="Suma de los límites de todas tus tarjetas."
                         />
                         <KpiCard 
                             title="Deuda Total en Tarjetas" 
                             value={<span className="text-red-400">{formatCurrency(totalUsedAmount)}</span>} 
                             icon={Banknote}
-                            iconClassName="text-red-400"
                             description="Suma de los cupos utilizados en tus tarjetas."
                         />
                         <KpiCard
                             title="Crédito Disponible Total"
                             value={<span className="text-green-400">{formatCurrency(totalAvailableCredit)}</span>}
                             icon={CreditCard}
-                            iconClassName="text-green-400"
                             description="Cupo disponible consolidado para compras."
                         />
                     </>

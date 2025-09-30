@@ -63,23 +63,20 @@ export default function SavingsPortfolioPage() {
                     <>
                     <KpiCard 
                         title="Saldo Total en Cartera" 
-                        value={<span className="text-green-500">{formatCurrency(availableSavings)}</span>} 
+                        value={formatCurrency(availableSavings)} 
                         icon={Landmark} 
-                        iconClassName="text-green-400"
                         description={`Balance total de tu cartera de ahorros.`}
                     />
                      <KpiCard 
                         title="Total Aportado a Metas" 
                         value={<span className="text-red-500">{formatCurrency(totalContributedToGoals)}</span>} 
                         icon={ArrowRightLeft}
-                        iconClassName="text-yellow-400" 
                         description="Dinero de tu cartera de ahorros asignado a metas." 
                     />
                     <KpiCard
                         title="Total Aportado a Instrumentos"
                         value={<span className="text-red-500">{formatCurrency(totalContributedToInstruments)}</span>}
                         icon={Wallet}
-                        iconClassName="text-blue-400"
                         description="Dinero de tu cartera asignado a instrumentos de ahorro."
                     />
                     </>

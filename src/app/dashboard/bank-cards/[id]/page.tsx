@@ -103,7 +103,7 @@ export default function BankCardDetailPage() {
                     </Tooltip>
                 </TooltipProvider>
                  <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold">{card.name}</h1>
+                    <h1 className="text-xl font-bold">{card.name}</h1>
                     <p className="text-muted-foreground">Detalle y movimientos de tu tarjeta {card.bank} terminada en {card.last4Digits}.</p>
                  </div>
              </div>
@@ -113,11 +113,11 @@ export default function BankCardDetailPage() {
                 <KpiCard title="Perfil Asociado" value={card.profile} icon={WalletCards} description={`Cuenta: ${account?.name || 'N/A'}`}/>
                 {isCredit ? (
                     <>
-                        <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">{formatCurrency(usedAmount)}</span>} icon={Banknote} iconClassName="text-red-400" description={`de ${formatCurrency(creditLimit)}`}/>
-                        <KpiCard title="Cupo Disponible" value={<span className="text-green-400">{formatCurrency(availableAmount)}</span>} icon={Landmark} iconClassName="text-green-400" description="Cupo restante para compras"/>
+                        <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">{formatCurrency(usedAmount)}</span>} icon={Banknote} description={`de ${formatCurrency(creditLimit)}`}/>
+                        <KpiCard title="Cupo Disponible" value={<span className="text-green-400">{formatCurrency(availableAmount)}</span>} icon={Landmark} description="Cupo restante para compras"/>
                     </>
                 ) : (
-                    <KpiCard title="Saldo de Cuenta" value={<span className="text-green-400">{formatCurrency(account?.balance || 0)}</span>} icon={Landmark} iconClassName="text-green-400" description="Saldo de la cuenta de débito asociada."/>
+                    <KpiCard title="Saldo de Cuenta" value={<span className="text-green-400">{formatCurrency(account?.balance || 0)}</span>} icon={Landmark} description="Saldo de la cuenta de débito asociada."/>
                 )}
              </div>
 

@@ -59,23 +59,20 @@ export default function TaxPortfolioPage() {
                     <>
                     <KpiCard 
                         title="Capital Total para Impuestos" 
-                        value={<span className="text-teal-400">{formatCurrency(totalTransferredToTax)}</span>} 
+                        value={formatCurrency(totalTransferredToTax)} 
                         icon={Landmark} 
-                        iconClassName="text-teal-400"
                         description={`En tu cuenta: ${taxAccount?.name}`}
                     />
                      <KpiCard 
                         title="Total Pagado en Impuestos (F29)" 
                         value={<span className="text-red-500">{formatCurrency(totalPaidInTaxes)}</span>} 
                         icon={ArrowRightLeft} 
-                        iconClassName="text-red-400"
                         description="Dinero de tu cartera de impuestos ya pagado." 
                     />
                     <KpiCard
                         title="Saldo Disponible para Pagar"
                         value={<span className="text-green-500">{formatCurrency(availableToPay)}</span>}
                         icon={Wallet}
-                        iconClassName="text-green-400"
                         description="Capital total - Pagos de impuestos"
                     />
                     </>
