@@ -26,7 +26,7 @@ const quickAccessItems = [
 
 export function QuickAccess() {
     return (
-        <Card className="bg-card/50 border-border/50">
+        <Card>
             <CardContent className="pt-6">
                 <div className="grid grid-cols-4 gap-2 md:gap-4">
                     {quickAccessItems.map(item => {
@@ -34,7 +34,7 @@ export function QuickAccess() {
                         return (
                              <Link href={item.href} key={item.label} className="group flex flex-col items-center justify-center space-y-2 p-2 rounded-lg transition-transform duration-300 ease-in-out hover:-translate-y-1">
                                 <div className={cn(
-                                    "flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background transition-all duration-300",
+                                    "flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background/50 transition-all duration-300",
                                     item.color,
                                     item.shadow
                                 )}>

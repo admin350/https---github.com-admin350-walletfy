@@ -18,7 +18,7 @@ export function RecentTransactions() {
   const recentTransactions = transactions.slice(0, 5);
 
   return (
-    <Card className="bg-card/50 border-border/50">
+    <Card>
       <CardHeader>
         <CardTitle>Transacciones Recientes</CardTitle>
         <CardDescription>Las últimas 5 transacciones registradas.</CardDescription>

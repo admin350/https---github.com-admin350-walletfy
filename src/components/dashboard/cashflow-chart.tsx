@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
@@ -110,7 +111,7 @@ export function CashflowChart() {
   const expenseKeys = profiles.map((p: Profile) => `expenses-${p.id}`);
 
   return (
-    <Card className="bg-card/50 border-border/50">
+    <Card>
       <CardHeader>
         <CardTitle>Flujo de Caja por Perfil</CardTitle>
         <CardDescription>

@@ -88,7 +88,7 @@ export function FinancialSummary() {
 
     if (isLoading) {
         return (
-            <Card className="bg-card/50 border-border/50">
+            <Card>
                 <CardHeader>
                     <CardTitle>Resumen Financiero</CardTitle>
                     <CardDescription>Una vista consolidada de tus finanzas.</CardDescription>
@@ -103,7 +103,7 @@ export function FinancialSummary() {
     }
 
     return (
-        <Card className="bg-card/50 border-border/50">
+        <Card>
             <CardHeader>
                 <CardTitle>Resúmenes Clave</CardTitle>
                 <CardDescription>Vistas consolidadas de tus carteras, deudas y suscripciones.</CardDescription>
