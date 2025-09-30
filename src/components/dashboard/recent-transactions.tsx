@@ -45,10 +45,10 @@ export function RecentTransactions() {
                    {t.type === 'income' ? <ArrowUpRight className="h-5 w-5 text-green-500" /> : <ArrowDownLeft className="h-5 w-5 text-red-500" />}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{t.description}</p>
+                  <p className="text-sm font-medium">{t.description}</p>
                   <Badge variant="outline">{t.category}</Badge>
                 </div>
-                <div className={`font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`text-sm font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
                   {`${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount, false)}`}
                 </div>
               </div>
