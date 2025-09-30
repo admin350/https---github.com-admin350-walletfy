@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "pre-build": "npm run typecheck && npm run lint",
     "build": "rm -rf .next && next build",
     "start": "next start",
     "lint": "next lint",
