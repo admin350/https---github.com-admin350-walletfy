@@ -62,21 +62,18 @@ export default function InvestmentsPortfolioPage() {
                         title="Capital Total para Inversión" 
                         value={<span className="text-blue-400">{formatCurrency(totalTransferredToInvestment)}</span>} 
                         icon={Landmark}
-                        iconClassName="text-blue-400" 
                         description={`Balance total de tu cartera de inversión.`}
                     />
                      <KpiCard 
                         title="Total Aportado a Activos" 
                         value={<span className="text-red-500">{formatCurrency(totalContributedToAssets)}</span>} 
                         icon={ArrowRightLeft}
-                        iconClassName="text-red-400"
                         description="Dinero de tu cartera de inversión asignado a activos." 
                     />
                     <KpiCard
                         title="Saldo Disponible para Invertir"
                         value={<span className="text-green-500">{formatCurrency(availableToInvest)}</span>}
                         icon={Wallet}
-                        iconClassName="text-green-400"
                         description="Capital total - Aportes a activos"
                     />
                     </>
