@@ -209,6 +209,9 @@ const defaultCategories: Category[] = [
     { id: '6', name: 'Restaurantes', type: 'Gasto', color: '#eab308' },
     { id: '7', name: 'Transferencia', type: 'Transferencia', color: '#6366f1' },
     { id: '8', name: 'Venta de Activos', type: 'Ingreso', color: '#10b981' },
+    { id: '9', name: 'Ahorro para Metas', type: 'Gasto', color: '#f59e0b' },
+    { id: '10', name: 'Inversiones y Ahorros', type: 'Gasto', color: '#0ea5e9' },
+    { id: '11', name: 'Ingresos por Inversión', type: 'Ingreso', color: '#14b8a6' },
 ];
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -812,6 +815,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const savingsAccount = bankAccounts.find(acc => acc.profile === goal.profile && acc.purpose === 'savings');
         if (!savingsAccount) throw new Error(`No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
 
+        if (contribution.amount > savingsAccount.balance) {
+            throw new Error('Saldo insuficiente en la cartera de ahorros.');
+        }
+
         const batch = writeBatch(db);
         
         // 1. Add contribution record
@@ -850,6 +857,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const portfolioAccount = bankAccounts.find(acc => acc.profile === investment.profile && acc.purpose === investment.purpose);
         if (!portfolioAccount) throw new Error(`Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
         
+        if (contribution.amount > portfolioAccount.balance) {
+            throw new Error(`Saldo insuficiente en la cartera de ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}.`);
+        }
+
         const batch = writeBatch(db);
         
         const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date), purpose: investment.purpose };
