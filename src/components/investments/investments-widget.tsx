@@ -88,13 +88,17 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
         investments.map((investment) => {
           const profit = investment.currentValue - investment.initialAmount;
           const profitPercentage = investment.initialAmount > 0 ? (profit / investment.initialAmount) * 100 : 0;
+          const startDate = investment.startDate instanceof Date && !isNaN(investment.startDate.getTime())
+            ? format(investment.startDate, "dd 'de' MMMM, yyyy", { locale: es })
+            : "Fecha inválida";
+
           return (
             <div key={investment.id}>
               <div className="flex justify-between mb-2 items-start">
                 <div>
                     <p className="text-base font-medium">{investment.name}</p>
                     <p className="text-xs text-muted-foreground">
-                        Iniciado el: {format(new Date(investment.startDate), "dd 'de' MMMM, yyyy", { locale: es })}
+                        Iniciado el: {startDate}
                     </p>
                 </div>
                  <AlertDialog>
