@@ -88,8 +88,8 @@ export function InvestmentsWidget({ investments: investmentsFromProps, isLoading
         investments.map((investment) => {
           const profit = investment.currentValue - investment.initialAmount;
           const profitPercentage = investment.initialAmount > 0 ? (profit / investment.initialAmount) * 100 : 0;
-          const startDate = investment.startDate instanceof Date && !isNaN(investment.startDate.getTime())
-            ? format(investment.startDate, "dd 'de' MMMM, yyyy", { locale: es })
+          const startDate = investment.startDate && !isNaN(new Date(investment.startDate).getTime())
+            ? format(new Date(investment.startDate), "dd 'de' MMMM, yyyy", { locale: es })
             : "Fecha inválida";
 
           return (
