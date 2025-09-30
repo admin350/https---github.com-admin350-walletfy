@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Loader2, Sparkles, Upload, FileText, Check, AlertTriangle } from "lucid
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "../ui/textarea";
-import { processTransactions } from "@/ai/flows/process-transactions";
+import { processTransactions, ProcessTransactionsInputSchema } from "@/app/ai/flows/process-transactions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -16,7 +17,6 @@ import { v4 as uuidv4 } from 'uuid';
 type ParsedTransaction = Omit<Transaction, 'id' | 'date'> & {
     id: string; // Use string for preview ID
     date: Date;
-    originalText: string;
     status: 'ok' | 'error' | 'pending';
     error?: string;
 };
@@ -49,20 +49,26 @@ export function SmartTransactionImporter() {
         setIsLoading(true);
         setParsedTransactions([]);
         try {
-            let inputData: { text?: string; photoDataUri?: string } = {};
+            let inputData: z.infer<typeof ProcessTransactionsInputSchema> = {
+                categories: categories.map(c => c.name),
+                profiles: profiles.map(p => p.name),
+                accounts: bankAccounts.map(a => ({ id: a.id, name: a.name })),
+            };
+
             if (inputMode === 'text' && textInput.trim()) {
                 inputData.text = textInput;
             } else if (inputMode === 'image' && imageFile) {
                 inputData.photoDataUri = imagePreview!;
             } else {
                 toast({ title: "Error", description: "Por favor, proporciona texto o una imagen.", variant: 'destructive' });
+                setIsLoading(false);
                 return;
             }
 
             const response = await processTransactions(inputData);
 
             if (response && response.transactions) {
-                 const transactionsWithStatus: ParsedTransaction[] = response.transactions.map(t => {
+                 const transactionsWithStatus: ParsedTransaction[] = response.transactions.map((t: any) => {
                     const hasError = !t.amount || !t.description || !t.category || !t.profile || !t.accountId;
                     return {
                         ...t,
@@ -104,8 +110,8 @@ export function SmartTransactionImporter() {
         for (const trans of validTransactions) {
             try {
                 // Remove the temporary id before sending to DB
-                const { id, originalText, status, error, ...dbTransaction } = trans;
-                await addTransaction(dbTransaction);
+                const { id, status, error, ...dbTransaction } = trans;
+                await addTransaction(dbTransaction as Omit<Transaction, 'id'>);
                 successCount++;
             } catch (error) {
                 console.error("Error importing transaction:", trans, error);
@@ -142,7 +148,8 @@ export function SmartTransactionImporter() {
 
                 {inputMode === 'text' ? (
                      <Textarea 
-                        placeholder="Ej: - 5500, Supermercado, comida, personal, debito&#10;- 25000, bencina, negocio, credito visa"
+                        placeholder="Ej: - 5500, Supermercado, comida, personal, debito
+- 25000, bencina, negocio, credito visa"
                         value={textInput}
                         onChange={(e) => setTextInput(e.target.value)}
                         rows={5}
