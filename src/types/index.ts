@@ -70,6 +70,7 @@ export type GoalContribution = {
   goalName: string;
   amount: number;
   date: Date;
+  sourceAccountId: string;
 }
 
 export type Debt = {

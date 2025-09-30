@@ -25,6 +25,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
 import type { SavingsGoal } from '@/types';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 
 interface ContributeToGoalDialogProps {
     goal: SavingsGoal;
@@ -37,27 +38,37 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
     const { addGoalContribution, bankAccounts, formatCurrency } = useData();
     const [isLoading, setIsLoading] = useState(false);
     
-    const savingsAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'savings' && acc.profile === goal.profile), [bankAccounts, goal.profile]);
-    const availableSavings = savingsAccount?.balance ?? 0;
+    const savingsAccountsForProfile = useMemo(() => 
+        bankAccounts.filter(acc => acc.purpose === 'savings' && acc.profile === goal.profile), 
+    [bankAccounts, goal.profile]);
 
     const formSchema = z.object({
+      sourceAccountId: z.string().min(1, { message: "Debes seleccionar una cuenta de origen." }),
       amount: z.coerce.number()
         .positive({ message: "El monto debe ser positivo." })
-        .max(availableSavings, { message: `No puedes aportar más de lo que tienes disponible en tu cartera de ahorros (${formatCurrency(availableSavings)}).` }),
+    }).refine(data => {
+        const selectedAccount = bankAccounts.find(acc => acc.id === data.sourceAccountId);
+        if (selectedAccount) {
+            return data.amount <= selectedAccount.balance;
+        }
+        return true;
+    }, { 
+        message: "No puedes aportar más de lo que tienes disponible en la cuenta de ahorros seleccionada.",
+        path: ["amount"],
     });
     
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            sourceAccountId: savingsAccountsForProfile.length === 1 ? savingsAccountsForProfile[0].id : "",
             amount: 0,
         },
     });
+    
+    const selectedAccountId = form.watch("sourceAccountId");
+    const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        if (!savingsAccount) {
-            toast({ title: "Error", description: `No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`, variant: "destructive"});
-            return;
-        }
         setIsLoading(true);
         try {
             await addGoalContribution({
@@ -65,6 +76,7 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 goalName: goal.name,
                 amount: values.amount,
                 date: new Date(),
+                sourceAccountId: values.sourceAccountId,
             });
             toast({
                 title: "¡Aporte Exitoso!",
@@ -86,9 +98,12 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
 
     useEffect(() => {
         if (open) {
-            form.reset({ amount: 0 });
+            form.reset({ 
+                sourceAccountId: savingsAccountsForProfile.length === 1 ? savingsAccountsForProfile[0].id : "",
+                amount: 0 
+            });
         }
-    }, [open, form]);
+    }, [open, form, savingsAccountsForProfile]);
 
 
     return (
@@ -97,11 +112,36 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                 <DialogHeader>
                     <DialogTitle>Aportar a: {goal.name}</DialogTitle>
                     <DialogDescription>
-                       Ahorro disponible en cartera ({savingsAccount?.name}): <span className="font-bold text-primary">{formatCurrency(availableSavings)}</span>
+                       Selecciona la cartera de origen y el monto a aportar a tu meta.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="sourceAccountId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Pagar desde Cartera</FormLabel>
+                                     <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona una cartera de ahorro" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {savingsAccountsForProfile.map(acc => (
+                                                <SelectItem key={acc.id} value={acc.id}>
+                                                    {acc.name} ({formatCurrency(acc.balance)})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <FormField
                             control={form.control}
                             name="amount"
@@ -115,9 +155,9 @@ export function ContributeToGoalDialog({ goal, open, onOpenChange }: ContributeT
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full" disabled={isLoading || !savingsAccount}>
+                        <Button type="submit" className="w-full" disabled={isLoading || savingsAccountsForProfile.length === 0}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {!savingsAccount ? "Cartera de Ahorro no encontrada" : "Confirmar Aporte"}
+                            {savingsAccountsForProfile.length === 0 ? "Cartera de Ahorro no encontrada" : "Confirmar Aporte"}
                         </Button>
                     </form>
                 </Form>

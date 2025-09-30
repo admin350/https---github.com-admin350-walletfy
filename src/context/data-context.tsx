@@ -812,8 +812,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const goal = goals.find(g => g.id === contribution.goalId);
         if (!goal) throw new Error("Meta no encontrada.");
         
-        const savingsAccount = bankAccounts.find(acc => acc.profile === goal.profile && acc.purpose === 'savings');
-        if (!savingsAccount) throw new Error(`No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
+        const savingsAccount = bankAccounts.find(acc => acc.id === contribution.sourceAccountId);
+        if (!savingsAccount) throw new Error(`La cuenta de ahorros seleccionada no fue encontrada.`);
 
         if (contribution.amount > savingsAccount.balance) {
             throw new Error('Saldo insuficiente en la cartera de ahorros.');
