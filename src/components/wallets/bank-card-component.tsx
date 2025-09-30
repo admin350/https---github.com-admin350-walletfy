@@ -1,3 +1,4 @@
+
 'use client'
 
 import { BankCard, BankAccount, Transaction } from "@/types";
@@ -113,7 +114,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                 <div className="relative z-10 flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-2">
-                             <p className="font-semibold text-lg">{card.bank}</p>
+                             <p className="font-semibold text-base">{card.bank}</p>
                              {card.cardLevel && <span className="text-xs uppercase font-bold opacity-80">{card.cardLevel}</span>}
                         </div>
                         <p className="text-sm font-light opacity-80">{card.name}</p>
@@ -173,7 +174,7 @@ export function BankCardComponent({ card }: BankCardComponentProps) {
                      <div className="flex justify-between items-end pt-2">
                         <div className="space-y-2">
                              <Cpu className="h-8 w-8 md:h-10 md:w-10 text-yellow-300/80" />
-                             <div className="font-mono tracking-widest text-lg md:text-xl">
+                             <div className="font-mono tracking-wider text-base md:text-lg">
                                 •••• •••• •••• {card.last4Digits}
                              </div>
                         </div>

@@ -68,7 +68,7 @@ export default function DashboardPage() {
     <>
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">{pageTitle}</h1>
+              <h1 className="text-xl font-bold">{pageTitle}</h1>
           </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -113,21 +113,18 @@ export default function DashboardPage() {
                         title="Ingresos del Período" 
                         value={<span className="text-green-500">{formatCurrency(totalIncome)}</span>} 
                         icon={TrendingUp} 
-                        iconClassName="text-green-500"
                         description="Suma de ingresos en el período." 
                     />
                     <KpiCard 
                         title="Egresos del Período" 
                         value={<span className="text-red-500">{formatCurrency(totalExpenses)}</span>} 
                         icon={TrendingDown}
-                        iconClassName="text-red-500"
                         description={`${totalIncome > 0 ? ((totalExpenses/totalIncome)*100).toFixed(1) : 0}% del ingreso`} 
                     />
                     <KpiCard 
                         title="Balance Neto" 
                         value={<span className={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}>{formatCurrency(netBalance)}</span>} 
                         icon={DollarSign}
-                        iconClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
                         description="Ingresos - Egresos" 
                     />
                 </>

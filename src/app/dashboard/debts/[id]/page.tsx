@@ -52,18 +52,18 @@ export default function DebtDetailPage() {
         <div className="space-y-6">
              <div className="flex flex-col space-y-2">
                  <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-bold">{debt.name}</h1>
+                    <h1 className="text-xl font-bold">{debt.name}</h1>
                     {getStatusBadge()}
                  </div>
                 <p className="text-muted-foreground">Detalle y progreso de tu deuda.</p>
              </div>
              
              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                <KpiCard title="Monto Total" value={formatCurrency(debt.totalAmount)} icon={Scale} iconClassName="text-red-400" description="Monto original de la deuda"/>
-                <KpiCard title="Monto Pagado" value={formatCurrency(debt.paidAmount)} icon={HandCoins} iconClassName="text-green-400" description="Suma de todos los abonos"/>
-                <KpiCard title="Monto Restante" value={formatCurrency(remainingAmount)} icon={Banknote} iconClassName="text-red-400" description="Lo que queda por pagar"/>
-                <KpiCard title="Cuota Mensual" value={formatCurrency(debt.monthlyPayment)} icon={Landmark} iconClassName="text-red-400" description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
-                <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} iconClassName="text-green-400" description="Total de cuotas pagadas"/>
+                <KpiCard title="Monto Total" value={formatCurrency(debt.totalAmount)} icon={Scale} description="Monto original de la deuda"/>
+                <KpiCard title="Monto Pagado" value={formatCurrency(debt.paidAmount)} icon={HandCoins} description="Suma de todos los abonos"/>
+                <KpiCard title="Monto Restante" value={formatCurrency(remainingAmount)} icon={Banknote} description="Lo que queda por pagar"/>
+                <KpiCard title="Cuota Mensual" value={formatCurrency(debt.monthlyPayment)} icon={Landmark} description={`Próximo vencimiento: ${format(debt.dueDate, "dd/MM/yyyy")}`}/>
+                <KpiCard title="Cuotas Pagadas" value={`${paidInstallments} de ${debt.installments}`} icon={Percent} description="Total de cuotas pagadas"/>
              </div>
 
             <div>

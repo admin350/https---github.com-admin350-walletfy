@@ -151,7 +151,7 @@ export function BankAccountComponent({ account, asCard = true }: BankAccountComp
                         </AlertDialog>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold mb-2">{formatCurrency(account.balance)}</div>
+                    <div className="text-xl font-bold mb-2">{formatCurrency(account.balance)}</div>
                     <div className="text-xs text-muted-foreground">
                         Nº: {account.accountNumber}
                     </div>
@@ -189,7 +189,7 @@ export function BankAccountComponent({ account, asCard = true }: BankAccountComp
                 <div className="relative z-10 flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-2">
-                             <p className="font-semibold text-lg">{account.bank}</p>
+                             <p className="font-semibold text-base">{account.bank}</p>
                         </div>
                         <p className="text-sm font-light opacity-80">{account.name}</p>
                     </div>
@@ -214,11 +214,9 @@ export function BankAccountComponent({ account, asCard = true }: BankAccountComp
                                         </DropdownMenuItem>
                                     )}
                                     <DropdownMenuSeparator />
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem className="text-red-400 focus:text-red-500">
-                                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
+                                    <DropdownMenuItem className="text-red-400 focus:text-red-500">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                             <AlertDialogContent>
@@ -288,7 +286,7 @@ export function BankAccountComponent({ account, asCard = true }: BankAccountComp
 
                     <div className="space-y-2">
                         <div className="flex justify-between items-end">
-                            <span className="text-2xl font-bold">{formatCurrency(account.balance)}</span>
+                            <span className="text-xl font-bold">{formatCurrency(account.balance)}</span>
                             <div className="flex items-center gap-2">
                                 {limitUsage >= 80 && (
                                     <TooltipProvider>

@@ -109,7 +109,7 @@ export default function TaxesPage() {
             </div>
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
+                    <h1 className="text-xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
                     <p className="text-muted-foreground">
                         Resumen de tu débito y crédito fiscal para el perfil <span className="text-primary font-semibold">{filters.profile === 'all' ? 'Consolidado' : filters.profile}</span>.
                     </p>
@@ -138,7 +138,6 @@ export default function TaxesPage() {
                             }
                             value={<span className="text-red-400">{formatCurrency(taxData.totalDebit)}</span>} 
                             icon={ArrowUp} 
-                            iconClassName="text-red-400"
                             description={taxData.remanente > 0 ? `Remanente mes anterior: -${formatCurrency(taxData.remanente)}` : "Suma del IVA de tus ingresos."} 
                         />
                         <KpiCard 
@@ -150,7 +149,6 @@ export default function TaxesPage() {
                             }
                             value={<span className="text-green-400">{formatCurrency(taxData.totalCredit)}</span>} 
                             icon={ArrowDown}
-                            iconClassName="text-green-400"
                             description="Suma del IVA de tus egresos." 
                         />
                         <KpiCard 
@@ -166,7 +164,6 @@ export default function TaxesPage() {
                                <span className={taxData.netTax >= 0 ? "text-primary" : "text-green-400"}>{formatCurrency(taxData.netTax)}</span>
                             )} 
                             icon={Scale}
-                            iconClassName={isCurrentPeriodPaid ? "text-blue-400" : (taxData.netTax >= 0 ? "text-primary" : "text-green-400")}
                             description={isCurrentPeriodPaid ? "El impuesto de este período ya fue declarado." : (taxData.netTax >= 0 ? "Monto a pagar al fisco" : "Saldo a tu favor (remanente)")}
                         />
                     </>

@@ -1,3 +1,4 @@
+
 'use client';
 import { useParams } from 'next/navigation';
 import { useData } from '@/context/data-context';
@@ -143,16 +144,16 @@ export default function BankAccountDetailPage() {
                     </Tooltip>
                 </TooltipProvider>
                  <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold">{account.name}</h1>
+                    <h1 className="text-xl font-bold">{account.name}</h1>
                     <p className="text-muted-foreground">Detalle y movimientos de tu cuenta {account.bank}.</p>
                  </div>
              </div>
              
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <KpiCard title="Saldo Actual" value={<span className="text-primary">{formatCurrency(account.balance)}</span>} icon={Landmark} iconClassName="text-primary" description="Dinero disponible en la cuenta"/>
-                <KpiCard title="Número de Cuenta" value={account.accountNumber} icon={Building} iconClassName="text-blue-400" description={account.bank} />
-                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} iconClassName="text-green-400" description="Tipo de producto bancario" />
-                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} iconClassName="text-purple-400" description="Perfil financiero al que pertenece"/>
+                <KpiCard title="Saldo Actual" value={<span className="text-primary">{formatCurrency(account.balance)}</span>} icon={Landmark} description="Dinero disponible en la cuenta"/>
+                <KpiCard title="Número de Cuenta" value={account.accountNumber} icon={Building} description={account.bank} />
+                <KpiCard title="Tipo de Cuenta" value={account.accountType} icon={Banknote} description="Tipo de producto bancario" />
+                <KpiCard title="Perfil Asociado" value={account.profile} icon={User} description="Perfil financiero al que pertenece"/>
              </div>
              
              {account.hasCreditLine && account.creditLineLimit && (
@@ -162,9 +163,9 @@ export default function BankAccountDetailPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-3">
-                            <KpiCard title="Cupo Total" value={formatCurrency(account.creditLineLimit)} icon={Library} iconClassName="text-amber-400" description="Límite total aprobado"/>
-                            <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">{formatCurrency(account.creditLineUsed || 0)}</span>} icon={TrendingDown} iconClassName="text-red-400" description="Monto que has utilizado"/>
-                            <KpiCard title="Cupo Disponible" value={<span className="text-green-400">{formatCurrency(creditLineAvailable)}</span>} icon={HandCoins} iconClassName="text-green-400" description="Lo que te queda por usar"/>
+                            <KpiCard title="Cupo Total" value={formatCurrency(account.creditLineLimit)} icon={Library} description="Límite total aprobado"/>
+                            <KpiCard title="Cupo Utilizado" value={<span className="text-red-400">{formatCurrency(account.creditLineUsed || 0)}</span>} icon={TrendingDown} description="Monto que has utilizado"/>
+                            <KpiCard title="Cupo Disponible" value={<span className="text-green-400">{formatCurrency(creditLineAvailable)}</span>} icon={HandCoins} description="Lo que te queda por usar"/>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground mb-1">{creditLineProgress.toFixed(1)}% del cupo utilizado</p>

@@ -26,15 +26,15 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 
                 if (trimmedLine.startsWith('# ')) {
                     inList = false;
-                    return <h1 key={index} className="text-2xl font-bold mt-6 mb-3 border-b pb-2">{trimmedLine.substring(2)}</h1>;
+                    return <h1 key={index} className="text-xl font-bold mt-6 mb-3 border-b pb-2">{trimmedLine.substring(2)}</h1>;
                 }
                 if (trimmedLine.startsWith('## ')) {
                     inList = false;
-                    return <h2 key={index} className="text-xl font-semibold mt-4 mb-2">{trimmedLine.substring(3)}</h2>;
+                    return <h2 key={index} className="text-lg font-semibold mt-4 mb-2">{trimmedLine.substring(3)}</h2>;
                 }
                 if (trimmedLine.startsWith('### ')) {
                     inList = false;
-                    return <h3 key={index} className="text-lg font-semibold mt-3 mb-1">{trimmedLine.substring(4)}</h3>;
+                    return <h3 key={index} className="text-base font-semibold mt-3 mb-1">{trimmedLine.substring(4)}</h3>;
                 }
 
                 if (trimmedLine.startsWith('* ')) {
@@ -137,7 +137,7 @@ export default function ReportDetailPage() {
             </div>
             <Card ref={reportRef}>
                 <CardHeader>
-                    <CardTitle className="text-3xl">Informe Financiero - {format(reportDate, "MMMM yyyy", { locale: es })}</CardTitle>
+                    <CardTitle className="text-2xl">Informe Financiero - {format(reportDate, "MMMM yyyy", { locale: es })}</CardTitle>
                     <CardDescription>Generado el: {format(report.generatedAt, "dd 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}</CardDescription>
                 </CardHeader>
                 <CardContent>
