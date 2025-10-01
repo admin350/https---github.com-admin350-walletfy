@@ -125,7 +125,7 @@ export function AddCategoryDialog({ categoryToEdit, open, onOpenChange }: AddCat
                                         <SelectContent>
                                             <SelectItem value="Gasto">Gasto</SelectItem>
                                             <SelectItem value="Ingreso">Ingreso</SelectItem>
-                                             <SelectItem value="Transferencia">Transferencia</SelectItem>
+                                             <SelectItem value="Transferencia" disabled>Transferencia</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

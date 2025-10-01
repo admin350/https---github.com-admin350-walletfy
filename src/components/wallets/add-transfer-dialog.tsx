@@ -104,12 +104,13 @@ export function AddTransferDialog({ children }: { children: ReactNode }) {
             if (!sourceProfile) throw new Error("Perfil de la cuenta de origen no encontrado");
             
             const transferCategory = categories.find(c => c.type === 'Transferencia');
+            if (!transferCategory) throw new Error("Categoría de transferencia no encontrada.");
 
             await addTransaction({
                 type: 'transfer',
                 amount: values.amount,
                 description: values.description,
-                category: transferCategory?.name || 'Transferencia',
+                category: transferCategory.name,
                 profile: sourceProfile,
                 date: values.date,
                 accountId: values.sourceAccountId,

@@ -208,7 +208,7 @@ const defaultCategories: Category[] = [
     { id: '4', name: 'Transporte', type: 'Gasto', color: '#f97316' },
     { id: '5', name: 'Cuentas', type: 'Gasto', color: '#d946ef' },
     { id: '6', name: 'Restaurantes', type: 'Gasto', color: '#eab308' },
-    { id: '7', name: 'Transferencia', type: 'Transferencia', color: '#6366f1' },
+    { id: '7', name: 'Transferencia Interna', type: 'Transferencia', color: '#6366f1' },
     { id: '8', name: 'Venta de Activos', type: 'Ingreso', color: '#10b981' },
     { id: '9', name: 'Ahorro para Metas', type: 'Gasto', color: '#f59e0b' },
     { id: '10', name: 'Inversiones y Ahorros', type: 'Gasto', color: '#0ea5e9' },
@@ -660,7 +660,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const dataToSave = { ...transaction, date: Timestamp.fromDate(transaction.date) };
+        let transactionToSave = { ...transaction };
+        if (transaction.type === 'transfer') {
+            const transferCategory = categories.find(c => c.type === 'Transferencia');
+            transactionToSave.category = transferCategory?.name || 'Transferencia Interna';
+        }
+
+        const dataToSave = { ...transactionToSave, date: Timestamp.fromDate(transaction.date) };
         const newDoc = await addDocToCollection('transactions', dataToSave);
         setAllTransactions(prev => [{ ...newDoc, date: transaction.date }, ...prev]);
 
