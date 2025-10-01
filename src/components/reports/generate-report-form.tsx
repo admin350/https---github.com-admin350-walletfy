@@ -63,7 +63,7 @@ export function GenerateReportForm() {
                 ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                {reportExists ? "Informe ya generado" : "Generar Informe"}
+                {reportExists ? "Informe ya generado" : "Generar Informe (Deshabilitado)"}
             </Button>
         </div>
     )
