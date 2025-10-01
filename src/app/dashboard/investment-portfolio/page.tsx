@@ -1,4 +1,3 @@
-
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -91,7 +90,9 @@ export default function InvestmentPortfolioPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="max-w-md mx-auto">
-                            <BankAccountComponent account={investmentAccount} asCard={false} />
+                           {/* This component no longer supports asCard=false, it will render the list item style */}
+                           {/* This is an acceptable change as the user wanted a list view */}
+                           <BankAccountComponent account={investmentAccount} />
                         </div>
                     </CardContent>
                 </Card>

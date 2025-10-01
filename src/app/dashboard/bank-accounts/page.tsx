@@ -95,13 +95,13 @@ export default function BankAccountsPage() {
                 </CardHeader>
                 <CardContent>
                    {isLoading ? (
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         <div className="space-y-4">
                             {Array.from({ length: 3 }).map((_, i) => (
-                                <Skeleton key={i} className="h-48 rounded-xl" />
+                                <Skeleton key={i} className="h-24 rounded-xl" />
                             ))}
                          </div>
                     ) : bankAccounts.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-4">
                             {bankAccounts.map((account: BankAccount) => (
                                 <BankAccountComponent key={account.id} account={account} />
                             ))}

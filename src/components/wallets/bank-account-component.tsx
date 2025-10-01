@@ -1,4 +1,3 @@
-
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -21,10 +20,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui
 
 interface BankAccountComponentProps {
     account: BankAccount;
-    asCard?: boolean;
 }
 
-export function BankAccountComponent({ account, asCard = true }: BankAccountComponentProps) {
+export function BankAccountComponent({ account }: BankAccountComponentProps) {
     const { deleteBankAccount, profiles, formatCurrency, transactions } = useData();
     const { toast } = useToast();
     const [accountToEdit, setAccountToEdit] = useState<BankAccount | null>(null);
@@ -87,227 +85,138 @@ export function BankAccountComponent({ account, asCard = true }: BankAccountComp
         setTimeout(() => setIsCopied(false), 2000);
     };
     
-    const accountStyle = {
-      '--tw-gradient-from': account.color || '#374151',
-      '--tw-gradient-to': 'rgb(0 0 0 / 1)',
-      '--tw-shadow-color': account.color || '#ffffff',
-    } as React.CSSProperties;
-
     const hasLimit = account.accountType === 'Cuenta Vista' && account.monthlyLimit && account.monthlyLimit > 0;
     const limitUsage = hasLimit ? (monthlyIncome / (account.monthlyLimit ?? 1)) * 100 : 0;
     
     const creditLineAvailable = (account.creditLineLimit || 0) - (account.creditLineUsed || 0);
     const creditLineProgress = account.creditLineLimit ? ((account.creditLineUsed || 0) / account.creditLineLimit) * 100 : 0;
     
-    if (!asCard) {
-        return (
-            <Card>
-                <CardHeader className="flex flex-row items-start justify-between">
-                    <div>
-                        <CardTitle className="text-lg">{account.name}</CardTitle>
-                        <CardDescription>{account.bank} - {account.accountType}</CardDescription>
-                    </div>
-                     <AlertDialog>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                    <DropdownMenuItem onClick={handleEdit}>
-                                        <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
-                                    </DropdownMenuItem>
-                                     {account.accountType === "Cuenta Corriente" && (
-                                        <DropdownMenuItem onClick={handleManageCreditLine}>
-                                            <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
-                                        </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleCopy}>
-                                        <Copy className="mr-2 h-4 w-4" /> Copiar Datos
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                                    <AlertDialogDescription asChild>
-                                        <div>
-                                            <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
-                                            <ul className="list-disc list-inside mt-2 text-yellow-400/80">
-                                                <li>Tarjetas de crédito y débito vinculadas</li>
-                                                <li>Deudas y préstamos asociados</li>
-                                            </ul>
-                                             <p className="mt-2">¿Deseas continuar?</p>
-                                        </div>
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold mb-2">{formatCurrency(account.balance)}</div>
-                    <div className="text-xs text-muted-foreground">
-                        Nº: {account.accountNumber}
-                    </div>
-                </CardContent>
-                 {accountToEdit && (
-                    <AddBankAccountDialog 
-                        open={!!accountToEdit}
-                        onOpenChange={(isOpen) => !isOpen && setAccountToEdit(null)}
-                        accountToEdit={accountToEdit}
-                    />
-                )}
-                {manageCreditLineAccount && (
-                    <ManageCreditLineDialog
-                        open={!!manageCreditLineAccount}
-                        onOpenChange={(isOpen) => !isOpen && setManageCreditLineAccount(null)}
-                        account={manageCreditLineAccount}
-                    />
-                )}
-            </Card>
-        )
-    }
+    const profileColor = profiles.find(p => p.name === account.profile)?.color || '#374151';
 
     return (
         <>
-        <Link href={`/dashboard/bank-accounts/${account.id}`} className="block group">
-            <div 
-                 style={accountStyle}
-                 className={cn(
-                    "relative rounded-xl text-white flex flex-col p-4 md:p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 shadow-lg hover:shadow-[0_0_25px_-5px_var(--tw-shadow-color)] bg-gradient-to-br from-[var(--tw-gradient-from)] via-gray-900 to-[var(--tw-gradient-to)] border border-border h-64" // Fixed height
-                )}
-            >
-                 <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-0"></div>
-                
-                {/* Header */}
-                <div className="relative z-10 flex justify-between items-start">
-                    <div>
-                        <div className="flex items-center gap-2">
-                             <p className="font-semibold text-base">{account.bank}</p>
+        <Link href={`/dashboard/bank-accounts/${account.id}`} className="block group relative">
+             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+             <div className="relative p-4 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg">
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ borderColor: profileColor }}>
+                            <Landmark className="h-6 w-6 text-white" />
                         </div>
-                        <p className="text-sm font-light opacity-80">{account.name}</p>
+                        <div>
+                            <p className="font-semibold text-white">{account.name}</p>
+                            <p className="text-sm text-gray-400">{account.bank} - {account.accountType}</p>
+                        </div>
                     </div>
-                     <div className="flex items-center">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={handleCopy}>
-                            {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                        <AlertDialog>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                    <DropdownMenuItem onClick={handleEdit}>
-                                        <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
+                     <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                <DropdownMenuItem onClick={handleEdit}>
+                                    <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
+                                </DropdownMenuItem>
+                                 {account.accountType === "Cuenta Corriente" && (
+                                    <DropdownMenuItem onClick={handleManageCreditLine}>
+                                        <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
                                     </DropdownMenuItem>
-                                     {account.accountType === "Cuenta Corriente" && (
-                                        <DropdownMenuItem onClick={handleManageCreditLine}>
-                                            <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
-                                        </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuSeparator />
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleCopy}>
+                                    {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
+                                    Copiar Datos
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <AlertDialogTrigger asChild>
                                     <DropdownMenuItem className="text-red-400 focus:text-red-500">
                                         <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                                     </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                                    <AlertDialogDescription asChild>
-                                        <div>
-                                            <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
-                                            <ul className="list-disc list-inside mt-2 text-yellow-400/80">
-                                                <li>Tarjetas de crédito y débito vinculadas</li>
-                                                <li>Deudas y préstamos asociados</li>
-                                            </ul>
-                                             <p className="mt-2">¿Deseas continuar?</p>
-                                        </div>
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                                <AlertDialogDescription asChild>
+                                    <div>
+                                        <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
+                                        <ul className="list-disc list-inside mt-2 text-yellow-400/80">
+                                            <li>Tarjetas de crédito y débito vinculadas</li>
+                                            <li>Deudas y préstamos asociados</li>
+                                        </ul>
+                                         <p className="mt-2">¿Deseas continuar?</p>
+                                    </div>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+
+                <div className="mt-4 flex justify-between items-end">
+                    <div>
+                        <p className="text-xs text-gray-400">Saldo Actual</p>
+                        <p className="text-xl font-bold text-white">{formatCurrency(account.balance)}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-xs text-gray-400">Nº Cuenta</p>
+                        <p className="font-mono text-sm text-gray-300">{account.accountNumber}</p>
                     </div>
                 </div>
 
-                {/* Flexible Spacer */}
-                <div className="flex-grow"></div>
-                
-                {/* Footer Content */}
-                <div className="relative z-10">
-                    <div className="space-y-3 mb-3 h-14"> {/* Reserved space for progress bars */}
-                         {hasLimit && (
-                            <div className="space-y-1">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger className="w-full">
-                                            <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{`Utilizado: ${formatCurrency(monthlyIncome, true, true)} de ${formatCurrency(account.monthlyLimit!, true, true)} (${limitUsage.toFixed(1)}%)`}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <div className="text-xs text-white/70">
-                                Cupo mensual: {formatCurrency(monthlyIncome)} / {formatCurrency(account.monthlyLimit!)}
-                            </div>
-                            </div>
-                        )}
-                        {account.hasCreditLine && account.creditLineLimit && (
-                            <div className="space-y-1">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger className="w-full">
-                                            <Progress value={creditLineProgress} className="h-1.5 [&>div]:bg-red-400/80" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{`Utilizado: ${formatCurrency(account.creditLineUsed || 0)} de ${formatCurrency(account.creditLineLimit)} (${creditLineProgress.toFixed(1)}%)`}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <div className="text-xs text-white/70">
-                                Línea de Crédito Disponible: {formatCurrency(creditLineAvailable)}
-                            </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-end">
-                            <span className="text-xl font-bold">{formatCurrency(account.balance)}</span>
-                            <div className="flex items-center gap-2">
-                                {limitUsage >= 80 && (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <AlertTriangle className="h-5 w-5 text-amber-400" />
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>¡Cupo mensual casi al límite!</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                )}
-                                <Landmark className="h-8 w-8 text-white/50" />
-                            </div>
+                <div className="mt-3 space-y-2">
+                     {hasLimit && (
+                        <div className="space-y-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="w-full">
+                                        <Progress value={limitUsage} className="h-1.5 [&>div]:bg-white/80" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{`Utilizado: ${formatCurrency(monthlyIncome, true, true)} de ${formatCurrency(account.monthlyLimit!, true, true)} (${limitUsage.toFixed(1)}%)`}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <div className="text-xs text-white/70 flex justify-between">
+                            <span>Uso Cupo Mensual</span>
+                             {limitUsage >= 80 && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <AlertTriangle className="h-4 w-4 text-amber-400" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>¡Cupo mensual casi al límite!</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
                         </div>
-                        <div className="font-mono tracking-wider text-sm opacity-80">
-                        •••• {account.accountNumber.slice(-4)}
                         </div>
-                        <p className="text-xs font-light opacity-60">{account.accountType}</p>
-                    </div>
+                    )}
+                    {account.hasCreditLine && account.creditLineLimit && (
+                        <div className="space-y-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger className="w-full">
+                                        <Progress value={creditLineProgress} className="h-1.5 [&>div]:bg-amber-400/80" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{`Utilizado: ${formatCurrency(account.creditLineUsed || 0)} de ${formatCurrency(account.creditLineLimit)} (${creditLineProgress.toFixed(1)}%)`}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <div className="text-xs text-white/70">
+                            Línea de Crédito Disponible: {formatCurrency(creditLineAvailable)}
+                        </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </Link>
