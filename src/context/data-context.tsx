@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -146,7 +147,7 @@ interface DataContextType {
     addInvestment: (investment: Omit<Investment, 'id' | 'currentValue'>) => Promise<void>;
     updateInvestment: (investment: Partial<Investment> & {id: string}) => Promise<void>;
     deleteInvestment: (id: string) => Promise<void>;
-    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id' | 'purpose'>) => Promise<void>;
+    addInvestmentContribution: (contribution: Omit<InvestmentContribution, 'id'>) => Promise<void>;
     closeInvestment: (investmentId: string, finalValue: number) => Promise<void>;
 
     addTangibleAsset: (asset: Omit<TangibleAsset, 'id'>) => Promise<void>;
@@ -848,7 +849,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setGoals(prev => prev.map(g => g.id === contribution.goalId ? {...g, currentAmount: newCurrentAmount} : g));
     };
     
-    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id' | 'purpose'>) => {
+    const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
         const investment = investments.find(inv => inv.id === contribution.investmentId);
@@ -900,6 +901,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             investmentName: newInvestment.name,
             amount: newInvestment.initialAmount,
             date: newInvestment.startDate,
+            purpose: newInvestment.purpose,
         });
     };
 
@@ -1171,3 +1173,9 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
+    
+
+    
+
+    
