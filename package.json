@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 9004 -H 0.0.0.0",
+    "dev": "next dev",
     "pre-build": "npm run typecheck && npm run lint",
     "build": "rm -rf .next && next build",
     "start": "next start",
