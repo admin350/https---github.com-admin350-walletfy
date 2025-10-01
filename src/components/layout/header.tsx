@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -15,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Badge } from "../ui/badge";
 import type { AppNotification } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
 
 const navSections = [
     {
@@ -55,13 +58,13 @@ const navSections = [
 
 const allNavItems = navSections.flatMap(section => section.items);
 
-const NotificationIcon = ({ type }: { type: AppNotification['type']}) => {
+const NotificationIcon = ({ type, className }: { type: AppNotification['type'], className?: string }) => {
     switch (type) {
-        case 'warning': return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-        case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-        case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
-        case 'info': return <Info className="h-4 w-4 text-blue-500" />;
-        default: return <Bell className="h-4 w-4 text-muted-foreground" />;
+        case 'warning': return <AlertTriangle className={cn("h-5 w-5 text-amber-400", className)} />;
+        case 'error': return <AlertTriangle className={cn("h-5 w-5 text-red-400", className)} />;
+        case 'success': return <CheckCircle className={cn("h-5 w-5 text-green-400", className)} />;
+        case 'info': return <Info className={cn("h-5 w-5 text-blue-400", className)} />;
+        default: return <Bell className={cn("h-5 w-5 text-gray-400", className)} />;
     }
 }
 
@@ -87,8 +90,7 @@ const NotificationPanel = () => {
     const unreadCount = notifications.length;
 
     return (
-        <>
-         <Popover>
+        <Popover>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
@@ -97,36 +99,40 @@ const NotificationPanel = () => {
                     )}
                 </Button>
             </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 max-h-[400px] overflow-y-auto">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium">Notificaciones</h3>
+             <PopoverContent align="end" className="w-96 bg-transparent border-none shadow-none p-0">
+                <div className="flex justify-between items-center mb-4 px-4">
+                    <h3 className="font-semibold text-lg text-white">Notificaciones</h3>
                     {unreadCount > 0 && (
-                        <Button variant="link" size="sm" className="h-auto p-0" onClick={handleMarkAllAsRead}>Marcar como leídas</Button>
+                        <Button variant="link" size="sm" className="h-auto p-0 text-primary/80 hover:text-primary" onClick={handleMarkAllAsRead}>Marcar todas como leídas</Button>
                     )}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {notifications.length > 0 ? (
                         notifications.map(n => (
-                            <Link href={n.link || '#'} key={n.id} className="block relative group">
-                                <div className="text-sm p-3 rounded-md border flex gap-3 items-start hover:bg-muted/50">
-                                    <NotificationIcon type={n.type} />
+                             <Link href={n.link || '#'} key={n.id} className="block group relative">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative flex items-center justify-between gap-4 p-4 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg">
                                     <div className="flex-1">
-                                        <p className="font-semibold leading-tight">{n.title}</p>
-                                        <p className="text-xs text-muted-foreground">{n.description}</p>
+                                        <p className="font-semibold text-white leading-tight">{n.title}</p>
+                                        <p className="text-sm text-gray-400">{n.description}</p>
                                     </div>
-                                    <button onClick={(e) => handleRemoveNotification(e, n.id)} className="absolute top-1 right-1 p-0.5 rounded-full text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                                        <NotificationIcon type={n.type} />
+                                    </div>
+                                    <button onClick={(e) => handleRemoveNotification(e, n.id)} className="absolute top-1.5 right-1.5 p-0.5 rounded-full text-gray-500 hover:bg-white/10 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
                                         <X className="h-3 w-3"/>
                                     </button>
                                 </div>
                             </Link>
                         ))
                     ) : (
-                        <p className="text-xs text-muted-foreground text-center py-4">No tienes notificaciones</p>
+                        <div className="text-center py-10 px-4 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg">
+                            <p className="text-sm text-gray-400">No tienes notificaciones nuevas.</p>
+                        </div>
                     )}
                 </div>
             </PopoverContent>
          </Popover>
-        </>
     )
 }
 
