@@ -69,6 +69,7 @@ export function ContributeToInvestmentDialog({ investment, open, onOpenChange, p
                 investmentName: investment.name,
                 amount: values.amount,
                 date: new Date(),
+                purpose: purpose,
             });
             toast({
                 title: "¡Aporte Exitoso!",

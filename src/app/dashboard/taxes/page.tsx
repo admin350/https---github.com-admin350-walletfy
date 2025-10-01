@@ -12,17 +12,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { PayTaxDialog } from "@/components/transactions/pay-tax-dialog";
 import type { Transaction, TaxPayment } from "@/types";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { TaxReportPDF } from "@/components/transactions/tax-report-pdf";
-
 
 export default function TaxesPage() {
     const { transactions, formatCurrency, isLoading, taxPayments, bankAccounts, filters } = useData();
     const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
-    const [isDownloading, setIsDownloading] = useState(false);
-    const pdfRef = useRef<HTMLDivElement>(null);
-
 
     const taxAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'tax' && (filters.profile === 'all' || acc.profile === filters.profile)), [bankAccounts, filters.profile]);
 
@@ -57,29 +50,6 @@ export default function TaxesPage() {
          return taxPayments.some((p: TaxPayment) => p.month === currentMonth && p.year === currentYear && (filters.profile === 'all' || p.profile === filters.profile));
     }, [taxPayments, filters]);
 
-    const handleDownloadPDF = async () => {
-        if (!pdfRef.current) return;
-        setIsDownloading(true);
-
-        const canvas = await html2canvas(pdfRef.current, {
-            scale: 2,
-            backgroundColor: '#111827' // A dark background matching the theme
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`informe_tributario_${filters.profile}_${filters.month + 1}_${filters.year}.pdf`);
-
-        setIsDownloading(false);
-    };
-
-
     const KpiSkeleton = () => (
       <div className="space-y-2">
         <Skeleton className="h-6 w-3/4" />
@@ -102,11 +72,6 @@ export default function TaxesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="absolute -left-[9999px] -top-[9999px] opacity-0 pointer-events-none">
-                <div ref={pdfRef}>
-                    <TaxReportPDF taxData={taxData} filters={filters} formatCurrency={formatCurrency} />
-                </div>
-            </div>
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-xl font-bold tracking-tight">Gestión Tributaria (IVA)</h1>
@@ -114,9 +79,9 @@ export default function TaxesPage() {
                         Resumen de tu débito y crédito fiscal para el perfil <span className="text-primary font-semibold">{filters.profile === 'all' ? 'Consolidado' : filters.profile}</span>.
                     </p>
                 </div>
-                 <Button onClick={handleDownloadPDF} disabled={isDownloading}>
-                    {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                    Exportar a PDF
+                 <Button disabled>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Exportar a PDF (Deshabilitado)
                 </Button>
             </div>
             

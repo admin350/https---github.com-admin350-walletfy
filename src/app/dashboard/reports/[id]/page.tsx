@@ -9,8 +9,6 @@ import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Download, Loader2 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -71,33 +69,9 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 export default function ReportDetailPage() {
     const { id } = useParams();
     const { reports, isLoading } = useData();
-    const [isDownloading, setIsDownloading] = useState(false);
     const reportRef = useRef<HTMLDivElement>(null);
 
     const report = reports.find(r => r.id === id);
-
-    const handleDownload = async () => {
-        if (!reportRef.current || !report) return;
-        setIsDownloading(true);
-
-        const canvas = await html2canvas(reportRef.current, {
-            scale: 2,
-            backgroundColor: '#28282B' // Match your dark background
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-        });
-
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`informe-${report.year}-${report.month + 1}.pdf`);
-
-        setIsDownloading(false);
-    };
-
 
     if (isLoading) {
         return <div>Cargando...</div>;
@@ -126,13 +100,9 @@ export default function ReportDetailPage() {
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <Button onClick={handleDownload} disabled={isDownloading}>
-                    {isDownloading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Download className="mr-2 h-4 w-4" />
-                    )}
-                    Descargar PDF
+                <Button disabled>
+                    <Download className="mr-2 h-4 w-4" />
+                    Descargar PDF (Deshabilitado)
                 </Button>
             </div>
             <Card ref={reportRef}>
