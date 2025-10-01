@@ -6,7 +6,14 @@ import {firebasePlugin} from '@genkit-ai/firebase';
 export const ai = genkit({
     plugins: [
         googleAI(),
-        firebasePlugin(), // Genkit will use Application Default Credentials
+        firebasePlugin({
+            flowStateStore: {
+                collection: 'flow-states',
+            },
+            traceStore: {
+                collection: 'traces',
+            },
+        }),
     ],
     logLevel: 'debug',
     enableTracingAndMetrics: true,
