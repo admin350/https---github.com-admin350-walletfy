@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { AnimatedWalletIcon } from "@/components/icons/animated-wallet-icon";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
@@ -58,9 +59,10 @@ function SignupPageContent() {
 
         <div className="relative bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Create account</h2>
-                <p className="text-gray-400 text-sm">Start managing your finances today.</p>
+              <div className="text-center">
+                <AnimatedWalletIcon />
+                <h2 className="text-2xl font-bold text-white">Crear cuenta</h2>
+                <p className="text-gray-400 text-sm">Empieza a gestionar tus finanzas hoy.</p>
               </div>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

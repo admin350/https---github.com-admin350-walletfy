@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { AnimatedWalletIcon } from "@/components/icons/animated-wallet-icon";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
@@ -79,6 +80,7 @@ function LoginPageContent() {
         if (resetSent) {
             return (
                 <div className="text-center space-y-6">
+                    <AnimatedWalletIcon />
                     <div>
                         <h2 className="text-2xl font-bold text-white">Correo Enviado</h2>
                         <p className="text-gray-400 text-sm">Revisa tu bandeja de entrada para restablecer tu contraseña.</p>
@@ -92,7 +94,8 @@ function LoginPageContent() {
         }
         return (
              <div className="space-y-6">
-                <div>
+                <div className="text-center">
+                    <AnimatedWalletIcon />
                     <h2 className="text-2xl font-bold text-white">Recuperar Contraseña</h2>
                     <p className="text-gray-400 text-sm">Ingresa tu correo para recibir un enlace de recuperación.</p>
                 </div>
@@ -135,9 +138,10 @@ function LoginPageContent() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold text-white">Welcome back</h2>
-                <p className="text-gray-400 text-sm">Sign in to your account</p>
+            <div className="text-center">
+                <AnimatedWalletIcon />
+                <h2 className="text-2xl font-bold text-white">Bienvenido de nuevo</h2>
+                <p className="text-gray-400 text-sm">Inicia sesión en tu cuenta</p>
             </div>
              <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
