@@ -97,77 +97,79 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
     return (
         <>
         <Link href={`/dashboard/bank-accounts/${account.id}`} className="block group relative">
-             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-             <div className="relative p-3 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg">
-                <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ borderColor: profileColor }}>
-                            <Landmark className="h-5 w-5 text-white" />
+             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+             <div className="relative p-4 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg flex flex-col justify-between min-h-[160px]">
+                <div>
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ borderColor: profileColor }}>
+                                <Landmark className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-white text-sm">{account.name}</p>
+                                <p className="text-xs text-gray-400">{account.bank} - {account.accountType}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-semibold text-white text-sm">{account.name}</p>
-                            <p className="text-xs text-gray-400">{account.bank} - {account.accountType}</p>
-                        </div>
+                        <AlertDialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
+                                    <DropdownMenuItem onClick={handleEdit}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
+                                    </DropdownMenuItem>
+                                    {account.accountType === "Cuenta Corriente" && (
+                                        <DropdownMenuItem onClick={handleManageCreditLine}>
+                                            <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleCopy}>
+                                        {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
+                                        Copiar Datos
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem className="text-red-400 focus:text-red-500">
+                                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription asChild>
+                                        <div>
+                                            <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
+                                            <ul className="list-disc list-inside mt-2 text-yellow-400/80">
+                                                <li>Tarjetas de crédito y débito vinculadas</li>
+                                                <li>Deudas y préstamos asociados</li>
+                                            </ul>
+                                            <p className="mt-2">¿Deseas continuar?</p>
+                                        </div>
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
-                     <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-white/10 hover:text-white" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={e => {e.stopPropagation(); e.preventDefault();}}>
-                                <DropdownMenuItem onClick={handleEdit}>
-                                    <Pencil className="mr-2 h-4 w-4" /> Editar Cuenta
-                                </DropdownMenuItem>
-                                 {account.accountType === "Cuenta Corriente" && (
-                                    <DropdownMenuItem onClick={handleManageCreditLine}>
-                                        <Library className="mr-2 h-4 w-4" /> Gestionar Línea de Crédito
-                                    </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleCopy}>
-                                    {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
-                                    Copiar Datos
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-red-400 focus:text-red-500">
-                                        <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás realmente seguro?</AlertDialogTitle>
-                                <AlertDialogDescription asChild>
-                                    <div>
-                                        <p>Esta acción no se puede deshacer. Al eliminar esta cuenta bancaria, se borrarán permanentemente todos los datos asociados, incluyendo:</p>
-                                        <ul className="list-disc list-inside mt-2 text-yellow-400/80">
-                                            <li>Tarjetas de crédito y débito vinculadas</li>
-                                            <li>Deudas y préstamos asociados</li>
-                                        </ul>
-                                         <p className="mt-2">¿Deseas continuar?</p>
-                                    </div>
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
 
-                <div className="mt-2 flex justify-between items-end">
-                    <div>
-                        <p className="text-xs text-gray-400">Saldo Actual</p>
-                        <p className="text-lg font-bold text-white">{formatCurrency(account.balance)}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-xs text-gray-400">Nº Cuenta</p>
-                        <p className="font-mono text-xs text-gray-300">{account.accountNumber}</p>
+                    <div className="mt-2 flex justify-between items-end">
+                        <div>
+                            <p className="text-xs text-gray-400">Saldo Actual</p>
+                            <p className="text-xl font-bold text-white">{formatCurrency(account.balance)}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs text-gray-400">Nº Cuenta</p>
+                            <p className="font-mono text-xs text-gray-300">{account.accountNumber}</p>
+                        </div>
                     </div>
                 </div>
 
