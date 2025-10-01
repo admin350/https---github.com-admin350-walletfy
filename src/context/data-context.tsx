@@ -23,7 +23,8 @@ import {
     deleteDoc, 
     getDoc,
     setDoc,
-    Timestamp
+    Timestamp,
+    orderBy
 } from 'firebase/firestore';
 import type { 
     Transaction, 
@@ -257,7 +258,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // #endregion
     
     const fetchData = useCallback(async (collectionName: string, uid: string) => {
-        const q = query(collection(db, `users/${uid}/${collectionName}`));
+        let q;
+        if (collectionName === 'transactions') {
+            q = query(collection(db, `users/${uid}/${collectionName}`), orderBy('date', 'desc'));
+        } else {
+            q = query(collection(db, `users/${uid}/${collectionName}`));
+        }
+        
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => {
             const data = doc.data();
@@ -639,9 +646,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
-        const dataToSave = { ...transaction, date: transaction.date.toISOString() };
+        const dataToSave = { ...transaction, date: Timestamp.fromDate(transaction.date) };
         const newDoc = await addDocToCollection('transactions', dataToSave);
-        setAllTransactions(prev => [...prev, { ...newDoc, date: transaction.date }]);
+        setAllTransactions(prev => [{ ...newDoc, date: transaction.date }, ...prev]);
 
         const batch = writeBatch(db);
         const sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
@@ -698,7 +705,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
         const dataToSave: any = { ...transaction };
         if (transaction.date) {
-            dataToSave.date = (transaction.date as Date).toISOString();
+            dataToSave.date = Timestamp.fromDate(transaction.date as Date);
         }
         await updateDocInCollection('transactions', transaction.id, dataToSave);
         setAllTransactions(prev => prev.map(t => t.id === transaction.id ? { ...t, ...transaction } as Transaction : t));
@@ -1179,3 +1186,5 @@ export const useData = (): DataContextType => {
     
 
     
+
+
