@@ -1,5 +1,6 @@
+
 'use client';
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     ColumnDef,
     flexRender,
@@ -31,13 +32,23 @@ import { AddTransactionDialog } from "./add-transaction-dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "../ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export function TransactionsDataTable() {
-    const { transactions, isLoading, deleteTransaction, formatCurrency } = useData();
+    const { transactions, isLoading, deleteTransaction, formatCurrency, categories } = useData();
     const { toast } = useToast();
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+    const filteredTransactions = useMemo(() => {
+        if (categoryFilter === 'all') {
+            return transactions;
+        }
+        return transactions.filter(t => t.category === categoryFilter);
+    }, [transactions, categoryFilter]);
+
 
     const handleDelete = async (id: string) => {
         try {
@@ -141,7 +152,7 @@ export function TransactionsDataTable() {
     ];
 
     const table = useReactTable({
-        data: transactions,
+        data: filteredTransactions,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -154,10 +165,15 @@ export function TransactionsDataTable() {
             columnFilters,
         },
     });
+    
+    const uniqueCategories = useMemo(() => {
+        const categorySet = new Set(transactions.map(t => t.category));
+        return Array.from(categorySet);
+    }, [transactions]);
 
     return (
         <div>
-            <div className="flex items-center py-4">
+            <div className="flex items-center justify-between py-4">
                 <Input
                     placeholder="Filtrar por descripción..."
                     value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
@@ -166,6 +182,17 @@ export function TransactionsDataTable() {
                     }
                     className="max-w-sm"
                 />
+                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Filtrar por categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todas las Categorías</SelectItem>
+                        {uniqueCategories.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="rounded-md border">
                 <Table>
@@ -241,3 +268,4 @@ export function TransactionsDataTable() {
         </div>
     );
 }
+
