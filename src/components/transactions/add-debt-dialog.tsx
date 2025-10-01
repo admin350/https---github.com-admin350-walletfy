@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Nombre de la deuda es muy corto." }),
   totalAmount: z.coerce.number().positive({ message: "Monto total debe ser positivo." }),
   monthlyPayment: z.coerce.number().positive({ message: "Pago mensual debe ser positivo." }),
-  installments: z.coerce.number().positive({ message: "El número de cuotas debe ser positivo." }),
+  installments: z.coerce.number().positive({ message: "El número de cuotas debe ser un número positivo." }),
   dueDate: z.date({ required_error: "Fecha de próximo pago es requerida." }),
   debtType: z.enum(['consumo', 'hipotecario', 'auto', 'line-of-credit', 'credit-card', 'otro'], { required_error: "El tipo de deuda es requerido." }),
   profile: z.string().min(1, { message: "El perfil es requerido." }),
