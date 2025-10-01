@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import type { Subscription } from "@/types";
-import { format, getMonth, getYear } from "date-fns";
+import { format, getMonth, getYear, isFuture, isThisMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "../ui/badge";
 import { UpdateSubscriptionDialog } from "./update-subscription-dialog";
@@ -81,19 +81,37 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                 const isCancelled = subscription.status === 'cancelled';
                 const currentMonth = getMonth(new Date());
                 const currentYear = getYear(new Date());
-                const isPaidThisPeriod = subscription.paidThisPeriod && subscription.lastPaymentMonth === currentMonth && subscription.lastPaymentYear === currentYear;
+                
+                const isPaidThisPeriod = subscription.paidThisPeriod && 
+                                         subscription.lastPaymentMonth === currentMonth && 
+                                         subscription.lastPaymentYear === currentYear;
 
+                // Logic for showing payment status
+                let showPayButton = false;
+                let showPaidBadge = false;
 
+                if (!isCancelled) {
+                    if (tab === 'this-month') {
+                        if (isPaidThisPeriod) {
+                            showPaidBadge = true;
+                        } else {
+                            showPayButton = true;
+                        }
+                    } else if (tab === 'upcoming' || tab === 'overdue') {
+                        showPayButton = true;
+                    }
+                }
+                
                 return (
                     <div className="text-right space-x-2">
-                        {!isCancelled && !isPaidThisPeriod && (
+                        {showPayButton && (
                             <Button variant="outline" size="sm" onClick={() => setSubscriptionToPay(subscription)}>
                                 <HandCoins className="mr-2 h-4 w-4" /> Pagar ahora
                             </Button>
                         )}
-                        {isPaidThisPeriod && (
+                        {showPaidBadge && (
                             <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">
-                                <CheckCircle className="mr-2 h-4 w-4" /> Pagado
+                                <CheckCircle className="mr-2 h-4 w-4" /> Pagado este mes
                             </Badge>
                         )}
                          <AlertDialog>
@@ -110,11 +128,9 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                         </DropdownMenuItem>
                                     )}
                                      {!isCancelled && (
-                                        <AlertDialogTrigger asChild>
-                                           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleCancel(subscription.id); }}>
-                                                <Ban className="mr-2 h-4 w-4" /> Cancelar suscripción
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
+                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleCancel(subscription.id); }}>
+                                            <Ban className="mr-2 h-4 w-4" /> Cancelar suscripción
+                                        </DropdownMenuItem>
                                     )}
                                     <AlertDialogTrigger asChild>
                                         <DropdownMenuItem>
