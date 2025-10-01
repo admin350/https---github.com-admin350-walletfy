@@ -45,7 +45,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddAssetDialogProps {
-    children: ReactNode;
+    children?: ReactNode;
     assetToEdit?: TangibleAsset;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
