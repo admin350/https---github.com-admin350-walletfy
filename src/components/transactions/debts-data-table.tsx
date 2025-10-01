@@ -81,7 +81,12 @@ export function DebtsDataTable({ debts }: DebtsDataTableProps) {
       cell: ({ row }) => {
         const debt = row.original;
         return (
-          <div className="text-right">
+          <div className="text-right space-x-2">
+            {debt.paidAmount < debt.totalAmount && (
+                <Button variant="outline" size="sm" onClick={() => setDebtToPay(debt)}>
+                    <HandCoins className="mr-2 h-4 w-4" /> Realizar Abono
+                </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -94,11 +99,6 @@ export function DebtsDataTable({ debts }: DebtsDataTableProps) {
                     <Eye className="mr-2 h-4 w-4" /> Ver Detalle
                   </Link>
                 </DropdownMenuItem>
-                 {debt.paidAmount < debt.totalAmount && (
-                    <DropdownMenuItem onClick={() => setDebtToPay(debt)}>
-                        <HandCoins className="mr-2 h-4 w-4" /> Realizar Abono
-                    </DropdownMenuItem>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

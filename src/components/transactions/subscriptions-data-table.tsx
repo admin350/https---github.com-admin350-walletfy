@@ -80,7 +80,12 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                 const subscription = row.original;
                 const isCancelled = subscription.status === 'cancelled';
                 return (
-                    <div className="text-right">
+                    <div className="text-right space-x-2">
+                         {!isCancelled && (
+                            <Button variant="outline" size="sm" onClick={() => setSubscriptionToPay(subscription)}>
+                                <HandCoins className="mr-2 h-4 w-4" /> Pagar ahora
+                            </Button>
+                        )}
                          <AlertDialog>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -89,11 +94,6 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    {!isCancelled && (
-                                        <DropdownMenuItem onClick={() => setSubscriptionToPay(subscription)}>
-                                            <HandCoins className="mr-2 h-4 w-4" /> Pagar ahora
-                                        </DropdownMenuItem>
-                                    )}
                                     {!isCancelled && (
                                         <DropdownMenuItem onClick={() => setSubscriptionToEdit(subscription)}>
                                             <Pencil className="mr-2 h-4 w-4" /> Editar
