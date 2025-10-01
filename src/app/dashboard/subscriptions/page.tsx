@@ -50,11 +50,10 @@ export default function SubscriptionsPage() {
     });
 
 
-    // Próximas: Fecha es futura, no es de este mes Y no ha sido pagada en este período.
+    // Próximas: Fecha es futura y no es de este mes.
     const upcomingSubscriptions = activeSubscriptions.filter((s: Subscription) => {
         const dueDate = new Date(s.dueDate);
-        const isPaidThisPeriod = s.paidThisPeriod && s.lastPaymentMonth === currentMonth && s.lastPaymentYear === currentYear;
-        return isFuture(dueDate) && !isThisMonth(dueDate) && !isPaidThisPeriod;
+        return isFuture(dueDate) && !isThisMonth(dueDate);
     });
     
     const totalActiveSubscriptions = activeSubscriptions.length;
