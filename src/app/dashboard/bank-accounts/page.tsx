@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,13 +96,13 @@ export default function BankAccountsPage() {
                 </CardHeader>
                 <CardContent>
                    {isLoading ? (
-                         <div className="space-y-4">
-                            {Array.from({ length: 3 }).map((_, i) => (
-                                <Skeleton key={i} className="h-24 rounded-xl" />
+                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <Skeleton key={i} className="h-28 rounded-xl" />
                             ))}
                          </div>
                     ) : bankAccounts.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {bankAccounts.map((account: BankAccount) => (
                                 <BankAccountComponent key={account.id} account={account} />
                             ))}

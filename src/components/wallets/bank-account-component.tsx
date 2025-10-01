@@ -1,3 +1,4 @@
+
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -97,15 +98,15 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
         <>
         <Link href={`/dashboard/bank-accounts/${account.id}`} className="block group relative">
              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-             <div className="relative p-4 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg">
+             <div className="relative p-3 bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-lg shadow-lg">
                 <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ borderColor: profileColor }}>
-                            <Landmark className="h-6 w-6 text-white" />
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ borderColor: profileColor }}>
+                            <Landmark className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="font-semibold text-white">{account.name}</p>
-                            <p className="text-sm text-gray-400">{account.bank} - {account.accountType}</p>
+                            <p className="font-semibold text-white text-sm">{account.name}</p>
+                            <p className="text-xs text-gray-400">{account.bank} - {account.accountType}</p>
                         </div>
                     </div>
                      <AlertDialog>
@@ -159,18 +160,18 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                     </AlertDialog>
                 </div>
 
-                <div className="mt-4 flex justify-between items-end">
+                <div className="mt-2 flex justify-between items-end">
                     <div>
                         <p className="text-xs text-gray-400">Saldo Actual</p>
-                        <p className="text-xl font-bold text-white">{formatCurrency(account.balance)}</p>
+                        <p className="text-lg font-bold text-white">{formatCurrency(account.balance)}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-gray-400">Nº Cuenta</p>
-                        <p className="font-mono text-sm text-gray-300">{account.accountNumber}</p>
+                        <p className="font-mono text-xs text-gray-300">{account.accountNumber}</p>
                     </div>
                 </div>
 
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-2">
                      {hasLimit && (
                         <div className="space-y-1">
                         <TooltipProvider>

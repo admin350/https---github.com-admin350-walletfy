@@ -1,3 +1,4 @@
+
 'use client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SavingsPortfolioDataTable } from "@/components/transactions/savings-portfolio-data-table";
@@ -91,9 +92,7 @@ export default function SavingsPortfolioPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="max-w-md mx-auto">
-                            {/* This component no longer supports asCard=false, it will render the list item style */}
-                            {/* This is an acceptable change as the user wanted a list view */}
+                        <div className="max-w-2xl mx-auto">
                              <BankAccountComponent account={savingsAccount}/>
                         </div>
                     </CardContent>
