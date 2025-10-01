@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { motion } from "framer-motion";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
@@ -54,22 +53,15 @@ function SignupPageContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
+      <div>
         <Card className="w-full max-w-md bg-card/20 backdrop-blur-lg border-white/10 rounded-2xl shadow-2xl transition-shadow duration-300 hover:shadow-primary/20 hover:shadow-2xl">
           <CardHeader className="text-center">
-              <motion.div 
-                    initial={{ scale: 1 }}
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 0.8, ease: "easeInOut", delay: 0.5 }}
+              <div 
                     className="flex justify-center items-center gap-2 mb-2"
                 >
                    <Wallet className="h-8 w-8 text-primary" />
                    <h1 className="text-2xl font-bold font-headline">WALLETFY</h1>
-              </motion.div>
+              </div>
             <CardTitle>Crear una Cuenta</CardTitle>
             <CardDescription>Empieza a tomar el control de tus finanzas hoy mismo.</CardDescription>
           </CardHeader>
@@ -117,7 +109,7 @@ function SignupPageContent() {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }
