@@ -92,7 +92,7 @@ const NotificationPanel = () => {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/10 hover:text-white">
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
                         <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{unreadCount}</Badge>
@@ -174,7 +174,7 @@ export function Header() {
   }, []);
   
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-4 z-30 mx-4 flex h-16 items-center gap-4 rounded-2xl bg-card/20 px-4 backdrop-blur-lg border border-white/10 shadow-lg sm:px-6">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
             {isClient ? <HoverMenu navSections={navSections} /> : (
@@ -202,7 +202,7 @@ export function Header() {
                         value={filters.profile}
                         onValueChange={(value) => setFilters(prev => ({ ...prev, profile: value }))}
                     >
-                        <SelectTrigger className="w-[130px] hidden md:flex">
+                        <SelectTrigger className="w-[130px] hidden md:flex bg-transparent border-white/20 hover:bg-white/10">
                             <SelectValue placeholder="Perfil" />
                         </SelectTrigger>
                         <SelectContent>
@@ -216,7 +216,7 @@ export function Header() {
                         value={filters.month.toString()}
                         onValueChange={(value) => setFilters(prev => ({...prev, month: parseInt(value)}))}
                     >
-                        <SelectTrigger className="w-[150px] hidden md:flex">
+                        <SelectTrigger className="w-[150px] hidden md:flex bg-transparent border-white/20 hover:bg-white/10">
                             <SelectValue placeholder="Mes" />
                         </SelectTrigger>
                         <SelectContent>
@@ -229,7 +229,7 @@ export function Header() {
                          value={filters.year.toString()}
                          onValueChange={(value) => setFilters(prev => ({...prev, year: parseInt(value)}))}
                     >
-                        <SelectTrigger className="w-[100px] hidden md:flex">
+                        <SelectTrigger className="w-[100px] hidden md:flex bg-transparent border-white/20 hover:bg-white/10">
                             <SelectValue placeholder="Año" />
                         </SelectTrigger>
                         <SelectContent>
@@ -239,22 +239,22 @@ export function Header() {
                  </div>
             )}
            <Link href="/dashboard/dashboard">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white">
                     <LayoutDashboard className="h-5 w-5" />
                 </Button>
             </Link>
-             <Button variant="ghost" size="icon" onClick={toggleSensitiveData}>
+             <Button variant="ghost" size="icon" onClick={toggleSensitiveData} className="text-white hover:bg-white/10 hover:text-white">
                 {settings.showSensitiveData ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
             </Button>
            <Link href="/dashboard/calendar">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white">
                     <Calendar className="h-5 w-5" />
                 </Button>
             </Link>
              <NotificationPanel />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white">
                         <User className="h-5 w-5" />
                     </Button>
                 </DropdownMenuTrigger>

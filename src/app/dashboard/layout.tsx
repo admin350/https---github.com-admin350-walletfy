@@ -37,7 +37,7 @@ const AppContent = ({ children }: { children: ReactNode }) => {
     <div className={cn("flex min-h-screen w-full", backgroundClass)}>
       <div className="flex flex-1 flex-col">
         <Header />
-        <main className="flex-1 bg-transparent p-4 md:p-6 lg:p-8">
+        <main className="flex-1 bg-transparent px-4 pt-8 md:px-6 md:pt-10 lg:px-8 lg:pt-12">
           {children}
         </main>
       </div>
