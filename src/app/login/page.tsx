@@ -2,24 +2,20 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DataProvider, useData } from "@/context/data-context";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Wallet, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Checkbox } from "@/components/ui/checkbox";
-
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
-  rememberMe: z.boolean().default(false),
 });
 
 const resetSchema = z.object({
@@ -40,7 +36,6 @@ function LoginPageContent() {
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
@@ -78,17 +73,17 @@ function LoginPageContent() {
           setIsLoading(false);
       }
   }
-
+  
   const cardContent = () => {
     if (isResetting) {
         if (resetSent) {
             return (
-                <div className="text-center space-y-4">
-                    <CardTitle>Correo Enviado</CardTitle>
-                    <CardDescription>
-                        Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el enlace y restablecer tu contraseña.
-                    </CardDescription>
-                    <Button onClick={() => { setIsResetting(false); setResetSent(false); setError(null); }} className="w-full">
+                <div className="text-center space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Correo Enviado</h2>
+                        <p className="text-gray-400 text-sm">Revisa tu bandeja de entrada para restablecer tu contraseña.</p>
+                    </div>
+                    <Button onClick={() => { setIsResetting(false); setResetSent(false); setError(null); }} className="w-full bg-white/10 border border-white/20 hover:bg-white/20 text-white">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Volver a Iniciar Sesión
                     </Button>
@@ -96,132 +91,129 @@ function LoginPageContent() {
             )
         }
         return (
-            <>
-                <Button variant="ghost" size="icon" onClick={() => setIsResetting(false)} className="absolute top-4 left-4 text-muted-foreground hover:text-foreground">
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <CardHeader className="text-center pt-12">
-                    <CardTitle>Restablecer Contraseña</CardTitle>
-                    <CardDescription>
-                       Ingresa tu correo electrónico y te enviaremos un enlace para recuperarla.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <Form {...resetForm}>
-                        <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
+             <div className="space-y-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-white">Recuperar Contraseña</h2>
+                    <p className="text-gray-400 text-sm">Ingresa tu correo para recibir un enlace de recuperación.</p>
+                </div>
+                <Form {...resetForm}>
+                    <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
+                        <div className="relative">
                             <FormField
                                 control={resetForm.control}
                                 name="email"
                                 render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Correo Electrónico</FormLabel>
+                                    <FormLabel className="absolute left-3 -top-2.5 text-xs text-gray-400 bg-[#1C1C1E] px-1">Correo Electrónico</FormLabel>
                                     <FormControl>
-                                    <Input type="email" placeholder="tu@correo.com" {...field} />
+                                        <Input 
+                                          type="email" 
+                                          placeholder="tu@correo.com" 
+                                          {...field} 
+                                          className="bg-transparent border-gray-700 h-12 focus:border-accent"
+                                        />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-xs pt-1" />
                                 </FormItem>
                                 )}
                             />
-                            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Enviar Correo de Recuperación
+                            <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-accent hover:bg-accent/80" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4 text-black" />}
                             </Button>
-                        </form>
-                    </Form>
-                </CardContent>
-            </>
+                        </div>
+                    </form>
+                </Form>
+                 {error && <p className="text-sm font-medium text-destructive text-center">{error}</p>}
+                <div className="text-center">
+                    <Button variant="link" onClick={() => setIsResetting(false)} className="text-sm text-accent hover:underline p-0 h-auto">
+                        Volver a iniciar sesión
+                    </Button>
+                </div>
+             </div>
         )
     }
 
     return (
-        <>
-            <CardHeader className="text-center">
-                <div 
-                    className="flex justify-center items-center gap-2 mb-2"
-                >
-                    <Wallet className="h-8 w-8 text-primary" />
-                    <h1 className="text-2xl font-bold font-headline">WALLETFY</h1>
-                </div>
-                <CardTitle>Iniciar Sesión</CardTitle>
-                <CardDescription>Bienvenido de vuelta. Accede a tu panel financiero.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                    <FormField
-                        control={loginForm.control}
-                        name="email"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Correo Electrónico</FormLabel>
-                            <FormControl>
-                            <Input type="email" placeholder="tu@correo.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Contraseña</FormLabel>
-                            <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-2xl font-bold text-white">Welcome back</h2>
+                <p className="text-gray-400 text-sm">Sign in to your account</p>
+            </div>
+             <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                     <div className="relative">
                         <FormField
                             control={loginForm.control}
-                            name="rememberMe"
+                            name="email"
                             render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="text-sm font-normal">Recordarme</FormLabel>
-                                    </div>
-                                </FormItem>
+                            <FormItem>
+                                <FormLabel className="absolute left-3 -top-2.5 text-xs text-gray-400 bg-[#1C1C1E] px-1">Correo Electrónico</FormLabel>
+                                <FormControl>
+                                    <Input 
+                                        type="email" 
+                                        placeholder="tu@correo.com" 
+                                        {...field}
+                                        className="bg-transparent border-gray-700 h-12 focus:border-accent"
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-xs pt-1"/>
+                            </FormItem>
                             )}
                         />
-                        <Button variant="link" onClick={() => setIsResetting(true)} className="text-sm text-primary hover:underline px-0">
+                    </div>
+                     <div className="relative">
+                        <FormField
+                            control={loginForm.control}
+                            name="password"
+                            render={({ field }) => (
+                            <FormItem>
+                                 <FormLabel className="absolute left-3 -top-2.5 text-xs text-gray-400 bg-[#1C1C1E] px-1">Contraseña</FormLabel>
+                                <FormControl>
+                                <Input 
+                                    type="password" 
+                                    placeholder="••••••••" 
+                                    {...field} 
+                                    className="bg-transparent border-gray-700 h-12 focus:border-accent"
+                                />
+                                </FormControl>
+                                <FormMessage className="text-xs pt-1"/>
+                            </FormItem>
+                            )}
+                        />
+                         <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-accent hover:bg-accent/80" disabled={isLoading}>
+                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4 text-black" />}
+                        </Button>
+                    </div>
+
+                    <div className="text-right">
+                         <Button variant="link" onClick={() => setIsResetting(true)} className="text-sm text-accent hover:underline p-0 h-auto">
                             ¿Olvidaste tu contraseña?
                         </Button>
                     </div>
 
-                    {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Iniciar Sesión
-                    </Button>
-                    </form>
-                </Form>
-                <div className="mt-4 text-center text-sm">
-                    ¿No tienes una cuenta?{" "}
-                    <Link href="/signup" className="underline text-primary">
-                    Regístrate aquí
-                    </Link>
-                </div>
-            </CardContent>
-        </>
+                    {error && <p className="text-sm font-medium text-destructive text-center">{error}</p>}
+
+                </form>
+            </Form>
+            <div className="mt-6 text-center text-sm text-gray-400">
+                ¿No tienes una cuenta?{" "}
+                <Link href="/signup" className="font-semibold text-accent hover:underline">
+                 Regístrate aquí
+                </Link>
+            </div>
+        </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
-      <div>
-        <Card className="w-full max-w-md bg-card/20 backdrop-blur-lg border-white/10 rounded-2xl shadow-2xl transition-shadow duration-300 hover:shadow-primary/20 hover:shadow-2xl">
+    <div className="flex min-h-screen items-center justify-center bg-black p-4">
+      <div className="relative w-full max-w-sm">
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-accent/30 rounded-full filter blur-3xl opacity-50 animate-pulse"></div>
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/30 rounded-full filter blur-3xl opacity-50 animate-pulse animation-delay-4000"></div>
+        
+        <div className="relative bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
           {cardContent()}
-        </Card>
+        </div>
       </div>
     </div>
   );

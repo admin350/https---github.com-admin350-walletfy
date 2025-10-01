@@ -2,12 +2,11 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DataProvider, useData } from "@/context/data-context";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Wallet } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -52,68 +51,79 @@ function SignupPageContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-t from-gray-950 to-gray-900 p-4">
-      <div>
-        <Card className="w-full max-w-md bg-card/20 backdrop-blur-lg border-white/10 rounded-2xl shadow-2xl transition-shadow duration-300 hover:shadow-primary/20 hover:shadow-2xl">
-          <CardHeader className="text-center">
-              <div 
-                    className="flex justify-center items-center gap-2 mb-2"
-                >
-                   <Wallet className="h-8 w-8 text-primary" />
-                   <h1 className="text-2xl font-bold font-headline">WALLETFY</h1>
+    <div className="flex min-h-screen items-center justify-center bg-black p-4">
+      <div className="relative w-full max-w-sm">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/30 rounded-full filter blur-3xl opacity-50 animate-pulse animation-delay-2000"></div>
+        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-500/30 rounded-full filter blur-3xl opacity-50 animate-pulse animation-delay-6000"></div>
+
+        <div className="relative bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Create account</h2>
+                <p className="text-gray-400 text-sm">Start managing your finances today.</p>
               </div>
-            <CardTitle>Crear una Cuenta</CardTitle>
-            <CardDescription>Empieza a tomar el control de tus finanzas hoy mismo.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Correo Electrónico</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="tu@correo.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contraseña</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Crear Cuenta
-                </Button>
-              </form>
-            </Form>
-            <div className="mt-4 text-center text-sm">
-              ¿Ya tienes una cuenta?{" "}
-              <Link href="/login" className="underline text-primary">
-                Inicia sesión aquí
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="relative">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="absolute left-3 -top-2.5 text-xs text-gray-400 bg-[#1C1C1E] px-1">Correo Electrónico</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email" 
+                              placeholder="tu@correo.com" 
+                              {...field}
+                              className="bg-transparent border-gray-700 h-12 focus:border-accent"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-xs pt-1"/>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="relative">
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                           <FormLabel className="absolute left-3 -top-2.5 text-xs text-gray-400 bg-[#1C1C1E] px-1">Contraseña</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="Mínimo 6 caracteres" 
+                              {...field} 
+                              className="bg-transparent border-gray-700 h-12 focus:border-accent"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-xs pt-1"/>
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-accent hover:bg-accent/80" disabled={isLoading}>
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4 text-black" />}
+                    </Button>
+                  </div>
+                  
+                  {error && <p className="text-sm font-medium text-destructive text-center pt-2">{error}</p>}
+                  
+                </form>
+              </Form>
+              <div className="mt-6 text-center text-sm text-gray-400">
+                ¿Ya tienes una cuenta?{" "}
+                <Link href="/login" className="font-semibold text-accent hover:underline">
+                  Inicia sesión aquí
+                </Link>
+              </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
 
 export default function SignupPage() {
     return (
