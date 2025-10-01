@@ -154,6 +154,15 @@ export function Header() {
     label: format(new Date(2000, i), 'LLLL', { locale: es }),
   }));
 
+  const periodOptions = [
+    { value: -1, label: "Todo el Año" },
+    { value: -2, label: "Q1 (Ene-Mar)" },
+    { value: -3, label: "Q2 (Abr-Jun)" },
+    { value: -4, label: "Q3 (Jul-Sep)" },
+    { value: -5, label: "Q4 (Oct-Dic)" },
+    ...months.map(m => ({ value: m.value, label: m.label.charAt(0).toUpperCase() + m.label.slice(1) }))
+  ];
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -201,12 +210,13 @@ export function Header() {
                         value={filters.month.toString()}
                         onValueChange={(value) => setFilters(prev => ({...prev, month: parseInt(value)}))}
                     >
-                        <SelectTrigger className="w-[130px] hidden md:flex">
+                        <SelectTrigger className="w-[150px] hidden md:flex">
                             <SelectValue placeholder="Mes" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="-1">Todo el Año</SelectItem>
-                            {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</SelectItem>)}
+                            {periodOptions.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value.toString()}>{opt.label}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     <Select
@@ -305,5 +315,3 @@ export function MobileSidebar({ navSections }: { navSections: any[] }) {
         </div>
     )
 }
-
-    

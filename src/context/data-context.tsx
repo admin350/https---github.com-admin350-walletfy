@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -54,7 +53,7 @@ import { getMonth, getYear, startOfMonth, endOfMonth, addMonths, isPast, subDays
 
 type DataFilters = {
     profile: string;
-    month: number; // -1 for all year
+    month: number; // -1 for all year, -2 for Q1, -3 for Q2, etc.
     year: number;
 };
 
@@ -504,10 +503,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const transactions = useMemo(() => {
         return allTransactions.filter(t => {
             const transactionDate = new Date(t.date);
+            const transactionMonth = getMonth(transactionDate);
             const matchesProfile = filters.profile === 'all' || t.profile === filters.profile;
             const matchesYear = getYear(transactionDate) === filters.year;
-            const matchesMonth = filters.month === -1 || getMonth(transactionDate) === filters.month;
-            return matchesProfile && matchesYear && matchesMonth;
+
+            if (!matchesProfile || !matchesYear) return false;
+
+            if (filters.month >= 0) { // Specific month
+                return transactionMonth === filters.month;
+            }
+            if (filters.month === -1) { // Whole year
+                return true;
+            }
+            // Quarters
+            if (filters.month === -2) return [0, 1, 2].includes(transactionMonth); // Q1
+            if (filters.month === -3) return [3, 4, 5].includes(transactionMonth); // Q2
+            if (filters.month === -4) return [6, 7, 8].includes(transactionMonth); // Q3
+            if (filters.month === -5) return [9, 10, 11].includes(transactionMonth); // Q4
+            
+            return false;
         });
     }, [allTransactions, filters]);
     // #endregion
@@ -1180,11 +1194,3 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
-
-    
-
-    
-
-    
-
-
