@@ -1,4 +1,3 @@
-
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -248,7 +247,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                         <FormItem>
                                             <FormLabel>Límite de Ingresos Mensuales</FormLabel>
                                             <FormControl>
-                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                                                <CurrencyInput value={field.value || 0} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -282,7 +281,7 @@ export function AddBankAccountDialog({ children, accountToEdit, open, onOpenChan
                                                 <FormItem>
                                                     <FormLabel>Cupo de la Línea de Crédito</FormLabel>
                                                     <FormControl>
-                                                        <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                                                        <CurrencyInput value={field.value || 0} onValueChange={field.onChange} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

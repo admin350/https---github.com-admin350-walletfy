@@ -13,7 +13,9 @@
     "node": "20"
   },
   "main": "lib/index.js",
-  "dependencies": {},
+  "dependencies": {
+    "firebase": "^10.12.2"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",

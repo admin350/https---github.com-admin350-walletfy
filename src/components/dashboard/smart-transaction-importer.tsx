@@ -1,6 +1,7 @@
 
 'use client';
 import { useState } from "react";
+import * as z from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, Upload, FileText, Check, AlertTriangle } from "lucide-react";
@@ -12,7 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type { Transaction } from "@/types";
-import { v4 as uuidv4 } from 'uuid';
 
 type ParsedTransaction = Omit<Transaction, 'id' | 'date'> & {
     id: string; // Use string for preview ID
@@ -72,7 +72,7 @@ export function SmartTransactionImporter() {
                     const hasError = !t.amount || !t.description || !t.category || !t.profile || !t.accountId;
                     return {
                         ...t,
-                        id: uuidv4(), // Temporary ID for the list
+                        id: crypto.randomUUID(), // Temporary ID for the list
                         date: new Date(),
                         status: hasError ? 'error' : 'ok',
                         error: hasError ? 'Faltan campos requeridos' : undefined,

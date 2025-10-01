@@ -29,7 +29,7 @@ import { Badge } from "../ui/badge";
 export function FixedExpensesDataTable() {
     const { fixedExpenses, deleteFixedExpense, formatCurrency } = useData();
     const { toast } = useToast();
-    const [expenseToRegister, setExpenseToRegister] = useState<Partial<Omit<Transaction, 'date'>> & { date: string | Date } | undefined>(undefined);
+    const [expenseToRegister, setExpenseToRegister] = useState<Partial<Transaction & { date: string | Date }>>();
     const [expenseToEdit, setExpenseToEdit] = useState<FixedExpense | undefined>(undefined);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -39,7 +39,7 @@ export function FixedExpensesDataTable() {
         setExpenseToRegister({
             type: expense.type,
             description: expense.name,
-            amount: undefined,
+            amount: expense.amount,
             category: expense.category,
             profile: expense.profile,
             date: new Date(),

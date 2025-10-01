@@ -266,7 +266,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                                         <FormItem>
                                             <FormLabel>Límite de Crédito</FormLabel>
                                             <FormControl>
-                                                <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                                                <CurrencyInput value={field.value || 0} onValueChange={field.onChange} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

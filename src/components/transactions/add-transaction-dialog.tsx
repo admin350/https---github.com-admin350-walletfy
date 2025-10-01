@@ -90,7 +90,7 @@ type FormDebt = Omit<Debt, 'id' | 'paidAmount'>;
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
-    transactionToEdit?: Partial<Omit<Transaction, 'id'> & { date: string | Date }>;
+    transactionToEdit?: Partial<Transaction & { date: string | Date }>;
     defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
