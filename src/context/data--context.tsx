@@ -158,6 +158,7 @@ interface DataContextType {
     addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
     updateBudget: (budget: Partial<Budget> & {id: string}) => Promise<void>;
     deleteBudget: (id: string) => Promise<void>;
+    setFavoriteBudget: (budgetId: string) => Promise<void>;
 
     addProfile: (profile: Omit<Profile, 'id'>) => Promise<void>;
     updateProfile: (profile: Partial<Profile> & {id: string}) => Promise<void>;
@@ -209,6 +210,9 @@ const defaultCategories: Category[] = [
     { id: '6', name: 'Restaurantes', type: 'Gasto', color: '#eab308' },
     { id: '7', name: 'Transferencia', type: 'Transferencia', color: '#6366f1' },
     { id: '8', name: 'Venta de Activos', type: 'Ingreso', color: '#10b981' },
+    { id: '9', name: 'Ahorro para Metas', type: 'Gasto', color: '#f59e0b' },
+    { id: '10', name: 'Inversiones y Ahorros', type: 'Gasto', color: '#0ea5e9' },
+    { id: '11', name: 'Ingresos por Inversión', type: 'Ingreso', color: '#14b8a6' },
 ];
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -809,8 +813,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const goal = goals.find(g => g.id === contribution.goalId);
         if (!goal) throw new Error("Meta no encontrada.");
         
-        const savingsAccount = bankAccounts.find(acc => acc.profile === goal.profile && acc.purpose === 'savings');
-        if (!savingsAccount) throw new Error(`No se ha configurado una cuenta de 'Cartera de Ahorros' para el perfil '${goal.profile}'.`);
+        const savingsAccount = bankAccounts.find(acc => acc.id === contribution.sourceAccountId);
+        if (!savingsAccount) throw new Error(`La cuenta de ahorros seleccionada no fue encontrada.`);
+
+        if (contribution.amount > savingsAccount.balance) {
+            throw new Error('Saldo insuficiente en la cartera de ahorros.');
+        }
 
         const batch = writeBatch(db);
         
@@ -826,7 +834,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         // 3. Create expense transaction from savings account
         const expenseCategory = categories.find(c => c.name === 'Ahorro para Metas' || c.type === 'Transferencia')?.name || 'Ahorro para Metas';
-        const transactionData = {
+        await addTransaction({
             type: 'expense' as const,
             amount: contribution.amount,
             description: `Aporte a meta: ${contribution.goalName}`,
@@ -834,11 +842,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             profile: savingsAccount.profile,
             date: contribution.date,
             accountId: savingsAccount.id,
-        };
-        await addTransaction(transactionData);
+        });
 
-        await batch.commit();
-        
         // 4. Update local state
         setGoalContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
         setGoals(prev => prev.map(g => g.id === contribution.goalId ? {...g, currentAmount: newCurrentAmount} : g));
@@ -846,23 +851,39 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
+        
+        const investment = investments.find(inv => inv.id === contribution.investmentId);
+        if (!investment) throw new Error("Activo de inversión/ahorro no encontrado.");
+
+        const portfolioAccount = bankAccounts.find(acc => acc.profile === investment.profile && acc.purpose === investment.purpose);
+        if (!portfolioAccount) throw new Error(`Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
+        
+        if (contribution.amount > portfolioAccount.balance) {
+            throw new Error(`Saldo insuficiente en la cartera de ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}.`);
+        }
+
         const batch = writeBatch(db);
         
-        const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date) };
+        const dataToSave = { ...contribution, date: Timestamp.fromDate(contribution.date), purpose: investment.purpose };
         const contributionRef = doc(collection(db, `users/${uid}/investmentContributions`));
         batch.set(contributionRef, dataToSave);
         
         const investmentRef = doc(db, `users/${uid}/investments`, contribution.investmentId);
-        const investmentSnap = await getDoc(investmentRef);
-        if (!investmentSnap.exists()) throw new Error("La inversión no existe.");
-        const investmentData = investmentSnap.data() as Investment;
-        const newCurrentValue = (investmentData.currentValue || investmentData.initialAmount) + contribution.amount;
-        const newInitialAmount = investmentData.initialAmount + contribution.amount;
+        const newCurrentValue = (investment.currentValue || investment.initialAmount) + contribution.amount;
+        const newInitialAmount = investment.initialAmount + contribution.amount;
         batch.update(investmentRef, { currentValue: newCurrentValue, initialAmount: newInitialAmount });
-
-        await batch.commit();
         
-        setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution}]);
+        await addTransaction({
+            type: 'expense',
+            amount: contribution.amount,
+            description: `Aporte a ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investment.name}`,
+            category: 'Inversiones y Ahorros',
+            profile: investment.profile,
+            date: contribution.date,
+            accountId: portfolioAccount.id,
+        });
+        
+        setInvestmentContributions(prev => [...prev, {id: contributionRef.id, ...contribution, purpose: investment.purpose}]);
         setInvestments(prev => prev.map(i => i.id === contribution.investmentId ? {...i, currentValue: newCurrentValue, initialAmount: newInitialAmount } : i));
     };
 
@@ -880,6 +901,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             investmentName: newInvestment.name,
             amount: newInvestment.initialAmount,
             date: newInvestment.startDate,
+            purpose: newInvestment.purpose,
         });
     };
 
@@ -1030,6 +1052,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setTangibleAssets(prev => prev.filter(a => a.id !== assetId));
     };
     
+    const setFavoriteBudget = async (budgetId: string) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const batch = writeBatch(db);
+        
+        const updatedBudgets = budgets.map(b => {
+            const isFavorite = b.id === budgetId;
+            if (b.isFavorite !== isFavorite) {
+                const budgetRef = doc(db, `users/${uid}/budgets`, b.id);
+                batch.update(budgetRef, { isFavorite });
+            }
+            return { ...b, isFavorite };
+        });
+
+        await batch.commit();
+        setBudgets(updatedBudgets);
+    };
+
     // #endregion
 
     const value: DataContextType = {
@@ -1100,6 +1139,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addBudget: budgetsCrud.add,
         updateBudget: budgetsCrud.update,
         deleteBudget: budgetsCrud.delete,
+        setFavoriteBudget,
         addProfile: profilesCrud.add,
         updateProfile: profilesCrud.update,
         deleteProfile: profilesCrud.delete,
@@ -1137,3 +1177,6 @@ export const useData = (): DataContextType => {
     
 
     
+
+    
+
