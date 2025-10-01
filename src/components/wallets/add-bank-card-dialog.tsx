@@ -70,7 +70,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             last4Digits: "",
             profile: "",
             accountId: "",
-            creditLimit: undefined,
+            creditLimit: 0,
             cardLevel: "",
             cardColor: "#374151"
         },
@@ -106,7 +106,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
             if (cardToEdit) {
                 form.reset({
                     ...cardToEdit,
-                    creditLimit: cardToEdit.creditLimit ?? undefined,
+                    creditLimit: cardToEdit.creditLimit ?? 0,
                     cardLevel: cardToEdit.cardLevel ?? "",
                     cardColor: cardToEdit.cardColor ?? "#374151",
                     brand: cardToEdit.brand ?? "visa",
@@ -120,7 +120,7 @@ export function AddBankCardDialog({ children, cardToEdit, open, onOpenChange }: 
                     last4Digits: "",
                     profile: "",
                     accountId: "",
-                    creditLimit: undefined,
+                    creditLimit: 0,
                     cardLevel: "",
                     cardColor: "#374151"
                 });
