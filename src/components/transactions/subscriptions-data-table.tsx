@@ -10,13 +10,13 @@ import {
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil, Trash2, HandCoins, Ban } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, HandCoins, Ban, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { useData } from "@/context/data-context";
 import { useToast } from "@/hooks/use-toast";
 import type { Subscription } from "@/types";
-import { format } from "date-fns";
+import { format, getMonth, getYear } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "../ui/badge";
 import { UpdateSubscriptionDialog } from "./update-subscription-dialog";
@@ -79,12 +79,22 @@ export function SubscriptionsDataTable({ subscriptions, tab }: SubscriptionsData
             cell: ({ row }) => {
                 const subscription = row.original;
                 const isCancelled = subscription.status === 'cancelled';
+                const currentMonth = getMonth(new Date());
+                const currentYear = getYear(new Date());
+                const isPaidThisPeriod = subscription.paidThisPeriod && subscription.lastPaymentMonth === currentMonth && subscription.lastPaymentYear === currentYear;
+
+
                 return (
                     <div className="text-right space-x-2">
-                         {!isCancelled && (
+                        {!isCancelled && !isPaidThisPeriod && (
                             <Button variant="outline" size="sm" onClick={() => setSubscriptionToPay(subscription)}>
                                 <HandCoins className="mr-2 h-4 w-4" /> Pagar ahora
                             </Button>
+                        )}
+                        {isPaidThisPeriod && (
+                            <Badge variant="default" className="bg-green-500/20 text-green-500 border-green-500/20">
+                                <CheckCircle className="mr-2 h-4 w-4" /> Pagado
+                            </Badge>
                         )}
                          <AlertDialog>
                             <DropdownMenu>
