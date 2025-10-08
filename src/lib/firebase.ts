@@ -1,7 +1,12 @@
 
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { 
+    getFirestore, 
+    initializeFirestore,
+    persistentLocalCache,
+    persistentMultipleTabManager
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAooE58pfmLlwtJYqVYtbBY-iweawgrWYY",
@@ -12,21 +17,15 @@ const firebaseConfig = {
   appId: "1:20250015401:web:0f872d6a105841d6e4dbb8"
 };
 
-
+// Singleton pattern to ensure only one instance of Firebase services
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Firestore con persistencia habilitada
-const db = getFirestore(app);
-try {
-  enableIndexedDbPersistence(db)
-  console.log("Firebase Offline-first persistence enabled");
-} catch (error) {
-  if (error instanceof Error && error.code === 'failed-precondition') {
-    console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
-  } else if (error instanceof Error && error.code === 'unimplemented') {
-    console.warn("The current browser does not support all of the features required to enable persistence.");
-  }
-}
+// Initialize Firestore with robust offline persistence for multi-tab environments
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
 
 const auth = getAuth(app);
 
