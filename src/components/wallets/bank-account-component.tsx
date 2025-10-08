@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import type { BankAccount, Transaction } from "@/types";
@@ -154,7 +155,7 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel onClick={e => {e.stopPropagation();}}>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete}>Continuar con la Eliminación</AlertDialogAction>
+                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Continuar con la Eliminación</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
@@ -240,5 +241,3 @@ export function BankAccountComponent({ account }: BankAccountComponentProps) {
         </>
     )
 }
-
-    

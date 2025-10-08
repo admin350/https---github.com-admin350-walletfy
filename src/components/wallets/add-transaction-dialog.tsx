@@ -19,7 +19,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Input, CurrencyInput } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -39,7 +39,7 @@ import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { useData } from '@/context/data-context';
-import type { Transaction, Debt } from '@/types';
+import type { Debt, Transaction } from '@/types';
 import { Checkbox } from '../ui/checkbox';
 import { useSubmitAction } from '@/hooks/use-submit-action';
 
@@ -90,7 +90,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddTransactionDialogProps {
     children?: ReactNode;
-    transactionToEdit?: Partial<Transaction>;
+    transactionToEdit?: Partial<Transaction & { date: string | Date }>;
     defaultType?: 'income' | 'expense' | 'transfer';
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -110,7 +110,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: defaultType,
-            amount: '' as unknown as number,
+            amount: 0,
             description: "",
             category: "",
             profile: "",
@@ -151,7 +151,20 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                 });
 
             } else {
-                 const transactionData = { ...values };
+                 const transactionData: Omit<Transaction, 'id'> = {
+                    ...values,
+                    isCreditLinePayment: values.paymentMethod === 'credit-line',
+                    cardId: values.paymentMethod !== 'account-balance' && values.paymentMethod !== 'credit-line' ? values.paymentMethod : undefined,
+                    taxDetails: values.includesTax ? {
+                        rate: values.taxRate || 19,
+                        amount: values.amount - (values.amount / (1 + ((values.taxRate || 19) / 100)))
+                    } : undefined,
+                };
+                
+                // We don't want to save these form-specific fields to the DB
+                delete (transactionData as Partial<FormValues>).includesTax;
+                delete (transactionData as Partial<FormValues>).taxRate;
+
 
                 if (transactionToEdit && transactionToEdit.id) {
                     await updateTransaction({ ...transactionToEdit, ...transactionData, id: transactionToEdit.id });
@@ -189,7 +202,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
             const hasTax = !!transactionToEdit?.taxDetails;
             const initialValues: Partial<FormValues> = {
                 type: transactionToEdit?.type || defaultType,
-                amount: transactionToEdit?.amount || ('' as unknown as number),
+                amount: transactionToEdit?.amount || 0,
                 description: transactionToEdit?.description || "",
                 category: transactionToEdit?.category || "",
                 profile: transactionToEdit?.profile || "",
@@ -207,7 +220,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
         } else {
             form.reset({
                 type: defaultType,
-                amount: '' as unknown as number,
+                amount: 0,
                 description: "",
                 category: "",
                 profile: "",
@@ -300,7 +313,10 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                             <FormItem>
                             <FormLabel>Monto</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder={formatCurrency(0)} {...field} value={field.value ?? ''}/>
+                                <CurrencyInput
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -580,5 +596,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
     </Dialog>
   );
 }
-
-    

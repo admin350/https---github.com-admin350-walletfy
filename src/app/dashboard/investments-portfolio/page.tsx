@@ -62,7 +62,7 @@ export default function InvestmentsPortfolioPage() {
                     <>
                     <KpiCard 
                         title="Capital Total para Inversión" 
-                        value={<span className="text-blue-400">{formatCurrency(totalTransferredToInvestment)}</span>} 
+                        value={<span className="text-primary">{formatCurrency(totalTransferredToInvestment)}</span>} 
                         icon={Landmark}
                         description={`Balance total de tu cartera de inversión.`}
                     />
