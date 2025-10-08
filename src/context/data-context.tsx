@@ -655,12 +655,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         
         await runTransaction(db, async (tx) => {
-            const transactionToSave = { ...transaction, date: Timestamp.fromDate(transaction.date) };
-            if (transaction.type === 'transfer') {
+            let transactionData: Omit<Transaction, 'id'> = { ...transaction };
+    
+            if (transactionData.type === 'transfer') {
                 const transferCategory = categories.find(c => c.type === 'Transferencia');
-                transactionToSave.category = transferCategory?.name || 'Transferencia Interna';
+                transactionData.category = transferCategory?.name || 'Transferencia Interna';
+            } else {
+                // Ensure destinationAccountId is not present for non-transfer transactions
+                delete (transactionData as Partial<Transaction>).destinationAccountId;
             }
-
+    
+            const transactionToSave = cleanupUndefineds({
+                ...transactionData,
+                date: Timestamp.fromDate(transactionData.date)
+            });
+    
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, transactionToSave);
             
@@ -1219,3 +1228,4 @@ export const useData = (): DataContextType => {
 
 
     
+

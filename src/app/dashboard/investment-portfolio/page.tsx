@@ -13,7 +13,7 @@ import { BankAccountComponent } from "@/components/wallets/bank-account-componen
 import Link from "next/link";
 
 
-export default function InvestmentPortfolioPage() {
+export default function InvestmentsPortfolioPage() {
     const { bankAccounts, investmentContributions, isLoading, formatCurrency } = useData();
     
     const investmentAccount = useMemo(() => bankAccounts.find(acc => acc.purpose === 'investment'), [bankAccounts]);
@@ -22,7 +22,7 @@ export default function InvestmentPortfolioPage() {
 
     const totalContributedToAssets = investmentContributions.filter(c => c.purpose === 'investment').reduce((acc: number, c: InvestmentContribution) => acc + c.amount, 0);
 
-    const availableToInvest = totalTransferredToInvestment - totalContributedToAssets;
+    const availableToInvest = totalTransferredToInvestment;
 
     const KpiSkeleton = () => (
       <div className="space-y-2">
@@ -81,7 +81,7 @@ export default function InvestmentPortfolioPage() {
                     </>
                 )}
              </div>
-
+            
             {investmentAccount && (
                  <Card>
                     <CardHeader>
@@ -91,8 +91,8 @@ export default function InvestmentPortfolioPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="max-w-2xl mx-auto">
-                           <BankAccountComponent account={investmentAccount} />
+                        <div className="max-w-sm mx-auto">
+                            <BankAccountComponent account={investmentAccount} />
                         </div>
                     </CardContent>
                 </Card>
