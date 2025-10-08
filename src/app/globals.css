@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 4% 16%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 4% 20%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 4% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 183 100% 74%;
+    --primary-foreground: 240 6% 10%;
+
+    --secondary: 240 4% 25%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 25%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 183 100% 74%;
+    --accent-foreground: 240 6% 10%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 4% 25%;
+    --input: 240 4% 25%;
+    --ring: 183 100% 74%;
+    
+    --chart-1: 180 100% 50%;
+    --chart-2: 183 90% 65%;
+    --chart-3: 190 80% 60%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 210 60% 50%;
+    
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 4% 16%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 4% 16%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 4% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 183 100% 74%;
+    --primary-foreground: 240 6% 10%;
+
+    --secondary: 240 4% 25%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 25%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 183 100% 74%;
+    --accent-foreground: 240 6% 10%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 4% 25%;
+    --input: 240 4% 25%;
+    --ring: 183 100% 74%;
+
+    --chart-1: 180 100% 50%;
+    --chart-2: 183 90% 65%;
+    --chart-3: 190 80% 60%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 210 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Dark Themes */
+  .theme-gradient {
+     @apply bg-gradient-to-t from-gray-900 to-gray-950;
+  }
+  .theme-gradient-midnight {
+    @apply bg-gradient-to-br from-gray-900 via-gray-950 to-indigo-950;
+  }
+  .theme-gradient-dusk {
+    @apply bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900;
+  }
+  .theme-gradient-forest {
+     @apply bg-gradient-to-br from-gray-900 via-gray-950 to-emerald-950;
+  }
+  .theme-gradient-metal {
+      @apply bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950;
+  }
+  .theme-gradient-ember {
+    @apply bg-gradient-to-br from-gray-900 via-red-950 to-black;
+  }
+  .theme-gradient-abyss {
+    @apply bg-gradient-to-br from-slate-900 via-cyan-950 to-gray-900;
+  }
+  .theme-gradient-majesty {
+    @apply bg-gradient-to-br from-indigo-950 via-purple-950 to-black;
+  }
+  .theme-gradient-bronze {
+    @apply bg-gradient-to-br from-gray-900 via-yellow-950 to-black;
+  }
+  .theme-gradient-graphite {
+    @apply bg-gradient-to-br from-gray-800 via-gray-900 to-black;
+  }
+}

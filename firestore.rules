@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permite la lectura pública de perfiles y categorías, que son necesarios
+    // para que la aplicación se cargue correctamente antes del inicio de sesión.
+    // Estos datos no son sensibles.
+    match /users/{userId}/profiles/{profileId} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+    match /users/{userId}/categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Un usuario solo puede leer y escribir en el resto de sus propios documentos.
+    // Esto protege colecciones como transactions, goals, debts, etc.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
