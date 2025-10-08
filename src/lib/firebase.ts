@@ -19,8 +19,6 @@ const firebaseConfig = {
   appId: "1:20250015401:web:0f872d6a105841d6e4dbb8"
 };
 
-type FirebaseError = Error & { code?: string };
-
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
@@ -31,11 +29,13 @@ if (typeof window !== 'undefined' && !getApps().length) {
     db = getFirestore(app);
     
     enableIndexedDbPersistence(db)
-      .catch((error: unknown) => {
-        if (error instanceof Error && 'code' in error && error.code === 'failed-precondition') {
-          console.warn('Firestore persistence failed: Multiple tabs open.');
-        } else if (error instanceof Error && 'code' in error && error.code === 'unimplemented') {
-          console.warn('Firestore persistence failed: Browser does not support it.');
+      .catch((err: unknown) => {
+        if (err && typeof err === 'object' && 'code' in err) {
+            if (err.code === 'failed-precondition') {
+              console.warn('Firestore persistence failed: Multiple tabs open.');
+            } else if (err.code === 'unimplemented') {
+              console.warn('Firestore persistence failed: Browser does not support it.');
+            }
         }
       });
 

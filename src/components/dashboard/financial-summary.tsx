@@ -26,7 +26,6 @@ export function FinancialSummary() {
         const fBankAccounts = bankAccounts.filter(profileFilter);
         const fBankCards = bankCards.filter(profileFilter);
         const fDebts = debts.filter(profileFilter);
-        const fGoals = goals.filter(profileFilter);
         const fInvestments = investments.filter(profileFilter);
         const fTangibleAssets = tangibleAssets.filter(profileFilter);
 
@@ -62,7 +61,7 @@ export function FinancialSummary() {
             netWorth,
         }
 
-    }, [filters.profile, bankAccounts, bankCards, debts, goals, investments, tangibleAssets]);
+    }, [filters.profile, bankAccounts, bankCards, debts, investments, tangibleAssets]);
 
 
     const SummarySkeleton = () => (
