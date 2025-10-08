@@ -4,9 +4,8 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
-import { Landmark, Wallet, CreditCard, Banknote, TrendingUp, Scale, Library, Building } from 'lucide-react';
+import { Wallet, Scale } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-import type { BankAccount, BankCard, Debt, GoalContribution, InvestmentContribution, Subscription, TangibleAsset, Transaction } from '@/types';
 
 export function FinancialSummary() {
     const { 
@@ -15,7 +14,6 @@ export function FinancialSummary() {
         debts,
         goals,
         investments,
-        subscriptions,
         tangibleAssets,
         isLoading,
         formatCurrency,
@@ -30,7 +28,6 @@ export function FinancialSummary() {
         const fDebts = debts.filter(profileFilter);
         const fGoals = goals.filter(profileFilter);
         const fInvestments = investments.filter(profileFilter);
-        const fSubscriptions = subscriptions.filter(profileFilter);
         const fTangibleAssets = tangibleAssets.filter(profileFilter);
 
         // Bank Accounts (main purpose)
@@ -53,7 +50,6 @@ export function FinancialSummary() {
         // Savings
         const savingsAccounts = fBankAccounts.filter(acc => acc.purpose === 'savings');
         const savingsBalance = savingsAccounts.reduce((acc, account) => acc + account.balance, 0);
-        const totalSavedInGoals = fGoals.reduce((acc, goal) => acc + goal.currentAmount, 0);
         const totalSavedInInstruments = fInvestments.filter(i => i.purpose === 'saving').reduce((acc, inv) => acc + inv.currentValue, 0);
 
         // Total Net Worth
@@ -66,7 +62,7 @@ export function FinancialSummary() {
             netWorth,
         }
 
-    }, [filters.profile, bankAccounts, bankCards, debts, goals, investments, subscriptions, tangibleAssets]);
+    }, [filters.profile, bankAccounts, bankCards, debts, goals, investments, tangibleAssets]);
 
 
     const SummarySkeleton = () => (
