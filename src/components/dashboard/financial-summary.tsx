@@ -12,7 +12,6 @@ export function FinancialSummary() {
         bankAccounts,
         bankCards,
         debts,
-        goals,
         investments,
         tangibleAssets,
         isLoading,
