@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Menu, Wallet, Settings, LayoutDashboard, List, CreditCard, Repeat, Landmark, Target, TrendingUp, ClipboardPen, Building, Calendar, User, Bell, AlertTriangle, CheckCircle, Info, X, LogOut, Scale, PiggyBank, Globe, Eye, EyeOff } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { HoverMenu } from './hover-menu';
+import { HoverMenu } from '@/components/layout/hover-menu';
 import { useData } from "@/context/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { format } from "date-fns";
@@ -322,3 +322,5 @@ export function MobileSidebar({ navSections }: { navSections: NavSection[] }) {
         </div>
     )
 }
+
+    

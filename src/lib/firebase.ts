@@ -1,11 +1,14 @@
 
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
+import { 
+    getAuth, 
+    Auth
+} from 'firebase/auth';
 import { 
     getFirestore, 
     initializeFirestore,
-    persistentLocalCache,
-    persistentMultipleTabManager
+    enableIndexedDbPersistence,
+    Firestore
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -17,16 +20,35 @@ const firebaseConfig = {
   appId: "1:20250015401:web:0f872d6a105841d6e4dbb8"
 };
 
-// Singleton pattern to ensure only one instance of Firebase services
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-// Initialize Firestore with robust offline persistence for multi-tab environments
-const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+if (typeof window !== 'undefined' && !getApps().length) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    
+    enableIndexedDbPersistence(db)
+      .catch((error) => {
+        if ((error as any).code === 'failed-precondition') {
+          console.warn('Firestore persistence failed: Multiple tabs open.');
+        } else if ((error as any).code === 'unimplemented') {
+          console.warn('Firestore persistence failed: Browser does not support it.');
+        }
+      });
 
-const auth = getAuth(app);
+} else if (getApps().length > 0) {
+    app = getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+} else {
+    // For server-side rendering, initialize a temporary app
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+}
 
 export { app, db, auth };
+
+    
