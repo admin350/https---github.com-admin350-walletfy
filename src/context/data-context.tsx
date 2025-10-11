@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -785,15 +784,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await runTransaction(db, async (tx) => {
             const oldTransactionDoc = await getDoc(doc(db, `users/${uid}/transactions`, transaction.id));
             if (!oldTransactionDoc.exists()) throw new Error("La transacción original no fue encontrada.");
-            const oldTransaction = oldTransactionDoc.data() as Transaction;
+            
+            const oldTransaction = { id: oldTransactionDoc.id, ...oldTransactionDoc.data() } as Transaction;
             
             // Revert old transaction effects
-            // This logic is the reverse of the deleteTransaction logic
             await deleteTransaction(oldTransaction.id);
             
-            // Apply new transaction effects
-            // This logic is the same as the addTransaction logic
-            await addTransaction(transaction);
+            const newTransactionData: Omit<Transaction, 'id'> = {
+                type: transaction.type || oldTransaction.type,
+                amount: transaction.amount || oldTransaction.amount,
+                description: transaction.description || oldTransaction.description,
+                category: transaction.category || oldTransaction.category,
+                profile: transaction.profile || oldTransaction.profile,
+                date: transaction.date || oldTransaction.date,
+                accountId: transaction.accountId || oldTransaction.accountId,
+                destinationAccountId: transaction.destinationAccountId || oldTransaction.destinationAccountId,
+                cardId: transaction.cardId || oldTransaction.cardId,
+                isCreditLinePayment: transaction.isCreditLinePayment || oldTransaction.isCreditLinePayment,
+                taxDetails: transaction.taxDetails || oldTransaction.taxDetails,
+            };
+
+            await addTransaction(newTransactionData);
         });
 
         await fullDataRefresh(uid);
@@ -1204,3 +1215,5 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
+    
