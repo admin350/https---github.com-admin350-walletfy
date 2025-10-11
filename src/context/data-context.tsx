@@ -657,7 +657,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await runTransaction(db, async (tx) => {
             // READS FIRST
             const readPromises: Promise<any>[] = [];
-            const refs: any = {};
+            const refs: Record<string, any> = {};
     
             if (transaction.type === 'income') {
                 refs.accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
@@ -680,7 +680,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             let snapshotIndex = 0;
     
             // WRITES
-            let transactionData: Omit<Transaction, 'id'> = { ...transaction };
+            const transactionData: Omit<Transaction, 'id'> = { ...transaction };
             if (transactionData.type === 'transfer') {
                 const transferCategory = categories.find(c => c.type === 'Transferencia');
                 transactionData.category = transferCategory?.name || 'Transferencia Interna';
@@ -1243,5 +1243,6 @@ export const useData = (): DataContextType => {
 
 
     
+
 
 
