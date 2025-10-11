@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // This is a benign change to force a cache clean.
+    // This is a benign change to force a cache clean on 2025-10-11.
     // It does not affect the app's functionality.
   },
   allowedDevOrigins: ["*.cloudworkstations.dev"],

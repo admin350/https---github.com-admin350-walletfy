@@ -6,8 +6,10 @@ import {
 } from 'firebase/auth';
 import { 
     getFirestore, 
-    enableIndexedDbPersistence,
-    Firestore
+    Firestore,
+    initializeFirestore,
+    persistentLocalCache,
+    persistentMultipleTabManager
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -23,31 +25,40 @@ let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 
-if (typeof window !== 'undefined' && !getApps().length) {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    
-    enableIndexedDbPersistence(db)
-      .catch((err: unknown) => {
-        if (err && typeof err === 'object' && 'code' in err) {
-            if (err.code === 'failed-precondition') {
-              console.warn('Firestore persistence failed: Multiple tabs open.');
-            } else if (err.code === 'unimplemented') {
-              console.warn('Firestore persistence failed: Browser does not support it.');
+// Helper to get a single instance of Firestore
+const getDb = () => {
+    if (!db) {
+        if (typeof window !== 'undefined') {
+            app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+            try {
+                 db = initializeFirestore(app, {
+                    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+                 });
+            } catch (error) {
+                // This can happen if the user has multiple tabs open and persistence is already enabled.
+                // In this case, we can fall back to the regular getFirestore.
+                console.warn("Could not initialize persistent cache with multi-tab support. Falling back.", error);
+                db = getFirestore(app);
             }
+        } else {
+            // Server-side rendering
+            app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+            db = getFirestore(app);
         }
-      });
+    }
+    return db;
+};
 
-} else if (getApps().length > 0) {
-    app = getApp();
+
+if (typeof window !== 'undefined') {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = getFirestore(app);
+    db = getDb();
 } else {
-    // For server-side rendering, initialize a temporary app
-    app = initializeApp(firebaseConfig);
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
 }
 
-export { app, db, auth };
+
+export { app, auth, db };
