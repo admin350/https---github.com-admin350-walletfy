@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -55,6 +56,17 @@ type DataFilters = {
     profile: string;
     month: number; // -1 for all year, -2 for Q1, -3 for Q2, etc.
     year: number;
+};
+
+// Helper function to remove undefined properties from an object
+const cleanupUndefineds = (obj: Record<string, unknown>) => {
+    const newObj: Record<string, unknown> = {};
+    for (const key in obj) {
+        if (obj[key] !== undefined) {
+            newObj[key] = obj[key];
+        }
+    }
+    return newObj;
 };
 
 // Default data for new users moved from Cloud Functions
@@ -635,25 +647,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
 
-        const transactionData: Omit<Transaction, 'id'> = { ...transaction };
-
-        if (transactionData.type !== 'transfer') {
-            delete transactionData.destinationAccountId;
-        }
+        const cleanedTransaction = cleanupUndefineds(transaction) as Omit<Transaction, 'id'>;
 
         await runTransaction(db, async (tx) => {
             const refs: { [key: string]: DocumentReference } = {};
             
-            if (transactionData.accountId) {
-                refs.sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionData.accountId);
+            if (cleanedTransaction.accountId) {
+                refs.sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, cleanedTransaction.accountId);
             }
-            if (transactionData.type === 'transfer' && transactionData.destinationAccountId) {
-                refs.destAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionData.destinationAccountId);
+            if (cleanedTransaction.type === 'transfer' && cleanedTransaction.destinationAccountId) {
+                refs.destAccountRef = doc(db, `users/${uid}/bankAccounts`, cleanedTransaction.destinationAccountId);
             }
-            if (transactionData.type === 'expense' && transactionData.cardId) {
-                const card = bankCards.find(c => c.id === transactionData.cardId);
+            if (cleanedTransaction.type === 'expense' && cleanedTransaction.cardId) {
+                const card = bankCards.find(c => c.id === cleanedTransaction.cardId);
                 if (card?.cardType === 'credit') {
-                    refs.cardRef = doc(db, `users/${uid}/bankCards`, transactionData.cardId);
+                    refs.cardRef = doc(db, `users/${uid}/bankCards`, cleanedTransaction.cardId);
                 }
             }
 
@@ -665,40 +673,40 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const cardSnap = snapshotMap.get('cardRef');
 
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
-            tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(transactionData.date) });
+            tx.set(newTransactionRef, { ...cleanedTransaction, date: Timestamp.fromDate(cleanedTransaction.date as Date) });
 
-            if (transactionData.type === 'income') {
+            if (cleanedTransaction.type === 'income') {
                 if (sourceAccountSnap?.exists()) {
-                    const newBalance = (sourceAccountSnap.data().balance || 0) + transactionData.amount;
+                    const newBalance = (sourceAccountSnap.data().balance || 0) + cleanedTransaction.amount;
                     tx.update(refs.sourceAccountRef, { balance: newBalance });
                 }
-            } else if (transactionData.type === 'expense') {
-                if (transactionData.cardId) {
+            } else if (cleanedTransaction.type === 'expense') {
+                if (cleanedTransaction.cardId) {
                     if (cardSnap?.exists()) {
-                        const newUsedAmount = (cardSnap.data().usedAmount || 0) + transactionData.amount;
+                        const newUsedAmount = (cardSnap.data().usedAmount || 0) + cleanedTransaction.amount;
                         tx.update(refs.cardRef, { usedAmount: newUsedAmount });
                     } else if (sourceAccountSnap?.exists()) {
-                        const newBalance = (sourceAccountSnap.data().balance || 0) - transactionData.amount;
+                        const newBalance = (sourceAccountSnap.data().balance || 0) - cleanedTransaction.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
                     }
-                } else if (transactionData.isCreditLinePayment) {
+                } else if (cleanedTransaction.isCreditLinePayment) {
                     if (sourceAccountSnap?.exists()) {
-                        const newCreditLineUsed = (sourceAccountSnap.data().creditLineUsed || 0) + transactionData.amount;
+                        const newCreditLineUsed = (sourceAccountSnap.data().creditLineUsed || 0) + cleanedTransaction.amount;
                         tx.update(refs.sourceAccountRef, { creditLineUsed: newCreditLineUsed });
                     }
                 } else {
                     if (sourceAccountSnap?.exists()) {
-                        const newBalance = (sourceAccountSnap.data().balance || 0) - transactionData.amount;
+                        const newBalance = (sourceAccountSnap.data().balance || 0) - cleanedTransaction.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
                     }
                 }
-            } else if (transactionData.type === 'transfer' && transactionData.destinationAccountId) {
+            } else if (cleanedTransaction.type === 'transfer' && cleanedTransaction.destinationAccountId) {
                 if (sourceAccountSnap?.exists()) {
-                    const newSourceBalance = (sourceAccountSnap.data().balance || 0) - transactionData.amount;
+                    const newSourceBalance = (sourceAccountSnap.data().balance || 0) - cleanedTransaction.amount;
                     tx.update(refs.sourceAccountRef, { balance: newSourceBalance });
                 }
                 if (destAccountSnap?.exists()) {
-                    const newDestBalance = (destAccountSnap.data().balance || 0) + transactionData.amount;
+                    const newDestBalance = (destAccountSnap.data().balance || 0) + cleanedTransaction.amount;
                     tx.update(refs.destAccountRef, { balance: newDestBalance });
                 }
             }
@@ -777,39 +785,37 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         await fullDataRefresh(uid);
     };
-
-    const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
+    
+    const updateTransaction = async (transaction: Partial<Transaction> & { id: string }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        
+    
         await runTransaction(db, async (tx) => {
-            const oldTransactionDoc = await getDoc(doc(db, `users/${uid}/transactions`, transaction.id));
+            const oldTransactionDoc = await tx.get(doc(db, `users/${uid}/transactions`, transaction.id));
             if (!oldTransactionDoc.exists()) throw new Error("La transacción original no fue encontrada.");
+    
+            await deleteTransaction(transaction.id);
             
-            const oldTransaction = { id: oldTransactionDoc.id, ...oldTransactionDoc.data() } as Transaction;
-            
-            // Revert old transaction effects
-            await deleteTransaction(oldTransaction.id);
-            
+            const oldTransactionData = oldTransactionDoc.data() as Transaction;
             const newTransactionData: Omit<Transaction, 'id'> = {
-                type: transaction.type || oldTransaction.type,
-                amount: transaction.amount || oldTransaction.amount,
-                description: transaction.description || oldTransaction.description,
-                category: transaction.category || oldTransaction.category,
-                profile: transaction.profile || oldTransaction.profile,
-                date: transaction.date || oldTransaction.date,
-                accountId: transaction.accountId || oldTransaction.accountId,
-                destinationAccountId: transaction.destinationAccountId || oldTransaction.destinationAccountId,
-                cardId: transaction.cardId || oldTransaction.cardId,
-                isCreditLinePayment: transaction.isCreditLinePayment || oldTransaction.isCreditLinePayment,
-                taxDetails: transaction.taxDetails || oldTransaction.taxDetails,
+                type: transaction.type || oldTransactionData.type,
+                amount: transaction.amount || oldTransactionData.amount,
+                description: transaction.description || oldTransactionData.description,
+                category: transaction.category || oldTransactionData.category,
+                profile: transaction.profile || oldTransactionData.profile,
+                date: transaction.date || oldTransactionData.date,
+                accountId: transaction.accountId || oldTransactionData.accountId,
+                destinationAccountId: transaction.destinationAccountId,
+                cardId: transaction.cardId,
+                isCreditLinePayment: transaction.isCreditLinePayment,
+                taxDetails: transaction.taxDetails,
             };
-
+    
             await addTransaction(newTransactionData);
         });
-
+    
         await fullDataRefresh(uid);
     };
-    
+
     const addBankAccount = async (account: Omit<BankAccount, 'id' | 'balance' | 'creditLineUsed'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const newAccount = { ...account, balance: 0, creditLineUsed: 0 };
@@ -1215,5 +1221,7 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
+    
 
     
