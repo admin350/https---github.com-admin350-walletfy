@@ -59,17 +59,6 @@ type DataFilters = {
     year: number;
 };
 
-// Helper function to remove undefined properties from an object
-const cleanupUndefineds = (obj: Record<string, unknown>) => {
-    const newObj: Record<string, unknown> = {};
-    for (const key in obj) {
-        if (obj[key] !== undefined) {
-            newObj[key] = obj[key];
-        }
-    }
-    return newObj;
-};
-
 // Default data for new users moved from Cloud Functions
 const defaultProfiles = [
     { name: 'Personal', color: '#3b82f6' },
@@ -554,6 +543,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }, [allTransactions, debts, goals, investments]);
     
     const formatCurrency = useCallback((amount: number, withDecimals = false, compact = false) => {
+        if (amount === undefined || isNaN(amount)) {
+            amount = 0;
+        }
         if (!settings.showSensitiveData) {
             return '$ •••••'
         }
@@ -573,41 +565,35 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
 
-        // Create a mutable, correctly-typed copy
-        const transactionData = { ...transaction };
+        const transactionData: Omit<Transaction, 'id'> = { ...transaction };
 
         if (transactionData.type !== 'transfer') {
             delete transactionData.destinationAccountId;
         }
 
         await runTransaction(db, async (tx) => {
-            // Phase 1: Reads
             const refs: { [key: string]: DocumentReference } = {};
-            const readPromises: Promise<DocumentSnapshot>[] = [];
-
+            
             if (transactionData.accountId) {
                 refs.sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionData.accountId);
-                readPromises.push(tx.get(refs.sourceAccountRef));
             }
             if (transactionData.type === 'transfer' && transactionData.destinationAccountId) {
                 refs.destAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionData.destinationAccountId);
-                readPromises.push(tx.get(refs.destAccountRef));
             }
             if (transactionData.type === 'expense' && transactionData.cardId) {
                 const card = bankCards.find(c => c.id === transactionData.cardId);
                 if (card?.cardType === 'credit') {
                     refs.cardRef = doc(db, `users/${uid}/bankCards`, transactionData.cardId);
-                    readPromises.push(tx.get(refs.cardRef));
                 }
             }
-            
-            const snapshots = await Promise.all(readPromises);
-            let i = 0;
-            const sourceAccountSnap = refs.sourceAccountRef ? snapshots[i++] : null;
-            const destAccountSnap = refs.destAccountRef ? snapshots[i++] : null;
-            const cardSnap = refs.cardRef ? snapshots[i++] : null;
 
-            // Phase 2: Writes
+            const snapshots = await Promise.all(Object.values(refs).map(ref => tx.get(ref)));
+            const snapshotMap = new Map(Object.keys(refs).map((key, i) => [key, snapshots[i]]));
+            
+            const sourceAccountSnap = snapshotMap.get('sourceAccountRef');
+            const destAccountSnap = snapshotMap.get('destAccountRef');
+            const cardSnap = snapshotMap.get('cardRef');
+
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(transactionData.date) });
 
@@ -617,20 +603,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     tx.update(refs.sourceAccountRef, { balance: newBalance });
                 }
             } else if (transactionData.type === 'expense') {
-                if (transactionData.cardId) { // Card payment
-                    if (cardSnap?.exists()) { // Credit card
+                if (transactionData.cardId) {
+                    if (cardSnap?.exists()) {
                         const newUsedAmount = (cardSnap.data().usedAmount || 0) + transactionData.amount;
                         tx.update(refs.cardRef, { usedAmount: newUsedAmount });
-                    } else if (sourceAccountSnap?.exists()) { // Debit or Prepaid card
+                    } else if (sourceAccountSnap?.exists()) {
                         const newBalance = (sourceAccountSnap.data().balance || 0) - transactionData.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
                     }
-                } else if (transactionData.isCreditLinePayment) { // Credit line payment
+                } else if (transactionData.isCreditLinePayment) {
                     if (sourceAccountSnap?.exists()) {
                         const newCreditLineUsed = (sourceAccountSnap.data().creditLineUsed || 0) + transactionData.amount;
                         tx.update(refs.sourceAccountRef, { creditLineUsed: newCreditLineUsed });
                     }
-                } else { // Direct bank account expense
+                } else {
                     if (sourceAccountSnap?.exists()) {
                         const newBalance = (sourceAccountSnap.data().balance || 0) - transactionData.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
@@ -654,15 +640,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // #region Generic CRUD Functions
     const addDocToCollection = async (collectionName: string, data: Record<string, unknown>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        const cleanedData = cleanupUndefineds(data);
-        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), cleanedData);
+        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), data);
         return docRef;
     };
 
     const updateDocInCollection = async (collectionName: string, id: string, data: Record<string, unknown>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        const cleanedData = cleanupUndefineds(data);
-        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), cleanedData);
+        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), data);
     };
 
     const deleteDocFromCollection = async (collectionName: string, id: string) => {
@@ -727,9 +711,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
     const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        // This is complex as it requires reverting the old transaction and applying the new one.
-        // This functionality is disabled for now to prevent data corruption.
-        // A full implementation would require a dedicated cloud function.
         console.warn("Updating transactions is a complex operation and is currently handled by only updating non-financial data.");
         const dataToSave: Record<string, unknown> = { ...transaction };
         if (transaction.date) {
@@ -746,34 +727,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         await runTransaction(db, async (tx) => {
             const transactionRef = doc(db, `users/${uid}/transactions`, id);
-
-            // Phase 1: Reads (get current balances)
             const refs: Record<string, DocumentReference> = {};
-            const readPromises: Promise<DocumentSnapshot>[] = [];
-
+            
             if(transactionToDelete.accountId) {
                 refs.sourceAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionToDelete.accountId);
-                readPromises.push(tx.get(refs.sourceAccountRef));
             }
             if(transactionToDelete.type === 'transfer' && transactionToDelete.destinationAccountId) {
                 refs.destAccountRef = doc(db, `users/${uid}/bankAccounts`, transactionToDelete.destinationAccountId);
-                readPromises.push(tx.get(refs.destAccountRef));
             }
              if (transactionToDelete.type === 'expense' && transactionToDelete.cardId) {
                 const card = bankCards.find(c => c.id === transactionToDelete.cardId);
                 if (card?.cardType === 'credit') {
                     refs.cardRef = doc(db, `users/${uid}/bankCards`, transactionToDelete.cardId);
-                    readPromises.push(tx.get(refs.cardRef));
                 }
             }
 
-            const snapshots = await Promise.all(readPromises);
-            let i = 0;
-            const sourceAccountSnap = refs.sourceAccountRef ? snapshots[i++] : null;
-            const destAccountSnap = refs.destAccountRef ? snapshots[i++] : null;
-            const cardSnap = refs.cardRef ? snapshots[i++] : null;
+            const snapshots = await Promise.all(Object.values(refs).map(ref => tx.get(ref)));
+            const snapshotMap = new Map(Object.keys(refs).map((key, i) => [key, snapshots[i]]));
 
-            // Phase 2: Writes (delete transaction and revert balances)
+            const sourceAccountSnap = snapshotMap.get('sourceAccountRef');
+            const destAccountSnap = snapshotMap.get('destAccountRef');
+            const cardSnap = snapshotMap.get('cardRef');
+
             tx.delete(transactionRef);
 
             if (transactionToDelete.type === 'income') {
@@ -783,10 +758,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 }
             } else if (transactionToDelete.type === 'expense') {
                 if (transactionToDelete.cardId) {
-                    if (cardSnap?.exists()) { // Revert credit card used amount
+                    if (cardSnap?.exists()) {
                         const newUsedAmount = (cardSnap.data().usedAmount || 0) - transactionToDelete.amount;
                         tx.update(refs.cardRef, { usedAmount: newUsedAmount });
-                    } else if(sourceAccountSnap?.exists()){ // Revert debit/prepaid balance
+                    } else if(sourceAccountSnap?.exists()){
                         const newBalance = (sourceAccountSnap.data().balance || 0) + transactionToDelete.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
                     }
@@ -795,7 +770,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         const newCreditLineUsed = (sourceAccountSnap.data().creditLineUsed || 0) - transactionToDelete.amount;
                         tx.update(refs.sourceAccountRef, { creditLineUsed: newCreditLineUsed });
                     }
-                } else { // Revert direct account expense
+                } else {
                     if(sourceAccountSnap?.exists()){
                         const newBalance = (sourceAccountSnap.data().balance || 0) + transactionToDelete.amount;
                         tx.update(refs.sourceAccountRef, { balance: newBalance });
@@ -972,7 +947,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!portfolioAccount) {
             throw new Error(`No se encontró una Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} para este perfil.`);
         }
-
+        
         await addTransaction({
             type: 'expense',
             amount: investment.initialAmount,
@@ -1222,9 +1197,3 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
-
-    
-
-    
-
-      
