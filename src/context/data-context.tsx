@@ -26,8 +26,7 @@ import {
     Timestamp,
     orderBy,
     runTransaction,
-    DocumentReference,
-    DocumentSnapshot
+    DocumentReference
 } from 'firebase/firestore';
 import type { 
     Transaction, 
@@ -562,6 +561,78 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         return new Intl.NumberFormat('es-CL', options).format(amount);
     }, [settings.currency, settings.showSensitiveData]);
     
+    // #region Generic CRUD Functions
+    const addDocToCollection = async (collectionName: string, data: Record<string, unknown>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), data);
+        return docRef;
+    };
+
+    const updateDocInCollection = async (collectionName: string, id: string, data: Record<string, unknown>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), data);
+    };
+
+    const deleteDocFromCollection = async (collectionName: string, id: string) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        await deleteDoc(doc(db, `users/${uid}/${collectionName}`, id));
+    };
+    // #endregion
+    
+    const crudOperations = <T extends {id: string}>(collectionName: string) => ({
+        add: async (data: Omit<T, 'id'>) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
+            const dataToSave = { ...data } as Record<string, unknown>;
+            if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
+            if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
+            if('estimatedDate' in dataToSave && dataToSave.estimatedDate instanceof Date) dataToSave.estimatedDate = Timestamp.fromDate(dataToSave.estimatedDate);
+            if('cancellationDate' in dataToSave && dataToSave.cancellationDate instanceof Date) dataToSave.cancellationDate = Timestamp.fromDate(dataToSave.cancellationDate);
+            if('generatedAt' in dataToSave && dataToSave.generatedAt instanceof Date) dataToSave.generatedAt = Timestamp.fromDate(dataToSave.generatedAt);
+            if('purchaseDate' in dataToSave && dataToSave.purchaseDate instanceof Date) dataToSave.purchaseDate = Timestamp.fromDate(dataToSave.purchaseDate);
+            if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
+            
+            await addDocToCollection(collectionName, dataToSave);
+            await fullDataRefresh(uid);
+        },
+        update: async (data: Partial<T> & {id: string}) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
+            const dataToSave = { ...data } as Record<string, unknown>;
+            if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
+            if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
+            if('estimatedDate' in dataToSave && dataToSave.estimatedDate instanceof Date) dataToSave.estimatedDate = Timestamp.fromDate(dataToSave.estimatedDate);
+            if('cancellationDate' in dataToSave && dataToSave.cancellationDate instanceof Date) dataToSave.cancellationDate = Timestamp.fromDate(dataToSave.cancellationDate);
+            if('generatedAt' in dataToSave && dataToSave.generatedAt instanceof Date) dataToSave.generatedAt = Timestamp.fromDate(dataToSave.generatedAt);
+            if('purchaseDate' in dataToSave && dataToSave.purchaseDate instanceof Date) dataToSave.purchaseDate = Timestamp.fromDate(dataToSave.purchaseDate);
+            if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
+
+            await updateDocInCollection(collectionName, data.id, dataToSave);
+            await fullDataRefresh(uid);
+        },
+        delete: async (id: string) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
+            await deleteDocFromCollection(collectionName, id);
+            await fullDataRefresh(uid);
+        },
+    });
+
+    const profilesCrud = crudOperations<Profile>('profiles');
+    const categoriesCrud = crudOperations<Category>('categories');
+    const fixedExpensesCrud = crudOperations<FixedExpense>('fixedExpenses');
+    const investmentsCrud = crudOperations<Investment>('investments');
+    const budgetsCrud = crudOperations<Budget>('budgets');
+    const goalsCrud = crudOperations<SavingsGoal>('goals');
+    const servicesCrud = crudOperations<Service>('services');
+    const tangibleAssetsCrud = crudOperations<TangibleAsset>('tangibleAssets');
+    
+    // #region Specific CRUD implementations
+    
+    const updateSettings = async (newSettings: Partial<AppSettings>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        const settingsRef = doc(db, `users/${uid}/app/settings`);
+        await setDoc(settingsRef, newSettings, { merge: true });
+        setSettings(prev => ({ ...prev, ...newSettings }));
+    };
+    
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
 
@@ -637,89 +708,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         await fullDataRefresh(uid);
     };
 
-    // #region Generic CRUD Functions
-    const addDocToCollection = async (collectionName: string, data: Record<string, unknown>) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
-        const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), data);
-        return docRef;
-    };
-
-    const updateDocInCollection = async (collectionName: string, id: string, data: Record<string, unknown>) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
-        await updateDoc(doc(db, `users/${uid}/${collectionName}`, id), data);
-    };
-
-    const deleteDocFromCollection = async (collectionName: string, id: string) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
-        await deleteDoc(doc(db, `users/${uid}/${collectionName}`, id));
-    };
-    // #endregion
-    
-    const crudOperations = <T extends {id: string}>(collectionName: string) => ({
-        add: async (data: Omit<T, 'id'>) => {
-            if (!uid) throw new Error("No hay un usuario autenticado.");
-            const dataToSave = { ...data } as Record<string, unknown>;
-            if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
-            if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
-            if('estimatedDate' in dataToSave && dataToSave.estimatedDate instanceof Date) dataToSave.estimatedDate = Timestamp.fromDate(dataToSave.estimatedDate);
-            if('cancellationDate' in dataToSave && dataToSave.cancellationDate instanceof Date) dataToSave.cancellationDate = Timestamp.fromDate(dataToSave.cancellationDate);
-            if('generatedAt' in dataToSave && dataToSave.generatedAt instanceof Date) dataToSave.generatedAt = Timestamp.fromDate(dataToSave.generatedAt);
-            if('purchaseDate' in dataToSave && dataToSave.purchaseDate instanceof Date) dataToSave.purchaseDate = Timestamp.fromDate(dataToSave.purchaseDate);
-            if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
-            
-            await addDocToCollection(collectionName, dataToSave);
-            await fullDataRefresh(uid);
-        },
-        update: async (data: Partial<T> & {id: string}) => {
-            if (!uid) throw new Error("No hay un usuario autenticado.");
-            const dataToSave = { ...data } as Record<string, unknown>;
-            if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
-            if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
-            if('estimatedDate' in dataToSave && dataToSave.estimatedDate instanceof Date) dataToSave.estimatedDate = Timestamp.fromDate(dataToSave.estimatedDate);
-            if('cancellationDate' in dataToSave && dataToSave.cancellationDate instanceof Date) dataToSave.cancellationDate = Timestamp.fromDate(dataToSave.cancellationDate);
-            if('generatedAt' in dataToSave && dataToSave.generatedAt instanceof Date) dataToSave.generatedAt = Timestamp.fromDate(dataToSave.generatedAt);
-            if('purchaseDate' in dataToSave && dataToSave.purchaseDate instanceof Date) dataToSave.purchaseDate = Timestamp.fromDate(dataToSave.purchaseDate);
-            if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
-
-            await updateDocInCollection(collectionName, data.id, dataToSave);
-            await fullDataRefresh(uid);
-        },
-        delete: async (id: string) => {
-            if (!uid) throw new Error("No hay un usuario autenticado.");
-            await deleteDocFromCollection(collectionName, id);
-            await fullDataRefresh(uid);
-        },
-    });
-
-    const profilesCrud = crudOperations<Profile>('profiles');
-    const categoriesCrud = crudOperations<Category>('categories');
-    const fixedExpensesCrud = crudOperations<FixedExpense>('fixedExpenses');
-    const investmentsCrud = crudOperations<Investment>('investments');
-    const budgetsCrud = crudOperations<Budget>('budgets');
-    const goalsCrud = crudOperations<SavingsGoal>('goals');
-    const servicesCrud = crudOperations<Service>('services');
-    const tangibleAssetsCrud = crudOperations<TangibleAsset>('tangibleAssets');
-    
-    // #region Specific CRUD implementations
-    
-    const updateSettings = async (newSettings: Partial<AppSettings>) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
-        const settingsRef = doc(db, `users/${uid}/app/settings`);
-        await setDoc(settingsRef, newSettings, { merge: true });
-        setSettings(prev => ({ ...prev, ...newSettings }));
-    };
-    
-    const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
-        console.warn("Updating transactions is a complex operation and is currently handled by only updating non-financial data.");
-        const dataToSave: Record<string, unknown> = { ...transaction };
-        if (transaction.date) {
-            dataToSave.date = Timestamp.fromDate(transaction.date as Date);
-        }
-        await updateDocInCollection('transactions', transaction.id, dataToSave);
-        await fullDataRefresh(uid);
-    };
-
     const deleteTransaction = async (id: string) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const transactionToDelete = allTransactions.find(t => t.id === id);
@@ -786,6 +774,26 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     tx.update(refs.destAccountRef, { balance: newDestBalance });
                 }
             }
+        });
+
+        await fullDataRefresh(uid);
+    };
+
+    const updateTransaction = async (transaction: Partial<Transaction> & {id: string}) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+        
+        await runTransaction(db, async (tx) => {
+            const oldTransactionDoc = await getDoc(doc(db, `users/${uid}/transactions`, transaction.id));
+            if (!oldTransactionDoc.exists()) throw new Error("La transacción original no fue encontrada.");
+            const oldTransaction = oldTransactionDoc.data() as Transaction;
+            
+            // Revert old transaction effects
+            // This logic is the reverse of the deleteTransaction logic
+            await deleteTransaction(oldTransaction.id);
+            
+            // Apply new transaction effects
+            // This logic is the same as the addTransaction logic
+            await addTransaction(transaction);
         });
 
         await fullDataRefresh(uid);
@@ -941,7 +949,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
-        if (!uid) throw new Error("No hay un usuario autenticado.");
+         if (!uid) throw new Error("No hay un usuario autenticado.");
 
         const portfolioAccount = bankAccounts.find(acc => acc.purpose === investment.purpose && acc.profile === investment.profile);
         if (!portfolioAccount) {
@@ -957,12 +965,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             date: investment.startDate || new Date(),
             accountId: portfolioAccount.id,
         });
-        
+
         const newInvestment = { ...investment, currentValue: investment.initialAmount, startDate: investment.startDate || new Date() };
         const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
         await addDocToCollection('investments', dataToSave);
-        
-        await fullDataRefresh(uid);
+        if (uid) await fullDataRefresh(uid);
     };
 
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ReactNode, useState, useEffect } from 'react';
 import {
@@ -151,7 +152,14 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 
             } else {
                  const transactionData: Omit<Transaction, 'id'> = {
-                    ...values,
+                    type: values.type,
+                    amount: values.amount,
+                    description: values.description,
+                    category: values.category,
+                    profile: values.profile,
+                    date: values.date,
+                    accountId: values.accountId,
+                    destinationAccountId: values.destinationAccountId,
                     isCreditLinePayment: values.paymentMethod === 'credit-line',
                     cardId: values.paymentMethod !== 'account-balance' && values.paymentMethod !== 'credit-line' ? values.paymentMethod : undefined,
                     taxDetails: values.includesTax ? {
@@ -160,11 +168,6 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                     } : undefined,
                 };
                 
-                // We don't want to save these form-specific fields to the DB
-                delete (transactionData as Partial<FormValues>).includesTax;
-                delete (transactionData as Partial<FormValues>).taxRate;
-
-
                 if (transactionToEdit && transactionToEdit.id) {
                     await updateTransaction({ ...transactionToEdit, ...transactionData, id: transactionToEdit.id });
                 } else {
@@ -370,7 +373,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                 </FormControl>
                                 <SelectContent>
                                 {availableAccounts.map(a => (
-                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)})</SelectItem>
+                                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
@@ -393,7 +396,7 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
                                     </FormControl>
                                     <SelectContent>
                                     {availableDestinationAccounts.map(a => (
-                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)})</SelectItem>
+                                        <SelectItem key={a.id} value={a.id}>{a.name} ({a.bank}) - {formatCurrency(a.balance)}</SelectItem>
                                     ))}
                                     </SelectContent>
                                 </Select>
@@ -597,4 +600,3 @@ export function AddTransactionDialog({ children, transactionToEdit, defaultType 
 }
 
     
-
