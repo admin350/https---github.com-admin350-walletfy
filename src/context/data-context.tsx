@@ -681,19 +681,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             let snapshotIndex = 0;
     
             // 2. WRITES
-            const transactionData: Omit<Transaction, 'id'> = { ...transaction };
+            const transactionData: Partial<Transaction> = { ...transaction };
             if (transaction.type === 'transfer') {
                 const transferCategory = categories.find(c => c.type === 'Transferencia');
                 transactionData.category = transferCategory?.name || 'Transferencia Interna';
+            } else {
+                delete transactionData.destinationAccountId;
             }
     
             const transactionToSave = cleanupUndefineds({
                 ...transactionData,
                 date: Timestamp.fromDate(transactionData.date)
             });
-             if (transactionToSave.type !== 'transfer') {
-                delete transactionToSave.destinationAccountId;
-            }
     
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, transactionToSave);
@@ -734,7 +733,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
         });
     
-        // Refetch data after transaction to ensure UI consistency
+        // 3. Refetch data after transaction to ensure UI consistency
         const [newTransactions, newAccounts, newCards] = await Promise.all([
             fetchData('transactions', uid),
             fetchData('bankAccounts', uid),
@@ -845,8 +844,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const newPaidAmount = (debtData.paidAmount || 0) + payment.amount;
             const nextDueDate = addMonths(new Date(debtData.dueDate), 1);
 
-            // This will run the atomic addTransaction logic
-            await addTransaction({
+            // This will run the atomic addTransaction logic, but we need to pass the tx object
+            // For simplicity, we are assuming addTransaction will be refactored or we handle it here
+            // Re-implementing the addTransaction logic within this transaction
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'expense' as const,
                 amount: payment.amount,
                 description: `Abono a ${payment.debtName}`,
@@ -855,7 +856,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 date: payment.date,
                 accountId: payment.accountId,
                 taxDetails: payment.taxDetails
-            });
+            };
+            const accountRef = doc(db, `users/${uid}/bankAccounts`, payment.accountId);
+            const accountSnap = await tx.get(accountRef);
+            const currentBalance = accountSnap.data()?.balance || 0;
+            tx.update(accountRef, { balance: currentBalance - payment.amount });
+
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+            tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(payment.date) });
+            // End of re-implemented logic
 
             tx.update(debtRef, { paidAmount: newPaidAmount, dueDate: Timestamp.fromDate(nextDueDate) });
             
@@ -863,12 +872,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             tx.set(newPaymentRef, { ...payment, date: Timestamp.fromDate(payment.date) });
         });
         
-        const [newDebts, newDebtPayments] = await Promise.all([
+        const [newDebts, newDebtPayments, newAccounts, newTransactions] = await Promise.all([
             fetchData('debts', uid),
-            fetchData('debtPayments', uid)
+            fetchData('debtPayments', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid)
         ]);
         setDebts(newDebts as Debt[]);
         setDebtPayments(newDebtPayments as DebtPayment[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
     
     const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
@@ -897,8 +910,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const newCurrentAmount = (goalData.currentAmount || 0) + contribution.amount;
             tx.update(goalRef, { currentAmount: newCurrentAmount });
 
-            // Use the robust addTransaction
-            await addTransaction({
+            // Re-implement transaction logic inside atomic operation
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'expense' as const,
                 amount: contribution.amount,
                 description: `Aporte a meta: ${contribution.goalName}`,
@@ -906,18 +919,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 profile: accountData.profile,
                 date: contribution.date,
                 accountId: accountData.id,
-            });
+            };
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+            tx.set(newTransactionRef, {...transactionData, date: Timestamp.fromDate(contribution.date)});
+            
+            const newBalance = accountData.balance - contribution.amount;
+            tx.update(accountRef, { balance: newBalance });
+            // End of re-implemented logic
             
             const contributionRef = doc(collection(db, `users/${uid}/goalContributions`));
             tx.set(contributionRef, { ...contribution, date: Timestamp.fromDate(contribution.date) });
         });
 
-        const [newGoals, newContributions] = await Promise.all([
+        const [newGoals, newContributions, newAccounts, newTransactions] = await Promise.all([
             fetchData('goals', uid),
-            fetchData('goalContributions', uid)
+            fetchData('goalContributions', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid)
         ]);
         setGoals(newGoals as SavingsGoal[]);
         setGoalContributions(newContributions as GoalContribution[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
     
     const addInvestmentContribution = async (contribution: Omit<InvestmentContribution, 'id'>) => {
@@ -930,37 +953,46 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if(!investmentData) throw new Error("Activo no encontrado.");
 
             const portfolioAccountQuery = query(collection(db, `users/${uid}/bankAccounts`), where("profile", "==", investmentData.profile), where("purpose", "==", investmentData.purpose));
-            const portfolioAccountSnap = (await getDocs(portfolioAccountQuery)).docs[0];
-            
-            if(!portfolioAccountSnap) throw new Error(`Cartera de ${investmentData.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
-            const portfolioAccountData = portfolioAccountSnap.data() as BankAccount;
-            
+            const portfolioAccountSnapshots = await getDocs(portfolioAccountQuery);
+            if (portfolioAccountSnapshots.empty) throw new Error(`Cartera de ${investmentData.purpose === 'investment' ? 'Inversión' : 'Ahorro'} no encontrada para este perfil.`);
+            const portfolioAccountRef = portfolioAccountSnapshots.docs[0].ref;
+            const portfolioAccountData = (await tx.get(portfolioAccountRef)).data() as BankAccount;
+
             if (contribution.amount > portfolioAccountData.balance) throw new Error("Saldo insuficiente en la cartera.");
 
             const newCurrentValue = (investmentData.currentValue || investmentData.initialAmount) + contribution.amount;
             const newInitialAmount = investmentData.initialAmount + contribution.amount;
             tx.update(investmentRef, { currentValue: newCurrentValue, initialAmount: newInitialAmount });
 
-             await addTransaction({
+             // Re-implement transaction logic inside atomic operation
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'expense',
                 amount: contribution.amount,
                 description: `Aporte a ${investmentData.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investmentData.name}`,
                 category: 'Inversiones y Ahorros',
                 profile: investmentData.profile,
                 date: contribution.date,
-                accountId: portfolioAccountSnap.id,
-            });
-
+                accountId: portfolioAccountRef.id,
+            };
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+            tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(contribution.date) });
+            tx.update(portfolioAccountRef, { balance: portfolioAccountData.balance - contribution.amount });
+            // End re-implementation
+            
             const contributionRef = doc(collection(db, `users/${uid}/investmentContributions`));
             tx.set(contributionRef, { ...contribution, date: Timestamp.fromDate(contribution.date), purpose: investmentData.purpose });
         });
         
-        const [newInvestments, newContributions] = await Promise.all([
+        const [newInvestments, newContributions, newAccounts, newTransactions] = await Promise.all([
             fetchData('investments', uid),
             fetchData('investmentContributions', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid)
         ]);
         setInvestments(newInvestments as Investment[]);
         setInvestmentContributions(newContributions as InvestmentContribution[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
 
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
@@ -992,24 +1024,35 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (!investment) throw new Error("Inversión no encontrada.");
 
             const portfolioAccountQuery = query(collection(db, `users/${uid}/bankAccounts`), where("profile", "==", investment.profile), where("purpose", "==", investment.purpose));
-            const portfolioAccountSnap = (await getDocs(portfolioAccountQuery)).docs[0];
-            if (!portfolioAccountSnap) throw new Error("Cartera no encontrada.");
-            
-            await addTransaction({
+            const portfolioAccountSnapshots = await getDocs(portfolioAccountQuery);
+            if (portfolioAccountSnapshots.empty) throw new Error("Cartera no encontrada.");
+            const portfolioAccountRef = portfolioAccountSnapshots.docs[0].ref;
+            const portfolioAccountData = (await tx.get(portfolioAccountRef)).data() as BankAccount;
+
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'income',
                 amount: finalValue,
                 description: `Liquidación de ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investment.name}`,
                 category: 'Ingresos por Inversión',
                 profile: investment.profile,
                 date: new Date(),
-                accountId: portfolioAccountSnap.id,
-            });
+                accountId: portfolioAccountRef.id,
+            };
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+            tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(transactionData.date) });
+            tx.update(portfolioAccountRef, { balance: portfolioAccountData.balance + finalValue });
             
             tx.delete(investmentRef);
         });
 
-        const newInvestments = await fetchData('investments', uid);
+        const [newInvestments, newAccounts, newTransactions] = await Promise.all([
+            fetchData('investments', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid)
+        ]);
         setInvestments(newInvestments as Investment[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
     
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
@@ -1034,30 +1077,33 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const cardId = paymentDetails?.cardId; 
 
         if (!accountId) throw new Error("Cuenta de pago no encontrada.");
+        
+        await runTransaction(db, async(tx) => {
+            const subRef = doc(db, `users/${uid}/subscriptions`, subscription.id);
+            const nextDueDate = addMonths(subscription.dueDate, 1);
+            const updateData = { 
+                dueDate: Timestamp.fromDate(nextDueDate),
+                lastPaymentMonth: getMonth(new Date()),
+                lastPaymentYear: getYear(new Date()),
+                paidThisPeriod: true
+            };
+            tx.update(subRef, updateData);
 
-        await addTransaction({
-            type: 'expense' as const,
-            amount: subscription.amount,
-            description: `Pago ${subscription.name}`,
-            category: 'Suscripciones',
-            profile: subscription.profile,
-            date: new Date(),
-            accountId: accountId,
-            cardId: cardId,
-            taxDetails: paymentDetails?.taxDetails as Transaction['taxDetails'],
-        }); 
+            await addTransaction({
+                type: 'expense' as const,
+                amount: subscription.amount,
+                description: `Pago ${subscription.name}`,
+                category: 'Suscripciones',
+                profile: subscription.profile,
+                date: new Date(),
+                accountId: accountId,
+                cardId: cardId,
+                taxDetails: paymentDetails?.taxDetails as Transaction['taxDetails'],
+            }); 
+        });
 
-        const subRef = doc(db, `users/${uid}/subscriptions`, subscription.id);
-        const nextDueDate = addMonths(subscription.dueDate, 1);
-        const updateData = { 
-            dueDate: Timestamp.fromDate(nextDueDate),
-            lastPaymentMonth: getMonth(new Date()),
-            lastPaymentYear: getYear(new Date()),
-            paidThisPeriod: true
-        };
-        await updateDoc(subRef, updateData);
-
-        setSubscriptions(prev => prev.map(s => s.id === subscription.id ? { ...s, ...updateData, dueDate: nextDueDate } : s));
+        const newSubscriptions = await fetchData('subscriptions', uid);
+        setSubscriptions(newSubscriptions as Subscription[]);
     };
     
     const cancelSubscription = async (id: string) => {
@@ -1088,11 +1134,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 date: payment.date,
                 accountId: payment.sourceAccountId,
             };
-             await addTransaction(transactionData);
+            const accountRef = doc(db, `users/${uid}/bankAccounts`, payment.sourceAccountId);
+            const accountSnap = await tx.get(accountRef);
+            const currentBalance = accountSnap.data()?.balance || 0;
+            tx.update(accountRef, {balance: currentBalance - payment.amount});
+
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+            tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(transactionData.date)});
         });
 
-        const newTaxPayments = await fetchData('taxPayments', uid);
+        const [newTaxPayments, newAccounts, newTransactions] = await Promise.all([
+            fetchData('taxPayments', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid)
+        ]);
         setTaxPayments(newTaxPayments as TaxPayment[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
 
     const sellTangibleAsset = async (assetId: string, salePrice: number, destinationAccountId: string) => {
@@ -1104,7 +1162,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const assetRef = doc(db, `users/${uid}/tangibleAssets`, assetId);
             tx.delete(assetRef);
             
-            await addTransaction({
+            const transactionData: Omit<Transaction, 'id'> = {
                 type: 'income',
                 amount: salePrice,
                 description: `Venta de activo: ${asset.name}`,
@@ -1112,11 +1170,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 profile: asset.profile,
                 date: new Date(),
                 accountId: destinationAccountId,
-            });
+            };
+             const accountRef = doc(db, `users/${uid}/bankAccounts`, destinationAccountId);
+             const accountSnap = await tx.get(accountRef);
+             const currentBalance = accountSnap.data()?.balance || 0;
+             tx.update(accountRef, {balance: currentBalance + salePrice});
+             
+             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
+             tx.set(newTransactionRef, { ...transactionData, date: Timestamp.fromDate(transactionData.date)});
         });
 
-        const newTangibleAssets = await fetchData('tangibleAssets', uid);
+        const [newTangibleAssets, newAccounts, newTransactions] = await Promise.all([
+            fetchData('tangibleAssets', uid),
+            fetchData('bankAccounts', uid),
+            fetchData('transactions', uid),
+        ]);
         setTangibleAssets(newTangibleAssets as TangibleAsset[]);
+        setBankAccounts(newAccounts as BankAccount[]);
+        setAllTransactions(newTransactions as Transaction[]);
     };
     
     const setFavoriteBudget = async (budgetId: string) => {
@@ -1244,6 +1315,7 @@ export const useData = (): DataContextType => {
 
 
     
+
 
 
 
