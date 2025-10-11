@@ -655,20 +655,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
         const cleanedData = cleanupUndefineds(data);
         const docRef = await addDoc(collection(db, `users/${uid}/${collectionName}`), cleanedData);
-        
-        // Fetch the doc to get Firestore-generated fields and convert timestamps
-        const newDocSnap = await getDoc(docRef);
-        const newDocData = newDocSnap.data();
-        if (!newDocData) throw new Error("Failed to fetch newly created document.");
-
-        const dateFields = ['date', 'dueDate', 'estimatedDate', 'generatedAt', 'cancellationDate', 'purchaseDate', 'startDate'];
-        for (const field of dateFields) {
-            if (newDocData[field] && newDocData[field] instanceof Timestamp) {
-                newDocData[field] = (newDocData[field] as Timestamp).toDate();
-            }
-        }
-        
-        return { id: docRef.id, ...newDocData };
+        return docRef;
     };
 
     const updateDocInCollection = async (collectionName: string, id: string, data: Record<string, unknown>) => {
@@ -683,8 +670,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     // #endregion
     
-    const crudOperations = <T extends {id: string}>(collectionName: string, setData: React.Dispatch<React.SetStateAction<T[]>>) => ({
+    const crudOperations = <T extends {id: string}>(collectionName: string) => ({
         add: async (data: Omit<T, 'id'>) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
             const dataToSave = { ...data } as Record<string, unknown>;
             if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
             if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
@@ -694,10 +682,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if('purchaseDate' in dataToSave && dataToSave.purchaseDate instanceof Date) dataToSave.purchaseDate = Timestamp.fromDate(dataToSave.purchaseDate);
             if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
             
-            const newDoc = await addDocToCollection(collectionName, dataToSave);
-            setData((prev: T[]) => [...prev, newDoc as T]);
+            await addDocToCollection(collectionName, dataToSave);
+            await fullDataRefresh(uid);
         },
         update: async (data: Partial<T> & {id: string}) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
             const dataToSave = { ...data } as Record<string, unknown>;
             if('date' in dataToSave && dataToSave.date instanceof Date) dataToSave.date = Timestamp.fromDate(dataToSave.date);
             if('dueDate' in dataToSave && dataToSave.dueDate instanceof Date) dataToSave.dueDate = Timestamp.fromDate(dataToSave.dueDate);
@@ -708,22 +697,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if('startDate' in dataToSave && dataToSave.startDate instanceof Date) dataToSave.startDate = Timestamp.fromDate(dataToSave.startDate);
 
             await updateDocInCollection(collectionName, data.id, dataToSave);
-            setData((prev: T[]) => prev.map(item => item.id === data.id ? {...item, ...data} : item));
+            await fullDataRefresh(uid);
         },
         delete: async (id: string) => {
+            if (!uid) throw new Error("No hay un usuario autenticado.");
             await deleteDocFromCollection(collectionName, id);
-            setData((prev: T[]) => prev.filter(item => item.id !== id));
+            await fullDataRefresh(uid);
         },
     });
 
-    const profilesCrud = crudOperations<Profile>('profiles', setProfiles);
-    const categoriesCrud = crudOperations<Category>('categories', setCategories);
-    const fixedExpensesCrud = crudOperations<FixedExpense>('fixedExpenses', setFixedExpenses);
-    const investmentsCrud = crudOperations<Investment>('investments', setInvestments);
-    const budgetsCrud = crudOperations<Budget>('budgets', setBudgets);
-    const goalsCrud = crudOperations<SavingsGoal>('goals', setGoals);
-    const servicesCrud = crudOperations<Service>('services', setServices);
-    const tangibleAssetsCrud = crudOperations<TangibleAsset>('tangibleAssets', setTangibleAssets);
+    const profilesCrud = crudOperations<Profile>('profiles');
+    const categoriesCrud = crudOperations<Category>('categories');
+    const fixedExpensesCrud = crudOperations<FixedExpense>('fixedExpenses');
+    const investmentsCrud = crudOperations<Investment>('investments');
+    const budgetsCrud = crudOperations<Budget>('budgets');
+    const goalsCrud = crudOperations<SavingsGoal>('goals');
+    const servicesCrud = crudOperations<Service>('services');
+    const tangibleAssetsCrud = crudOperations<TangibleAsset>('tangibleAssets');
     
     // #region Specific CRUD implementations
     
@@ -824,9 +814,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const addBankAccount = async (account: Omit<BankAccount, 'id' | 'balance' | 'creditLineUsed'>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
         const newAccount = { ...account, balance: 0, creditLineUsed: 0 };
-        const savedDoc = await addDocToCollection('bankAccounts', newAccount);
-        setBankAccounts(prev => [...prev, savedDoc as BankAccount]);
+        await addDocToCollection('bankAccounts', newAccount);
+        await fullDataRefresh(uid);
     };
     
     const deleteBankAccount = async (id: string) => {
@@ -845,9 +836,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const addBankCard = async (card: Omit<BankCard, 'id'| 'usedAmount'>) => {
+         if (!uid) throw new Error("No hay un usuario autenticado.");
         const newCard = { ...card, usedAmount: 0 };
-        const savedDoc = await addDocToCollection('bankCards', newCard);
-        setBankCards(prev => [...prev, savedDoc as BankCard]);
+        await addDocToCollection('bankCards', newCard);
+        await fullDataRefresh(uid);
     };
 
     const deleteBankCard = async (id: string) => {
@@ -862,8 +854,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const addDebt = async (debt: Omit<Debt, 'id' | 'paidAmount'>) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
         const dataToSave = { ...debt, dueDate: Timestamp.fromDate(debt.dueDate), paidAmount: 0 };
-        const savedDoc = await addDocToCollection('debts', dataToSave);
+        await addDocToCollection('debts', dataToSave);
         if(uid) await fullDataRefresh(uid);
     };
 
@@ -909,6 +902,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
+         if (!uid) throw new Error("No hay un usuario autenticado.");
         const newGoal = { ...goal, currentAmount: 0, completionNotified: false };
         const dataToSave = { ...newGoal, estimatedDate: Timestamp.fromDate(newGoal.estimatedDate) };
         await addDocToCollection('goals', dataToSave);
@@ -967,6 +961,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
+         if (!uid) throw new Error("No hay un usuario autenticado.");
         const newInvestment = { ...investment, currentValue: investment.initialAmount, startDate: investment.startDate || new Date() };
         const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
         const savedDoc = await addDocToCollection('investments', dataToSave);
@@ -1001,12 +996,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const addSubscription = async (subscription: Omit<Subscription, 'id' | 'status'>) => {
+         if (!uid) throw new Error("No hay un usuario autenticado.");
         const newSub = { ...subscription, status: 'active' as const, dueDate: subscription.dueDate };
         await addDocToCollection('subscriptions', { ...newSub, dueDate: Timestamp.fromDate(newSub.dueDate) });
         if(uid) await fullDataRefresh(uid);
     };
     
     const updateSubscription = async (subscription: Partial<Subscription> & {id: string}) => {
+         if (!uid) throw new Error("No hay un usuario autenticado.");
         const dataToSave: Record<string, unknown> = { ...subscription };
         if (subscription.dueDate) {
             dataToSave.dueDate = Timestamp.fromDate(subscription.dueDate);
@@ -1045,6 +1042,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const cancelSubscription = async (id: string) => {
+        if (!uid) throw new Error("No hay un usuario autenticado.");
         const subData = { status: 'cancelled' as const, cancellationDate: Timestamp.fromDate(new Date()) };
         await updateDocInCollection('subscriptions', id, subData);
         if(uid) await fullDataRefresh(uid);
@@ -1143,10 +1141,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         updateTransaction,
         deleteTransaction,
         addBankAccount,
-        updateBankAccount: crudOperations<BankAccount>('bankAccounts', setBankAccounts).update,
+        updateBankAccount: crudOperations<BankAccount>('bankAccounts').update,
         deleteBankAccount,
         addBankCard,
-        updateBankCard: crudOperations<BankCard>('bankCards', setBankCards).update,
+        updateBankCard: crudOperations<BankCard>('bankCards').update,
         deleteBankCard,
         addDebt,
         updateDebt,
@@ -1208,17 +1206,5 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
-
-    
-
-    
-
-
-
-
-
-
-    
-
 
     

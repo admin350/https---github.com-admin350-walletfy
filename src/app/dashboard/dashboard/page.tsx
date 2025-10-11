@@ -179,7 +179,7 @@ export default function DashboardPage() {
                         title="Balance Acumulado" 
                         value={<span className={accumulatedBalance >= 0 ? 'text-primary' : 'text-red-500'}>{formatCurrency(accumulatedBalance)}</span>} 
                         icon={DollarSign}
-                        description="Balance total real de tus cuentas" 
+                        description="Balance total real de tus cuentas." 
                     />
                 </>
                 )}

@@ -195,7 +195,7 @@ export function Header() {
           <h1 className="text-xl font-semibold hidden sm:block">{pathname?.startsWith('/dashboard/profile') ? 'Perfil y Configuración' : pageTitle}</h1>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
-            {isClient && (
+            {isClient && !pathname?.startsWith('/dashboard/profile') && (
                  <div className="flex items-center gap-2">
                      <Select
                         value={filters.profile}
