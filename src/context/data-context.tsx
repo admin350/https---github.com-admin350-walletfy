@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { 
@@ -578,8 +579,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         }
 
         await runTransaction(db, async (tx) => {
-            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
-
             // Phase 1: Reads
             const refs: Record<string, DocumentReference> = {};
             const readPromises: Promise<DocumentSnapshot>[] = [];
@@ -599,15 +598,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     readPromises.push(tx.get(refs.cardRef));
                 }
             }
-
+            
             const snapshots = await Promise.all(readPromises);
             let i = 0;
-
             const sourceAccountSnap = refs.sourceAccountRef ? snapshots[i++] : null;
             const destAccountSnap = refs.destAccountRef ? snapshots[i++] : null;
             const cardSnap = refs.cardRef ? snapshots[i++] : null;
 
             // Phase 2: Writes
+            const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, { ...cleanedTransaction, date: Timestamp.fromDate(cleanedTransaction.date) });
 
             if (cleanedTransaction.type === 'income') {
@@ -961,20 +960,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addInvestment = async (investment: Omit<Investment, 'id' | 'currentValue'>) => {
-         if (!uid) throw new Error("No hay un usuario autenticado.");
+        if (!uid) throw new Error("No hay un usuario autenticado.");
+
+        const portfolioAccount = bankAccounts.find(acc => acc.purpose === investment.purpose && acc.profile === investment.profile);
+        if (!portfolioAccount) {
+            throw new Error(`No se encontró una Cartera de ${investment.purpose === 'investment' ? 'Inversión' : 'Ahorro'} para este perfil.`);
+        }
+
+        await addTransaction({
+            type: 'expense',
+            amount: investment.initialAmount,
+            description: `Aporte inicial a ${investment.purpose === 'investment' ? 'inversión' : 'ahorro'}: ${investment.name}`,
+            category: 'Inversiones y Ahorros',
+            profile: investment.profile,
+            date: investment.startDate || new Date(),
+            accountId: portfolioAccount.id,
+        });
+        
         const newInvestment = { ...investment, currentValue: investment.initialAmount, startDate: investment.startDate || new Date() };
         const dataToSave = { ...newInvestment, startDate: Timestamp.fromDate(newInvestment.startDate) };
-        const savedDoc = await addDocToCollection('investments', dataToSave);
+        await addDocToCollection('investments', dataToSave);
         
-        await addInvestmentContribution({
-            investmentId: savedDoc.id as string,
-            investmentName: newInvestment.name,
-            amount: newInvestment.initialAmount,
-            date: newInvestment.startDate,
-            purpose: newInvestment.purpose,
-        });
-        if(uid) await fullDataRefresh(uid);
+        await fullDataRefresh(uid);
     };
+
 
      const closeInvestment = async (investmentId: string, finalValue: number) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
@@ -1206,5 +1215,7 @@ export const useData = (): DataContextType => {
     }
     return context;
 };
+
+    
 
     
