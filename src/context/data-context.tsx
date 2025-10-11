@@ -25,7 +25,9 @@ import {
     setDoc,
     Timestamp,
     orderBy,
-    runTransaction
+    runTransaction,
+    DocumentReference,
+    DocumentSnapshot
 } from 'firebase/firestore';
 import type { 
     Transaction, 
@@ -655,9 +657,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
     
         await runTransaction(db, async (tx) => {
-            // READS FIRST
-            const readPromises: Promise<any>[] = [];
-            const refs: Record<string, any> = {};
+            // 1. READS FIRST
+            const refs: Record<string, DocumentReference> = {};
+            const readPromises: Promise<DocumentSnapshot>[] = [];
     
             if (transaction.type === 'income') {
                 refs.accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
@@ -667,7 +669,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     refs.cardRef = doc(db, `users/${uid}/bankCards`, transaction.cardId);
                     readPromises.push(tx.get(refs.cardRef));
                 }
-                // Always get the account for debit cards or direct expenses
                 refs.accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
                 readPromises.push(tx.get(refs.accountRef));
             } else if (transaction.type === 'transfer' && transaction.destinationAccountId) {
@@ -679,45 +680,45 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const snapshots = await Promise.all(readPromises);
             let snapshotIndex = 0;
     
-            // WRITES
+            // 2. WRITES
             const transactionData: Omit<Transaction, 'id'> = { ...transaction };
-            if (transactionData.type === 'transfer') {
+            if (transaction.type === 'transfer') {
                 const transferCategory = categories.find(c => c.type === 'Transferencia');
                 transactionData.category = transferCategory?.name || 'Transferencia Interna';
-            } else {
-                delete (transactionData as Partial<Transaction>).destinationAccountId;
             }
     
             const transactionToSave = cleanupUndefineds({
                 ...transactionData,
                 date: Timestamp.fromDate(transactionData.date)
             });
+             if (transactionToSave.type !== 'transfer') {
+                delete transactionToSave.destinationAccountId;
+            }
     
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, transactionToSave);
     
-            // Perform accounting updates based on PRE-READ data
             if (transaction.type === 'income') {
                 const accountSnap = snapshots[snapshotIndex++];
                 const currentBalance = accountSnap.data()?.balance || 0;
                 tx.update(refs.accountRef, { balance: currentBalance + transaction.amount });
             } else if (transaction.type === 'expense') {
-                const cardSnap = transaction.cardId ? snapshots[snapshotIndex++] : null;
-                const accountSnap = snapshots[snapshotIndex++];
-    
+                const cardSnap = transaction.cardId ? snapshots.find(snap => snap.ref.path === refs.cardRef.path) : null;
+                const accountSnap = snapshots.find(snap => snap.ref.path === refs.accountRef.path);
+
                 if (transaction.cardId && cardSnap) {
                     const cardData = cardSnap.data();
                     if (cardData?.cardType === 'credit') {
                         const newUsedAmount = (cardData.usedAmount || 0) + transaction.amount;
                         tx.update(refs.cardRef, { usedAmount: newUsedAmount });
-                    } else { // Debit or Prepaid
+                    } else if (accountSnap) { // Debit or Prepaid
                         const currentBalance = accountSnap.data()?.balance || 0;
                         tx.update(refs.accountRef, { balance: currentBalance - transaction.amount });
                     }
-                } else if (transaction.isCreditLinePayment) {
+                } else if (transaction.isCreditLinePayment && accountSnap) {
                     const newCreditLineUsed = (accountSnap.data()?.creditLineUsed || 0) + transaction.amount;
                     tx.update(refs.accountRef, { creditLineUsed: newCreditLineUsed });
-                } else { // Direct account expense
+                } else if (accountSnap) { // Direct account expense
                     const currentBalance = accountSnap.data()?.balance || 0;
                     tx.update(refs.accountRef, { balance: currentBalance - transaction.amount });
                 }
@@ -1243,6 +1244,7 @@ export const useData = (): DataContextType => {
 
 
     
+
 
 
 
