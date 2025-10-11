@@ -653,15 +653,38 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
         if (!uid) throw new Error("No hay un usuario autenticado.");
-        
-        await runTransaction(db, async (tx) => {
-            let transactionData: Omit<Transaction, 'id'> = { ...transaction };
     
+        await runTransaction(db, async (tx) => {
+            // READS FIRST
+            const readPromises: Promise<any>[] = [];
+            const refs: any = {};
+    
+            if (transaction.type === 'income') {
+                refs.accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
+                readPromises.push(tx.get(refs.accountRef));
+            } else if (transaction.type === 'expense') {
+                if (transaction.cardId) {
+                    refs.cardRef = doc(db, `users/${uid}/bankCards`, transaction.cardId);
+                    readPromises.push(tx.get(refs.cardRef));
+                }
+                // Always get the account for debit cards or direct expenses
+                refs.accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
+                readPromises.push(tx.get(refs.accountRef));
+            } else if (transaction.type === 'transfer' && transaction.destinationAccountId) {
+                refs.sourceRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
+                refs.destRef = doc(db, `users/${uid}/bankAccounts`, transaction.destinationAccountId);
+                readPromises.push(tx.get(refs.sourceRef), tx.get(refs.destRef));
+            }
+    
+            const snapshots = await Promise.all(readPromises);
+            let snapshotIndex = 0;
+    
+            // WRITES
+            let transactionData: Omit<Transaction, 'id'> = { ...transaction };
             if (transactionData.type === 'transfer') {
                 const transferCategory = categories.find(c => c.type === 'Transferencia');
                 transactionData.category = transferCategory?.name || 'Transferencia Interna';
             } else {
-                // Ensure destinationAccountId is not present for non-transfer transactions
                 delete (transactionData as Partial<Transaction>).destinationAccountId;
             }
     
@@ -672,59 +695,51 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     
             const newTransactionRef = doc(collection(db, `users/${uid}/transactions`));
             tx.set(newTransactionRef, transactionToSave);
-            
-            // Perform accounting updates
+    
+            // Perform accounting updates based on PRE-READ data
             if (transaction.type === 'income') {
-                const accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
-                const accountSnap = await tx.get(accountRef);
+                const accountSnap = snapshots[snapshotIndex++];
                 const currentBalance = accountSnap.data()?.balance || 0;
-                tx.update(accountRef, { balance: currentBalance + transaction.amount });
+                tx.update(refs.accountRef, { balance: currentBalance + transaction.amount });
             } else if (transaction.type === 'expense') {
-                if (transaction.cardId) {
-                    const cardRef = doc(db, `users/${uid}/bankCards`, transaction.cardId);
-                    const cardSnap = await tx.get(cardRef);
+                const cardSnap = transaction.cardId ? snapshots[snapshotIndex++] : null;
+                const accountSnap = snapshots[snapshotIndex++];
+    
+                if (transaction.cardId && cardSnap) {
                     const cardData = cardSnap.data();
                     if (cardData?.cardType === 'credit') {
                         const newUsedAmount = (cardData.usedAmount || 0) + transaction.amount;
-                        tx.update(cardRef, { usedAmount: newUsedAmount });
-                    } else {
-                        const accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
-                         const accountSnap = await tx.get(accountRef);
+                        tx.update(refs.cardRef, { usedAmount: newUsedAmount });
+                    } else { // Debit or Prepaid
                         const currentBalance = accountSnap.data()?.balance || 0;
-                        tx.update(accountRef, { balance: currentBalance - transaction.amount });
+                        tx.update(refs.accountRef, { balance: currentBalance - transaction.amount });
                     }
                 } else if (transaction.isCreditLinePayment) {
-                    const accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
-                    const accountSnap = await tx.get(accountRef);
                     const newCreditLineUsed = (accountSnap.data()?.creditLineUsed || 0) + transaction.amount;
-                    tx.update(accountRef, { creditLineUsed: newCreditLineUsed });
-                } else {
-                    const accountRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
-                    const accountSnap = await tx.get(accountRef);
+                    tx.update(refs.accountRef, { creditLineUsed: newCreditLineUsed });
+                } else { // Direct account expense
                     const currentBalance = accountSnap.data()?.balance || 0;
-                    tx.update(accountRef, { balance: currentBalance - transaction.amount });
+                    tx.update(refs.accountRef, { balance: currentBalance - transaction.amount });
                 }
             } else if (transaction.type === 'transfer' && transaction.destinationAccountId) {
-                const sourceRef = doc(db, `users/${uid}/bankAccounts`, transaction.accountId);
-                const destRef = doc(db, `users/${uid}/bankAccounts`, transaction.destinationAccountId);
-
-                const sourceSnap = await tx.get(sourceRef);
+                const sourceSnap = snapshots[snapshotIndex++];
+                const destSnap = snapshots[snapshotIndex++];
+    
                 const sourceBalance = sourceSnap.data()?.balance || 0;
-                tx.update(sourceRef, { balance: sourceBalance - transaction.amount });
-
-                const destSnap = await tx.get(destRef);
+                tx.update(refs.sourceRef, { balance: sourceBalance - transaction.amount });
+    
                 const destBalance = destSnap.data()?.balance || 0;
-                tx.update(destRef, { balance: destBalance + transaction.amount });
+                tx.update(refs.destRef, { balance: destBalance + transaction.amount });
             }
         });
-
+    
         // Refetch data after transaction to ensure UI consistency
         const [newTransactions, newAccounts, newCards] = await Promise.all([
             fetchData('transactions', uid),
             fetchData('bankAccounts', uid),
             fetchData('bankCards', uid),
         ]);
-
+    
         setAllTransactions(newTransactions as Transaction[]);
         setBankAccounts(newAccounts as BankAccount[]);
         setBankCards(newCards as BankCard[]);
@@ -1228,4 +1243,5 @@ export const useData = (): DataContextType => {
 
 
     
+
 
