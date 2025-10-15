@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { useData } from "@/context/data-context";
 import { Skeleton } from "../ui/skeleton";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export function RecentTransactions() {
   const { transactions, isLoading, formatCurrency } = useData();
@@ -21,7 +23,7 @@ export function RecentTransactions() {
     <Card>
       <CardHeader>
         <CardTitle>Transacciones Recientes</CardTitle>
-        <CardDescription>Las últimas 5 transacciones registradas.</CardDescription>
+        <CardDescription>Las últimas 5 transacciones del período.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -37,18 +39,23 @@ export function RecentTransactions() {
               </div>
             ))
           ) : recentTransactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay transacciones registradas.</p>
+            <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">No hay transacciones registradas en este período.</p>
+            </div>
           ) : (
             recentTransactions.map((t, i) => (
               <div key={i} className="flex items-center gap-4">
-                <div className="h-9 w-9 flex items-center justify-center">
+                <div className="h-9 w-9 flex items-center justify-center rounded-lg bg-card-foreground/5">
                    {t.type === 'income' ? <ArrowUpRight className="h-5 w-5 text-green-500" /> : <ArrowDownLeft className="h-5 w-5 text-red-500" />}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{t.description}</p>
-                  <Badge variant="outline">{t.category}</Badge>
+                <div className="flex-1 truncate">
+                  <p className="text-sm font-medium truncate" title={t.description}>{t.description}</p>
+                   <div className="text-xs text-muted-foreground flex items-center gap-2">
+                       <Badge variant="outline">{t.category}</Badge>
+                       <span>{format(new Date(t.date), "dd MMM", { locale: es })}</span>
+                   </div>
                 </div>
-                <div className={`text-sm font-semibold ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`text-sm font-semibold truncate ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
                   {`${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount, false)}`}
                 </div>
               </div>
