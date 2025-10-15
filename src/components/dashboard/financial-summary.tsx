@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useData } from '@/context/data-context';
-import { Wallet, Scale, TrendingUp, TrendingDown } from 'lucide-react';
+import { Wallet, Scale, TrendingUp, TrendingDown, Landmark, Building, Briefcase } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function FinancialSummary() {
@@ -27,24 +27,27 @@ export function FinancialSummary() {
         const fInvestments = investments.filter(profileFilter);
         const fTangibleAssets = tangibleAssets.filter(profileFilter);
 
-        // Calculate Total Assets
+        // Asset Calculation
         const totalAccountBalances = fBankAccounts.reduce((sum, acc) => sum + acc.balance, 0);
         const totalInvestmentValues = fInvestments.reduce((sum, inv) => sum + inv.currentValue, 0);
         const totalTangibleAssetValues = fTangibleAssets.reduce((sum, asset) => sum + asset.estimatedValue, 0);
         const totalAssets = totalAccountBalances + totalInvestmentValues + totalTangibleAssetValues;
 
-        // Calculate Total Liabilities
+        // Liability Calculation
         const totalCreditCardDebt = fBankCards.filter(c => c.cardType === 'credit').reduce((sum, card) => sum + (card.usedAmount || 0), 0);
         const totalRemainingDebt = fDebts.reduce((sum, debt) => sum + (debt.totalAmount - debt.paidAmount), 0);
         const totalLiabilities = totalCreditCardDebt + totalRemainingDebt;
 
-        // Calculate Net Worth
+        // Net Worth
         const netWorth = totalAssets - totalLiabilities;
         
         return {
             totalAssets,
             totalLiabilities,
             netWorth,
+            liquidAssets: totalAccountBalances,
+            investedAssets: totalInvestmentValues,
+            tangibleAssets: totalTangibleAssetValues,
         }
 
     }, [filters.profile, bankAccounts, bankCards, debts, investments, tangibleAssets]);
@@ -96,25 +99,31 @@ export function FinancialSummary() {
                     </div>
                 </div>
 
-                 <div className="space-y-2">
+                 <div className="space-y-4 border-t border-border/50 pt-4">
                     <div className="flex items-center gap-3 font-semibold text-green-400">
                         <TrendingUp className="h-5 w-5" />
-                        <span>Total Activos</span>
+                        <span>Total Activos: {formatCurrency(summary.totalAssets)}</span>
                     </div>
-                    <div className="flex justify-between items-baseline text-sm">
-                        <span className="text-muted-foreground">Suma de todos tus bienes</span>
-                        <span className="font-medium text-foreground">{formatCurrency(summary.totalAssets)}</span>
+                    <div className="pl-8 space-y-2 text-sm">
+                         <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-muted-foreground"><Landmark className="h-4 w-4"/>Liquidez</span>
+                            <span className="font-medium">{formatCurrency(summary.liquidAssets)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-muted-foreground"><Briefcase className="h-4 w-4"/>Invertido</span>
+                            <span className="font-medium">{formatCurrency(summary.investedAssets)}</span>
+                        </div>
+                         <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4"/>Tangible</span>
+                            <span className="font-medium">{formatCurrency(summary.tangibleAssets)}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 border-t border-border/50 pt-4">
                     <div className="flex items-center gap-3 font-semibold text-red-400">
                         <TrendingDown className="h-5 w-5" />
-                        <span>Total Pasivos</span>
-                    </div>
-                    <div className="flex justify-between items-baseline text-sm">
-                        <span className="text-muted-foreground">Suma de todas tus deudas</span>
-                        <span className="font-medium text-foreground">{formatCurrency(summary.totalLiabilities)}</span>
+                        <span>Total Pasivos: {formatCurrency(summary.totalLiabilities)}</span>
                     </div>
                 </div>
             </CardContent>
