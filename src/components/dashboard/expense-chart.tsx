@@ -44,8 +44,17 @@ export function ExpenseChart() {
                             background: "hsl(var(--background))",
                             borderColor: "hsl(var(--border))",
                             borderRadius: "var(--radius)",
+                            fontSize: "12px"
                         }}
+                         labelStyle={{ fontWeight: 'bold' }}
+                        itemStyle={{ fontWeight: 'bold' }}
                         formatter={(value: number) => formatCurrency(value)}
+                        labelFormatter={(label, payload) => {
+                           if (payload && payload[0]) {
+                                return <span style={{ color: payload[0].payload.fill }}>{label}</span>
+                            }
+                            return label;
+                        }}
                     />
                     <Pie
                         data={expenseData}
