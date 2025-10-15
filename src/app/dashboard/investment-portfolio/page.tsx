@@ -76,7 +76,7 @@ export default function InvestmentsPortfolioPage() {
                         title="Saldo Disponible para Invertir"
                         value={<span className="text-green-500">{formatCurrency(availableToInvest)}</span>}
                         icon={Wallet}
-                        description="Capital total - Aportes a activos"
+                        description="Dinero líquido en tu cartera listo para ser asignado."
                     />
                     </>
                 )}
