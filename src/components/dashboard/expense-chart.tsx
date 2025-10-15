@@ -2,59 +2,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useData } from '@/context/data-context';
 import { Skeleton } from '../ui/skeleton';
 import type { Transaction } from '@/types';
-
-const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, rank, name, value, colors, expenseData }: any) => {
-  const { formatCurrency } = useData();
-  
-  if (width < 50 || height < 30) {
-    return null;
-  }
-
-  const item = expenseData[index];
-  const itemFill = item ? item.fill : '#8884d8';
-  
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          fill: itemFill,
-          stroke: '#fff',
-          strokeWidth: 2 / (depth + 1e-10),
-          strokeOpacity: 1 / (depth + 1e-10),
-        }}
-      />
-      <text
-        x={x + width / 2}
-        y={y + height / 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#fff"
-        className="text-xs font-medium"
-      >
-        {name}
-      </text>
-       <text
-        x={x + width / 2}
-        y={y + height / 2 + 14}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#fff"
-        className="text-xs opacity-80"
-      >
-        {formatCurrency(value, false, true)}
-      </text>
-    </g>
-  );
-};
-
 
 export function ExpenseChart() {
     const { transactions, categories, isLoading, formatCurrency } = useData();
@@ -66,9 +17,14 @@ export function ExpenseChart() {
             return acc;
         }, {});
 
+        const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+        if (totalExpenses === 0) return [];
+
         return Object.entries(expensesByCategory).map(([name, value]) => ({
             name,
-            size: value,
+            value,
+            percentage: (value / totalExpenses) * 100,
             fill: categories.find(c => c.name === name)?.color || '#8884d8'
         }));
     }, [transactions, categories]);
@@ -85,27 +41,43 @@ export function ExpenseChart() {
         );
     }
 
-    const colors = useMemo(() => expenseData.map(d => d.fill), [expenseData]);
-
     return (
         <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-                 <Treemap
-                    data={expenseData}
-                    dataKey="size"
-                    ratio={4 / 3}
-                    stroke="#fff"
-                    content={<CustomizedContent colors={colors} expenseData={expenseData} />}
-                >
+                 <PieChart>
                     <Tooltip
                         contentStyle={{
                             background: "hsl(var(--background))",
                             borderColor: "hsl(var(--border))",
                             borderRadius: "var(--radius)",
                         }}
-                        formatter={(value: number, name: string) => [formatCurrency(value), name === 'size' ? 'Monto' : name]}
+                        formatter={(value: number, name: string, props) => {
+                             const { payload } = props;
+                             return [
+                                `${formatCurrency(value)} (${payload.percentage.toFixed(1)}%)`,
+                                name
+                             ]
+                        }}
                     />
-                </Treemap>
+                    <Pie
+                        data={expenseData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={false}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="hsl(var(--background))"
+                        strokeWidth={2}
+                    >
+                        {expenseData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                    </Pie>
+                    <Legend iconSize={10} wrapperStyle={{fontSize: '12px'}}/>
+                </PieChart>
             </ResponsiveContainer>
         </div>
     );
