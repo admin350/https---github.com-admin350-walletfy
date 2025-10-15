@@ -21,46 +21,33 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-const CustomTooltip = ({ active, payload, formatCurrency }: any) => {
-    if (active && payload && payload.length) {
-        const data = payload[0];
-        const percent = (data.payload.percent * 100).toFixed(1);
-        return (
-            <div className="rounded-lg border bg-background/90 p-2 shadow-sm text-xs">
-                <div className="font-bold mb-1" style={{ color: data.payload.fill }}>
-                    {data.name}
-                </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                    <span className="font-medium text-muted-foreground">Monto:</span>
-                    <span className="font-mono text-right">{formatCurrency(data.value)}</span>
-                    <span className="font-medium text-muted-foreground">% del Total:</span>
-                    <span className="font-mono text-right">{percent}%</span>
-                </div>
-            </div>
-        );
-    }
-    return null;
-};
-
 
 const CustomLegend = (props: any) => {
     const { payload } = props;
     const { formatCurrency } = useData();
-    const total = payload.reduce((sum: number, entry: any) => sum + entry.payload.value, 0);
+    
+    if (!payload || payload.length === 0) return null;
 
-    const sortedPayload = [...payload].sort((a,b) => b.payload.value - a.payload.value);
+    const total = payload.reduce((sum: number, entry: any) => sum + entry.payload.value, 0);
+    const sortedPayload = [...payload].sort((a, b) => b.payload.value - a.payload.value);
 
     return (
-        <div className="flex flex-col justify-center h-full space-y-2 text-xs">
-            {sortedPayload.map((entry: any, index: number) => (
-                <div key={`item-${index}`} className="flex items-center justify-between">
-                    <div className="flex items-center truncate">
-                        <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.color }} />
-                        <span className="text-muted-foreground truncate" title={entry.value}>{entry.value}</span>
+        <div className="flex flex-col justify-center h-full space-y-3 text-sm overflow-y-auto">
+            {sortedPayload.map((entry: any, index: number) => {
+                 const percentage = (entry.payload.value / total) * 100;
+                 return (
+                    <div key={`item-${index}`} className="flex items-center justify-between">
+                        <div className="flex items-center truncate">
+                            <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: entry.color }} />
+                            <div className="flex flex-col">
+                                <span className="text-foreground text-xs truncate" title={entry.value}>{entry.value}</span>
+                                <span className="text-muted-foreground text-xs">{formatCurrency(entry.payload.value)}</span>
+                            </div>
+                        </div>
+                        <span className="font-mono font-medium text-xs ml-2">{percentage.toFixed(1)}%</span>
                     </div>
-                    <span className="font-mono font-medium ml-2">{((entry.payload.value / total) * 100).toFixed(1)}%</span>
-                </div>
-            ))}
+                )
+            })}
         </div>
     );
 };
@@ -100,7 +87,15 @@ export function ExpenseChart() {
             <ResponsiveContainer width="100%" height="100%">
                  <PieChart>
                     <Tooltip
-                        content={<CustomTooltip formatCurrency={formatCurrency} />}
+                        cursor={{ fill: 'hsl(var(--muted) / 0.5)'}}
+                        contentStyle={{
+                            background: "hsl(var(--background))",
+                            borderColor: "hsl(var(--border))",
+                            borderRadius: "var(--radius)",
+                            fontSize: '12px'
+                        }}
+                        formatter={(value: number) => formatCurrency(value)}
+                        labelStyle={{ color: 'hsl(var(--foreground))' }}
                     />
                     <Pie
                         data={expenseData}
@@ -121,8 +116,8 @@ export function ExpenseChart() {
                     </Pie>
                 </PieChart>
             </ResponsiveContainer>
-            <div className="max-h-[220px] overflow-y-auto pr-2">
-                 <CustomLegend payload={expenseData.map(item => ({...item, payload: item}))}/>
+            <div className="max-h-[250px] overflow-y-auto pr-2">
+                 <CustomLegend payload={expenseData.map(item => ({...item, color: item.fill, payload: item, value: item.name}))}/>
             </div>
         </div>
     );
