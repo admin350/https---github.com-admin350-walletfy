@@ -65,12 +65,18 @@ export function TransactionsDataTable() {
             });
         }
     };
+    
+    const typeTranslations: { [key: string]: string } = {
+        income: 'Ingreso',
+        expense: 'Egreso',
+        transfer: 'Transferencia'
+    }
 
     const columns: ColumnDef<Transaction>[] = [
         {
             accessorKey: "date",
             header: "Fecha",
-            cell: ({ row }) => format(new Date(row.getValue("date")), "dd/MM/yyyy"),
+            cell: ({ row }) => format(new Date(row.getValue("date")), "dd/MM/yyyy HH:mm"),
         },
         {
             accessorKey: "description",
@@ -92,7 +98,7 @@ export function TransactionsDataTable() {
                 const type = row.getValue("type") as string;
                 const variant = type === 'income' ? 'default' : type === 'expense' ? 'destructive' : 'secondary';
                 const className = type === 'income' ? 'bg-green-500/20 text-green-500 border-green-500/20' : type === 'expense' ? 'bg-red-500/20 text-red-500 border-red-500/20' : 'bg-blue-500/20 text-blue-500 border-blue-500/20';
-                return <Badge variant={variant} className={className}>{type.charAt(0).toUpperCase() + type.slice(1)}</Badge>
+                return <Badge variant={variant} className={className}>{typeTranslations[type] || type}</Badge>
             }
         },
         {
@@ -236,7 +242,10 @@ export function TransactionsDataTable() {
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
+             <div className="flex items-center justify-end space-x-2 py-4">
+                <div className="flex-1 text-sm text-muted-foreground">
+                    Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+                </div>
                 <Button
                     variant="outline"
                     size="sm"
