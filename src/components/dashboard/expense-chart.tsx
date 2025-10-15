@@ -7,12 +7,15 @@ import { useData } from '@/context/data-context';
 import { Skeleton } from '../ui/skeleton';
 import type { Transaction } from '@/types';
 
-const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, rank, name, value }: any) => {
+const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, rank, name, value, colors, expenseData }: any) => {
   const { formatCurrency } = useData();
   
   if (width < 50 || height < 30) {
     return null;
   }
+
+  const item = expenseData[index];
+  const itemFill = item ? item.fill : '#8884d8';
   
   return (
     <g>
@@ -22,7 +25,7 @@ const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, r
         width={width}
         height={height}
         style={{
-          fill: payload.fill,
+          fill: itemFill,
           stroke: '#fff',
           strokeWidth: 2 / (depth + 1e-10),
           strokeOpacity: 1 / (depth + 1e-10),
@@ -82,6 +85,8 @@ export function ExpenseChart() {
         );
     }
 
+    const colors = useMemo(() => expenseData.map(d => d.fill), [expenseData]);
+
     return (
         <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -90,7 +95,7 @@ export function ExpenseChart() {
                     dataKey="size"
                     ratio={4 / 3}
                     stroke="#fff"
-                    content={<CustomizedContent />}
+                    content={<CustomizedContent colors={colors} expenseData={expenseData} />}
                 >
                     <Tooltip
                         contentStyle={{
