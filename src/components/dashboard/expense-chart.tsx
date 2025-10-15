@@ -2,10 +2,56 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import { useData } from '@/context/data-context';
 import { Skeleton } from '../ui/skeleton';
 import type { Transaction } from '@/types';
+
+const CustomizedContent = ({ root, depth, x, y, width, height, index, payload, rank, name, value }: any) => {
+  const { formatCurrency } = useData();
+  
+  if (width < 50 || height < 30) {
+    return null;
+  }
+  
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        style={{
+          fill: payload.fill,
+          stroke: '#fff',
+          strokeWidth: 2 / (depth + 1e-10),
+          strokeOpacity: 1 / (depth + 1e-10),
+        }}
+      />
+      <text
+        x={x + width / 2}
+        y={y + height / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#fff"
+        className="text-xs font-medium"
+      >
+        {name}
+      </text>
+       <text
+        x={x + width / 2}
+        y={y + height / 2 + 14}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#fff"
+        className="text-xs opacity-80"
+      >
+        {formatCurrency(value, false, true)}
+      </text>
+    </g>
+  );
+};
+
 
 export function ExpenseChart() {
     const { transactions, categories, isLoading, formatCurrency } = useData();
@@ -19,7 +65,7 @@ export function ExpenseChart() {
 
         return Object.entries(expensesByCategory).map(([name, value]) => ({
             name,
-            value,
+            size: value,
             fill: categories.find(c => c.name === name)?.color || '#8884d8'
         }));
     }, [transactions, categories]);
@@ -37,33 +83,24 @@ export function ExpenseChart() {
     }
 
     return (
-        <div className="h-[200px]">
+        <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                 <Treemap
+                    data={expenseData}
+                    dataKey="size"
+                    ratio={4 / 3}
+                    stroke="#fff"
+                    content={<CustomizedContent />}
+                >
                     <Tooltip
                         contentStyle={{
                             background: "hsl(var(--background))",
                             borderColor: "hsl(var(--border))",
                             borderRadius: "var(--radius)",
                         }}
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value: number, name: string) => [formatCurrency(value), name === 'size' ? 'Monto' : name]}
                     />
-                    <Pie
-                        data={expenseData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        dataKey="value"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                    >
-                        {expenseData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                    </Pie>
-                    <Legend iconSize={10} wrapperStyle={{fontSize: '12px'}}/>
-                </PieChart>
+                </Treemap>
             </ResponsiveContainer>
         </div>
     );
